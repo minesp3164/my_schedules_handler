@@ -1,0 +1,5 @@
+production:
+  daily_nudge:
+    class: SendDailyNudgeJob
+    queue: notifications
+    schedule: every minute
