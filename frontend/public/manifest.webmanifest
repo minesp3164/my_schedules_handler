@@ -1,0 +1,12 @@
+{
+  "name": "취준 리워드 트래커",
+  "short_name": "리워드 트래커",
+  "description": "취업 준비의 작은 진척을 기록하는 개인용 리워드 트래커",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#171526",
+  "theme_color": "#171526",
+  "icons": [
+    { "src": "/assets/icon.png", "sizes": "1024x1024", "type": "image/png", "purpose": "any maskable" }
+  ]
+}
