@@ -1,0 +1,8 @@
+{
+  "title": "記録",
+  "description": "直近7日間の小さな進捗を振り返りましょう。",
+  "connect": "デバイスを接続すると実際の記録が表示されます。",
+  "weeklyPoints": "今週のポイント",
+  "completedDays": "完了した日",
+  "dailyPoints": "日ごとのポイント"
+}

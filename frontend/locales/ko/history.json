@@ -1,0 +1,8 @@
+{
+  "title": "기록",
+  "description": "최근 7일의 작은 진척을 모아봐요.",
+  "connect": "기기를 연결하면 실제 기록이 표시돼요.",
+  "weeklyPoints": "이번 주 포인트",
+  "completedDays": "완료한 날",
+  "dailyPoints": "일별 포인트"
+}

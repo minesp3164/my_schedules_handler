@@ -1,0 +1,21 @@
+{
+  "title": "설정",
+  "description": "나에게 맞는 집중 리듬을 정해요.",
+  "connect": "기기를 연결하면 설정을 저장할 수 있어요.",
+  "focusTime": "집중 시간",
+  "focusTimeValue": "집중 %{focus}분 · 휴식 %{break}분",
+  "nudge": "13시 재촉 알림",
+  "nudgeDescription": "%{time} KST에 한 번만 알려드려요.",
+  "manageTasks": "오늘의 할 일 관리",
+  "manageTasksDescription": "항목, 포인트, 목표 횟수를 수정합니다.",
+  "nudgeTime": "재촉 시각",
+  "nudgeTimeHint": "KST 기준 HH:MM 형식으로 입력하세요.",
+  "saveTime": "시각 저장",
+  "invalidTime": "00:00부터 23:59 사이의 시각을 입력해 주세요.",
+  "notificationPermission": "알림 권한",
+  "permissionGranted": "알림이 허용되어 있어요.",
+  "permissionUndetermined": "아직 알림 권한을 선택하지 않았어요.",
+  "permissionDenied": "기기 설정에서 알림을 허용해 주세요.",
+  "permissionUnsupported": "이 브라우저에서는 알림을 지원하지 않아요.",
+  "allowNotifications": "알림 허용"
+}

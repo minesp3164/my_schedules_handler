@@ -1,0 +1,18 @@
+{
+  "title": "集中時間",
+  "description": "完了したときだけ +10ポイントが記録されます。",
+  "paused": "一時停止中",
+  "running": "集中中",
+  "default": "25分集中",
+  "start": "集中を開始",
+  "resume": "再開",
+  "pause": "一時停止",
+  "complete": "完了",
+  "cancel": "やめる",
+  "finished": "集中時間が終わりました。完了を押して +10ポイントを受け取りましょう。",
+  "notificationTitle": "集中時間が完了しました",
+  "notificationBody": "お疲れさまでした。完了を押して +10ポイントを記録しましょう。",
+  "notificationChannel": "集中完了のお知らせ",
+  "preview": "通知を確認",
+  "previewUnavailable": "通知を許可すると確認できます。"
+}

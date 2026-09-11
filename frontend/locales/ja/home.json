@@ -1,0 +1,14 @@
+{
+  "greeting": "今日の最初の5分、\n一緒に始めませんか？",
+  "description": "今日の目標を一つずつ進めましょう。小さな記録にも十分な意味があります。",
+  "connectTitle": "実際の記録を見るには、このデバイスを接続してください",
+  "connectDescription": "個人用接続キーで一度だけ接続します。",
+  "tasks": "今日のタスク",
+  "emptyTasks": "登録されたタスクはありません。設定から追加してください。",
+  "completed": "%{completed} / %{total} 完了",
+  "doneRevert": "完了 · タップしてすべて取り消す",
+  "progress": "%{completed} / %{total}回",
+  "reward": "今日の報酬への道",
+  "remaining": "報酬まであと %{points}",
+  "startFocus": "▶ 25分集中を開始 · +10ポイント"
+}

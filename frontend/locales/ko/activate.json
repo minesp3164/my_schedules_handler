@@ -1,0 +1,8 @@
+{
+  "title": "기기 연결",
+  "description": "개인 서버의 접속 키를 한 번만 입력하면 이 기기를 연결해요.",
+  "placeholder": "개인 접속 키",
+  "connecting": "연결 중…",
+  "connect": "이 기기 연결",
+  "deviceName": "웹 브라우저"
+}
