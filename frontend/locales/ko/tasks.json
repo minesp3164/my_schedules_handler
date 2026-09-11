@@ -1,0 +1,11 @@
+{
+  "back": "‹ 설정으로",
+  "title": "오늘의 할 일 관리",
+  "description": "한 번의 완료가 남길 포인트와 목표 횟수를 정해요.",
+  "connect": "기기를 연결한 뒤 할 일을 관리할 수 있어요.",
+  "placeholder": "새 할 일",
+  "add": "추가",
+  "taskMeta": "+%{points}점 · 하루 %{count}회",
+  "disable": "끄기",
+  "saveFailed": "저장하지 못했어요. 다시 시도해주세요."
+}

@@ -1,0 +1,21 @@
+{
+  "title": "設定",
+  "description": "自分に合った集中のリズムを決めましょう。",
+  "connect": "デバイスを接続すると設定を保存できます。",
+  "focusTime": "集中時間",
+  "focusTimeValue": "集中 %{focus}分 · 休憩 %{break}分",
+  "nudge": "13時のリマインダー",
+  "nudgeDescription": "%{time} KSTに一度だけお知らせします。",
+  "manageTasks": "今日のタスクを管理",
+  "manageTasksDescription": "項目、ポイント、目標回数を編集します。",
+  "nudgeTime": "リマインダー時刻",
+  "nudgeTimeHint": "KST基準で HH:MM 形式で入力してください。",
+  "saveTime": "時刻を保存",
+  "invalidTime": "00:00から23:59までの時刻を入力してください。",
+  "notificationPermission": "通知の許可",
+  "permissionGranted": "通知が許可されています。",
+  "permissionUndetermined": "通知の許可はまだ選択されていません。",
+  "permissionDenied": "端末の設定で通知を許可してください。",
+  "permissionUnsupported": "このブラウザでは通知を利用できません。",
+  "allowNotifications": "通知を許可"
+}

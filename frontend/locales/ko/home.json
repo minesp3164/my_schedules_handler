@@ -1,0 +1,14 @@
+{
+  "greeting": "오늘의 첫 5분,\n함께 시작할까요?",
+  "description": "오늘 목표를 하나씩 채워보세요. 작은 기록도 충분히 의미 있어요.",
+  "connectTitle": "실제 기록을 보려면 이 기기를 연결하세요",
+  "connectDescription": "개인 접속 키로 한 번만 연결합니다.",
+  "tasks": "오늘의 할 일",
+  "emptyTasks": "등록된 할 일이 없어요. 설정에서 추가해보세요.",
+  "completed": "%{completed} / %{total} 완료",
+  "doneRevert": "완료 · 탭해서 전체 취소",
+  "progress": "%{completed} / %{total}회",
+  "reward": "오늘의 보상 궤도",
+  "remaining": "보상까지 %{points} 남았어요",
+  "startFocus": "▶ 25분 집중 시작 · +10점"
+}

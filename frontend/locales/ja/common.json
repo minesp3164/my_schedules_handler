@@ -1,0 +1,10 @@
+{
+  "point": "%{count}ポイント",
+  "times": "%{count}回",
+  "day": "%{count}日",
+  "connectFirst": "先にデバイスを接続してください。",
+  "requestFailed": "リクエストを処理できませんでした。",
+  "connectFailed": "デバイスを接続できませんでした。",
+  "notFoundTitle": "画面が見つかりません。",
+  "goHome": "ホームに戻る"
+}
