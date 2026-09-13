@@ -1,5 +1,6 @@
 import { t } from '@/services/i18n';
 import { createUuid } from '@/services/ids';
+import { syncTodayPointsWidget } from '@/services/today-points-widget';
 
 const apiBaseUrl = process.env.EXPO_PUBLIC_API_URL ?? 'http://192.168.200.104:3000/api/v1';
 
@@ -11,6 +12,7 @@ export type Dashboard = {
     title: string;
     points: number;
     target_count: number;
+    position: number;
     completed_count: number;
     goal_completed: boolean;
     completions: { id: string }[];
@@ -21,6 +23,7 @@ export type Dashboard = {
     started_at: string;
     planned_seconds: number;
     paused_seconds: number;
+    paused_at: string | null;
   } | null;
 };
 
@@ -37,7 +40,9 @@ async function request<T>(path: string, token: string, init?: RequestInit) {
 }
 
 export async function getDashboard(token: string) {
-  return (await request<ApiResponse<Dashboard>>('/dashboard', token)).data;
+  const dashboard = (await request<ApiResponse<Dashboard>>('/dashboard', token)).data;
+  syncTodayPointsWidget(dashboard.daily_summary.points_total);
+  return dashboard;
 }
 
 export function createIdempotencyKey() {
@@ -132,7 +137,7 @@ export async function getTaskTemplates(token: string) {
 }
 
 export function createTaskTemplate(token: string, task: Omit<TaskTemplate, 'id' | 'active'>) {
-  return request('/task_templates', token, {
+  return request<ApiResponse<TaskTemplate>>('/task_templates', token, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ task_template: task }),
@@ -165,7 +170,6 @@ export function registerPushSubscription(
 }
 
 export async function activateDevice(input: {
-  setupKey: string;
   installationId: string;
   name: string;
   platform: string;
@@ -175,7 +179,6 @@ export async function activateDevice(input: {
     headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
     body: JSON.stringify({
       device: {
-        setup_key: input.setupKey,
         installation_id: input.installationId,
         name: input.name,
         platform: input.platform,
