@@ -4,14 +4,15 @@ module Rewards
       new(...).call
     end
 
-    def initialize(setting: Setting.instance)
+    def initialize(user:, setting: Setting.instance)
+      @user = user
       @setting = setting
     end
 
     def call
       RewardRule.transaction do
         default_rules.map do |attributes|
-          rule = RewardRule.find_or_initialize_by(period: attributes.fetch(:period))
+          rule = @user.reward_rules.find_or_initialize_by(period: attributes.fetch(:period))
           rule.update!(attributes)
           rule
         end

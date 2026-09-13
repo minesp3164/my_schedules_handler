@@ -6,12 +6,13 @@ module Rewards
       new(...).call
     end
 
-    def initialize(date:)
+    def initialize(date:, user:)
       @date = date
+      @user = user
     end
 
     def call
-      rules = SyncDefaultRules.call.index_by(&:period)
+      rules = SyncDefaultRules.call(user: @user).index_by(&:period)
       Result.new(
         status_for(rules.fetch("daily"), @date.to_s, daily_points),
         status_for(rules.fetch("weekly"), weekly_period_key, weekly_points)
@@ -34,11 +35,11 @@ module Rewards
     end
 
     def daily_points
-      @daily_points ||= PointEvent.effective.where(activity_date: @date).sum(:points)
+      @daily_points ||= @user.point_events.effective.where(activity_date: @date).sum(:points)
     end
 
     def weekly_points
-      @weekly_points ||= PointEvent.effective.where(activity_date: week_start..week_end).sum(:points)
+      @weekly_points ||= @user.point_events.effective.where(activity_date: week_start..week_end).sum(:points)
     end
 
     def week_start

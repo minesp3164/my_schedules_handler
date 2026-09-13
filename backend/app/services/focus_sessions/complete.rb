@@ -39,6 +39,7 @@ module FocusSessions
         )
         date = @ended_at.in_time_zone("Asia/Seoul").to_date
         event = PointEvent.create!(
+          user: @focus_session.user,
           focus_session: @focus_session,
           source_device: @focus_session.source_device,
           activity_date: date,
@@ -48,7 +49,7 @@ module FocusSessions
           occurred_at: @ended_at
         )
         summary = Points::RecalculateDailySummary.call(date: date, first_activity_at: @focus_session.started_at)
-        rewards = Rewards::Evaluate.call(date: date, achieved_at: @ended_at)
+        rewards = Rewards::Evaluate.call(date: date, achieved_at: @ended_at, user: @focus_session.user)
         Result.new(@focus_session, event, summary, rewards.achievements, false)
       end
     end

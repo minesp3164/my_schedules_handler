@@ -6,7 +6,7 @@ module Api
       rescue_from ArgumentError, with: :render_invalid_date
 
       def show
-        result = Dashboard::Show.call(date: requested_date)
+        result = Dashboard::Show.call(date: requested_date, user: current_user)
         render json: {
           data: {
             date: result.date,

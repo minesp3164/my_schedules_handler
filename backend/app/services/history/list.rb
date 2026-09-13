@@ -9,16 +9,17 @@ module History
       new(...).call
     end
 
-    def initialize(from:, to:)
+    def initialize(from:, to:, user:)
       @from = from
       @to = to
+      @user = user
     end
 
     def call
       raise InvalidRange if @to < @from || (@to - @from).to_i >= MAXIMUM_DAYS
 
       summaries = DailySummary.where(date: @from..@to).index_by(&:date)
-      events_by_date = PointEvent.where(activity_date: @from..@to).order(:occurred_at, :created_at).group_by(&:activity_date)
+      events_by_date = @user.point_events.where(activity_date: @from..@to).order(:occurred_at, :created_at).group_by(&:activity_date)
 
       Result.new(@from, @to, (@from..@to).map do |date|
         summary = summaries[date]

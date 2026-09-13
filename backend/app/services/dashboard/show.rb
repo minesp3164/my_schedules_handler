@@ -6,12 +6,13 @@ module Dashboard
       new(...).call
     end
 
-    def initialize(date:)
+    def initialize(date:, user:)
       @date = date
+      @user = user
     end
 
     def call
-      tasks = TaskTemplate.active_in_order.to_a
+      tasks = @user.task_templates.active_in_order.to_a
       completions_by_task = DailyTaskCompletion.active
         .where(task_template_id: tasks.map(&:id), completed_on: @date)
         .order(:sequence)
@@ -21,8 +22,8 @@ module Dashboard
         @date,
         DailySummary.find_by(date: @date),
         tasks.map { |task| task_payload(task, completions_by_task.fetch(task.id, [])) },
-        FocusSession.active.order(created_at: :desc).first,
-        Rewards::Progress.call(date: @date)
+        FocusSession.active.where(user: @user).order(created_at: :desc).first,
+        Rewards::Progress.call(date: @date, user: @user)
       )
     end
 
