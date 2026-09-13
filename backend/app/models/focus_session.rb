@@ -1,4 +1,5 @@
 class FocusSession < ApplicationRecord
+  belongs_to :user
   MINIMUM_PLANNED_SECONDS = 60
   MAXIMUM_PLANNED_SECONDS = 7200
 

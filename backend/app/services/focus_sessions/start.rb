@@ -22,9 +22,10 @@ module FocusSessions
       FocusSession.transaction do
         existing = FocusSession.lock.find_by(start_idempotency_key: @idempotency_key)
         return Result.new(existing, true) if existing
-        raise ActiveFocusSessionExists if FocusSession.active.lock.exists?
+        raise ActiveFocusSessionExists if FocusSession.active.where(user: @source_device.user).lock.exists?
 
         session = FocusSession.create!(
+          user: @source_device.user,
           source_device: @source_device,
           started_at: @now,
           planned_seconds: @planned_seconds,

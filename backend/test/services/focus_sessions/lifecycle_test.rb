@@ -3,7 +3,9 @@ require "digest"
 
 class FocusSessions::LifecycleTest < ActiveSupport::TestCase
   setup do
+    @user = User.create!
     @device = Device.create!(
+      user: @user,
       installation_id: SecureRandom.uuid,
       name: "Timer test device",
       platform: "ios",

@@ -24,7 +24,7 @@ module Tasks
         existing = PointEvent.lock.find_by(idempotency_key: @idempotency_key)
         return replay(existing) if existing
 
-        task = TaskTemplate.lock.find(@task_template_id)
+        task = @source_device.user.task_templates.lock.find(@task_template_id)
         raise InactiveTask unless task.active?
 
         date = @now.in_time_zone("Asia/Seoul").to_date
@@ -39,6 +39,7 @@ module Tasks
           completed_at: @now
         )
         event = PointEvent.create!(
+          user: @source_device.user,
           daily_task_completion: completion,
           source_device: @source_device,
           activity_date: date,
@@ -52,6 +53,7 @@ module Tasks
         events = [event]
         if all_goals_completed?(date) && !summary.daily_bonus_awarded?
           bonus = PointEvent.create!(
+            user: @source_device.user,
             activity_date: date,
             event_type: "daily_bonus",
             points: Setting.instance.daily_bonus_points,
@@ -63,7 +65,7 @@ module Tasks
           events << bonus
         end
 
-        rewards = Rewards::Evaluate.call(date: date, achieved_at: @now)
+        rewards = Rewards::Evaluate.call(date: date, achieved_at: @now, user: @source_device.user)
         Result.new(completion, events, summary, rewards.achievements, false)
       end
     end
@@ -77,7 +79,7 @@ module Tasks
     end
 
     def all_goals_completed?(date)
-      TaskTemplate.active_in_order.all? do |task|
+      @source_device.user.task_templates.active_in_order.all? do |task|
         task.daily_task_completions.active.where(completed_on: date).count >= task.target_count
       end
     end

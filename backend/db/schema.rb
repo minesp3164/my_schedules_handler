@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_09_11_000007) do
+ActiveRecord::Schema[8.1].define(version: 2026_09_12_000008) do
   create_table "daily_summaries", primary_key: "date", id: :date, force: :cascade do |t|
     t.datetime "all_goals_completed_at"
     t.datetime "created_at", null: false
@@ -44,10 +44,12 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_11_000007) do
     t.string "platform", null: false
     t.datetime "revoked_at"
     t.datetime "updated_at", null: false
+    t.string "user_id", null: false
     t.text "web_push_subscription"
     t.index ["access_token_digest"], name: "index_devices_on_access_token_digest", unique: true
     t.index ["installation_id"], name: "index_devices_on_installation_id", unique: true
     t.index ["revoked_at"], name: "index_devices_on_revoked_at"
+    t.index ["user_id"], name: "index_devices_on_user_id"
   end
 
   create_table "focus_sessions", id: :string, force: :cascade do |t|
@@ -63,9 +65,11 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_11_000007) do
     t.datetime "started_at", null: false
     t.string "status", default: "running", null: false
     t.datetime "updated_at", null: false
+    t.string "user_id", null: false
     t.index ["active_lock"], name: "index_focus_sessions_on_active_lock", unique: true, where: "active_lock = 1"
     t.index ["source_device_id"], name: "index_focus_sessions_on_source_device_id"
     t.index ["start_idempotency_key"], name: "index_focus_sessions_on_start_idempotency_key", unique: true
+    t.index ["user_id"], name: "index_focus_sessions_on_user_id"
     t.check_constraint "completed_seconds IS NULL OR completed_seconds >= 0", name: "focus_sessions_completed_seconds_non_negative"
     t.check_constraint "paused_seconds >= 0", name: "focus_sessions_paused_seconds_non_negative"
     t.check_constraint "planned_seconds BETWEEN 60 AND 7200", name: "focus_sessions_planned_seconds_range"
@@ -104,10 +108,12 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_11_000007) do
     t.datetime "reversed_at"
     t.string "source_device_id"
     t.datetime "updated_at", null: false
+    t.string "user_id", null: false
     t.index ["daily_task_completion_id"], name: "index_point_events_on_daily_task_completion_id"
     t.index ["focus_session_id"], name: "index_point_events_on_focus_session", unique: true, where: "focus_session_id IS NOT NULL"
     t.index ["idempotency_key"], name: "index_point_events_on_idempotency_key", unique: true
     t.index ["source_device_id"], name: "index_point_events_on_source_device_id"
+    t.index ["user_id"], name: "index_point_events_on_user_id"
     t.check_constraint "NOT (daily_task_completion_id IS NOT NULL AND focus_session_id IS NOT NULL)", name: "point_events_one_activity_source"
   end
 
@@ -129,7 +135,9 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_11_000007) do
     t.integer "required_points", null: false
     t.string "reward_text", null: false
     t.datetime "updated_at", null: false
-    t.index ["period"], name: "index_reward_rules_on_period", unique: true
+    t.string "user_id", null: false
+    t.index ["user_id", "period"], name: "index_reward_rules_on_user_id_and_period", unique: true
+    t.index ["user_id"], name: "index_reward_rules_on_user_id"
     t.check_constraint "period IN ('daily', 'weekly')", name: "reward_rules_valid_period"
     t.check_constraint "required_points > 0", name: "reward_rules_required_points_positive"
   end
@@ -168,16 +176,28 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_11_000007) do
     t.integer "target_count", default: 1, null: false
     t.string "title", null: false
     t.datetime "updated_at", null: false
+    t.string "user_id", null: false
+    t.index ["user_id"], name: "index_task_templates_on_user_id"
     t.check_constraint "points >= 0", name: "task_template_points_non_negative"
     t.check_constraint "target_count > 0", name: "task_template_target_count_positive"
   end
 
+  create_table "users", id: :string, force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+  end
+
   add_foreign_key "daily_task_completions", "devices", column: "source_device_id"
   add_foreign_key "daily_task_completions", "task_templates"
+  add_foreign_key "devices", "users"
   add_foreign_key "focus_sessions", "devices", column: "source_device_id"
+  add_foreign_key "focus_sessions", "users"
   add_foreign_key "notification_deliveries", "devices"
   add_foreign_key "point_events", "daily_task_completions"
   add_foreign_key "point_events", "devices", column: "source_device_id"
   add_foreign_key "point_events", "focus_sessions"
+  add_foreign_key "point_events", "users"
   add_foreign_key "reward_achievements", "reward_rules"
+  add_foreign_key "reward_rules", "users"
+  add_foreign_key "task_templates", "users"
 end

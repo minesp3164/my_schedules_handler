@@ -1,4 +1,5 @@
 class Device < ApplicationRecord
+  belongs_to :user
   validates :installation_id, :name, :platform, :access_token_digest, presence: true
   validates :installation_id, :access_token_digest, uniqueness: true
   validates :platform, inclusion: { in: %w[ios android web] }

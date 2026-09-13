@@ -1,4 +1,5 @@
 class PointEvent < ApplicationRecord
+  belongs_to :user
   belongs_to :daily_task_completion, optional: true
   belongs_to :focus_session, optional: true
   belongs_to :source_device, class_name: "Device", optional: true

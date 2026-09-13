@@ -1,4 +1,5 @@
 class TaskTemplate < ApplicationRecord
+  belongs_to :user
   has_many :daily_task_completions, dependent: :restrict_with_exception
 
   validates :title, presence: true, length: { maximum: 100 }

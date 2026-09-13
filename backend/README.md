@@ -8,7 +8,7 @@
 
 Rails는 다음만 담당한다.
 
-- 기기 인증과 개인 데이터 보호
+- 기기별 자동 등록과 토큰 관리
 - 할 일 완료, 타이머 완료, 보너스의 트랜잭션 처리
 - SQLite를 기준으로 한 점수·보상·일일 집계
 - 웹·앱 간 실시간 동기화(Action Cable)
@@ -24,7 +24,7 @@ Rails는 다음만 담당한다.
 | DB | SQLite 3, WAL mode, 영속 볼륨 |
 | 비동기 작업 | Solid Queue + Rails recurring tasks |
 | 실시간 | Action Cable |
-| 인증 | 개인 접속 키로 발급하는 기기 토큰 |
+| 인증 | 자동 등록으로 발급하는 기기 토큰 |
 | 앱 푸시 | Expo Push API |
 | 웹 푸시 | Web Push + VAPID |
 | 테스트 | RSpec 또는 Rails 기본 테스트 중 한 가지로 통일 |
@@ -100,7 +100,7 @@ ERD의 상세 컬럼과 제약은 상위 [erd.md](../erd.md)에 둔다.
 
 | 메서드 | 경로 | 요청 핵심 | 응답 핵심 |
 | --- | --- | --- | --- |
-| POST | `/devices/activate` | `setup_key`, `installation_id`, `platform`, `name` | 기기 토큰, device |
+| POST | `/devices/activate` | `installation_id`, `platform`, `name` | 기기 토큰, device |
 | DELETE | `/devices/current` | 현재 기기 토큰 | 기기 연결 해제·토큰 무효화 |
 | GET | `/dashboard?date=YYYY-MM-DD` | 날짜 선택 | 오늘 할 일, 점수, 보상 진행도, 요약 |
 | POST | `/tasks/:task_template_id/completions` | `idempotency_key` | completion, point_event, dashboard revision |
@@ -172,7 +172,7 @@ ERD의 상세 컬럼과 제약은 상위 [erd.md](../erd.md)에 둔다.
 
 ## 9. 보안과 운영
 
-- `.env`는 커밋하지 않는다. `SETUP_KEY`, `RAILS_MASTER_KEY`, VAPID 키, Expo 설정은 서버 환경 변수 또는 Rails credentials에 둔다.
+- `.env`는 커밋하지 않는다. `RAILS_MASTER_KEY`, VAPID 키, Expo 설정은 서버 환경 변수 또는 Rails credentials에 둔다.
 - 기기 토큰은 DB에 해시로 저장하고, 원문은 발급 순간 한 번만 반환한다.
 - CORS는 웹 PWA 도메인만 허용한다.
 - SQLite는 WAL 모드·foreign keys 활성화·매일 백업을 사용한다. 단일 서버와 영속 볼륨이 전제다.
@@ -201,4 +201,4 @@ bin/rails server
 
 개발 데이터는 `bin/rails db:seed`로 만든다. 로컬 Task API를 확인할 때만 `Authorization: Bearer development-token`을 사용한다. 이 토큰은 개발 전용이므로 실제 배포에서는 기기 활성화 API가 발급한 토큰으로 교체한다.
 
-새 기기는 `POST /api/v1/devices/activate`에 `setup_key`, `installation_id`, `name`, `platform`을 전송해 활성화한다. 반환된 `access_token`은 그 응답에서만 보이며, 이후 모든 보호된 API에 `Authorization: Bearer <access_token>`으로 전송한다.
+새 기기는 첫 실행 시 `POST /api/v1/devices/activate`에 `installation_id`, `name`, `platform`을 전송해 자동 등록된다. 반환된 `access_token`은 그 응답에서만 보이며, 이후 모든 보호된 API에 `Authorization: Bearer <access_token>`으로 전송한다.

@@ -9,7 +9,7 @@ module Api
       rescue_from FocusSessions::Complete::InvalidEndedAt, with: :render_invalid_ended_at
 
       def current
-        render json: { data: focus_session_payload(FocusSession.active.order(created_at: :desc).first) }
+        render json: { data: focus_session_payload(FocusSession.active.where(user: current_user).order(created_at: :desc).first) }
       end
 
       def create
@@ -66,7 +66,7 @@ module Api
       private
 
       def find_session
-        FocusSession.find(params[:id])
+        current_user.focus_sessions.find(params[:id])
       end
 
       def create_params

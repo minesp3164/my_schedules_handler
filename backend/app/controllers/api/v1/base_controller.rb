@@ -14,6 +14,8 @@ module Api
 
       attr_reader :current_device
 
+      delegate :user, to: :current_device, prefix: :current
+
       def authenticate_device!
         token = request.authorization.to_s.delete_prefix("Bearer ").presence
         digest = Digest::SHA256.hexdigest(token.to_s)

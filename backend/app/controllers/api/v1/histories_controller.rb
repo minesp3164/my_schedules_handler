@@ -7,7 +7,7 @@ module Api
       rescue_from History::List::InvalidRange, with: :render_invalid_range
 
       def index
-        result = History::List.call(from: requested_date(:from), to: requested_date(:to))
+        result = History::List.call(from: requested_date(:from), to: requested_date(:to), user: current_user)
         render json: {
           data: {
             from: result.from,
