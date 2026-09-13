@@ -16,6 +16,7 @@ class Notifications::DailyNudgeTest < ActiveSupport::TestCase
 
   setup do
     @device = Device.create!(
+      user: User.create!,
       installation_id: SecureRandom.uuid,
       name: "Nudge device",
       platform: "ios",

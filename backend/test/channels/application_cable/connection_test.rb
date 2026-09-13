@@ -7,6 +7,7 @@ class ApplicationCable::ConnectionTest < ActionCable::Connection::TestCase
   setup do
     @token = "cable-test-token"
     @device = Device.create!(
+      user: User.create!,
       installation_id: SecureRandom.uuid,
       name: "Cable device",
       platform: "web",

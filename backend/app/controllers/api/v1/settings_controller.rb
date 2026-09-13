@@ -8,6 +8,7 @@ module Api
       def update
         setting = Setting.instance
         setting.update!(settings_params)
+        Rewards::SyncDefaultRules.call(user: current_user, setting: setting)
         revision = Realtime::Publish.call(event: "settings.updated", data: {}).revision
         render json: { data: settings_payload(setting), meta: { revision: revision, server_time: Time.current } }
       end

@@ -6,6 +6,7 @@ class Api::V1::SettingsControllerTest < ActionDispatch::IntegrationTest
     @token = "settings-test-token"
     @headers = { "Authorization" => "Bearer #{@token}" }
     Device.create!(
+      user: User.create!,
       installation_id: SecureRandom.uuid,
       name: "Settings device",
       platform: "ios",

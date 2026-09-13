@@ -12,7 +12,10 @@ export const TabBarIcon = (props: {
         source={require('../assets/navigation/gnb-icons.webp')}
         style={[
           styles.sprite,
-          { tintColor: props.color, transform: [{ translateX: offset[0] }, { translateY: offset[1] }] },
+          {
+            tintColor: props.color,
+            transform: [{ translateX: offset[0] }, { translateY: offset[1] }],
+          },
         ]}
       />
     </View>

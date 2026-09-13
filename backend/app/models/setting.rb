@@ -15,15 +15,4 @@ class Setting < ApplicationRecord
     find_or_create_by!(id: SINGLETON_ID)
   end
 
-  after_commit :sync_default_reward_rules, on: %i[create update], if: :reward_configuration_changed?
-
-  private
-
-  def sync_default_reward_rules
-    Rewards::SyncDefaultRules.call(setting: self)
-  end
-
-  def reward_configuration_changed?
-    previous_changes.slice("daily_reward_points", "weekly_reward_points", "daily_reward_text", "weekly_reward_text").present?
-  end
 end
