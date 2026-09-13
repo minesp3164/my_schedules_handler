@@ -10,6 +10,8 @@ npx expo start --tunnel
 
 표시된 QR 코드를 iPhone의 Expo Go 앱으로 열면 테스트할 수 있습니다. 같은 Wi-Fi를 쓰고 있다면 `npx expo start`만 사용해도 됩니다.
 
+처음 실행하면 기기를 자동으로 등록하므로, 별도의 회원가입이나 연결 키 입력은 필요하지 않습니다.
+
 설치 가능한 iPhone 앱 빌드는 Apple 개발자 계정과 Expo EAS 로그인이 필요합니다.
 
 ```sh
