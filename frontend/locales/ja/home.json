@@ -1,4 +1,26 @@
 {
+  "brand": "FLOW BOARD",
+  "board": {
+    "todo": { "label": "未着手", "caption": "これから始めるタスク" },
+    "doing": { "label": "進行中", "caption": "少しずつ進めているタスク" },
+    "done": { "label": "完了", "caption": "今日やり遂げたタスク" }
+  },
+  "title": "今日のワークフロー",
+  "description": "カードをタップして完了し、状態ごとのボードで進捗を確認しましょう。",
+  "completionLabel": "完了",
+  "viewTasks": "%{status}のタスクを見る",
+  "viewPage": "%{status}ページへ移動",
+  "taskCount": "%{count}件",
+  "emptyDone": "完了したタスクがここに表示されます。",
+  "emptyColumn": "この状態のタスクはありません。",
+  "loading": "タスクを読み込んでいます。",
+  "completeAction": "完了にする",
+  "revertAction": "完了を取り消す",
+  "taskAccessibility": "%{title}、%{action}",
+  "goalCompleted": "目標達成・タップして完了を取り消す",
+  "taskProgress": "%{completed} / %{total}回を記録",
+  "paceTitle": "今日のペース",
+  "rewardComplete": "今日の報酬を達成しました！",
   "greeting": "今日の最初の5分、\n一緒に始めませんか？",
   "description": "今日の目標を一つずつ進めましょう。小さな記録にも十分な意味があります。",
   "connectTitle": "実際の記録を見るには、このデバイスを接続してください",
@@ -10,5 +32,5 @@
   "progress": "%{completed} / %{total}回",
   "reward": "今日の報酬への道",
   "remaining": "報酬まであと %{points}",
-  "startFocus": "▶ 25分集中を開始 · +10ポイント"
+  "startFocus": "25分集中を開始"
 }
