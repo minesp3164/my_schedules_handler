@@ -4,5 +4,20 @@
   "connect": "デバイスを接続すると実際の記録が表示されます。",
   "weeklyPoints": "今週のポイント",
   "completedDays": "完了した日",
-  "dailyPoints": "日ごとのポイント"
+  "dailyPoints": "日ごとのポイント",
+  "calendarTitle": "月間ポイントカレンダー",
+  "calendarDescription": "日付をタップすると、その日に獲得したポイントを確認できます。",
+  "previousMonth": "前の月",
+  "nextMonth": "次の月",
+  "selectedDayPoints": "%{date}に%{points}を獲得しました。",
+  "noPoints": "まだ獲得したポイントはありません。",
+  "comparisonTitle": "先週との比較",
+  "comparisonDescription": "直近7日間とその前の7日間の記録",
+  "comparisonWindow": "7日間",
+  "noPreviousData": "先週の記録はまだありません。",
+  "morePoints": "先週より%{points}ポイント多く積み上げました。",
+  "lessPoints": "先週より%{points}ポイント少ないです。",
+  "samePoints": "先週と同じペースです。",
+  "pointDelta": "ポイントの変化",
+  "completedDayDelta": "完了日数の変化"
 }

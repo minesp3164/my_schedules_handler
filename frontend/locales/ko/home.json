@@ -1,4 +1,26 @@
 {
+  "brand": "FLOW BOARD",
+  "board": {
+    "todo": { "label": "시작 전", "caption": "오늘 시작할 업무" },
+    "doing": { "label": "진행 중", "caption": "조금씩 쌓이는 업무" },
+    "done": { "label": "완료", "caption": "오늘 해낸 업무" }
+  },
+  "title": "오늘의 업무 흐름",
+  "description": "카드를 눌러 완료하고, 상태별 보드에서 진행을 확인하세요.",
+  "completionLabel": "완료",
+  "viewTasks": "%{status} 업무 보기",
+  "viewPage": "%{status} 페이지로 이동",
+  "taskCount": "%{count}개",
+  "emptyDone": "완료한 업무가 여기에 쌓여요.",
+  "emptyColumn": "이 상태의 업무가 없어요.",
+  "loading": "업무를 불러오는 중이에요.",
+  "completeAction": "완료 처리",
+  "revertAction": "완료 취소",
+  "taskAccessibility": "%{title}, %{action}",
+  "goalCompleted": "목표 달성 · 누르면 완료를 취소해요",
+  "taskProgress": "%{completed} / %{total}회 기록됨",
+  "paceTitle": "오늘의 페이스",
+  "rewardComplete": "오늘의 보상을 달성했어요!",
   "greeting": "오늘의 첫 5분,\n함께 시작할까요?",
   "description": "오늘 목표를 하나씩 채워보세요. 작은 기록도 충분히 의미 있어요.",
   "connectTitle": "실제 기록을 보려면 이 기기를 연결하세요",
@@ -10,5 +32,5 @@
   "progress": "%{completed} / %{total}회",
   "reward": "오늘의 보상 궤도",
   "remaining": "보상까지 %{points} 남았어요",
-  "startFocus": "▶ 25분 집중 시작 · +10점"
+  "startFocus": "25분 집중 시작"
 }
