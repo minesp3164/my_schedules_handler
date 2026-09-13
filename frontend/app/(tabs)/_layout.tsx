@@ -1,16 +1,26 @@
 import { Tabs } from 'expo-router';
 import { TabBarIcon } from '../../components/TabBarIcon';
 import { t } from '@/services/i18n';
+import { useTheme } from '@/services/theme';
 
 export default function TabLayout() {
+  const { palette } = useTheme();
+
   return (
     <Tabs
       screenOptions={{
         headerShown: false,
         animation: 'shift',
-        tabBarActiveTintColor: '#2479CC',
+        tabBarActiveTintColor: palette.accent,
         tabBarInactiveTintColor: '#69809D',
-        tabBarStyle: { backgroundColor: '#FFFFFF', borderTopColor: '#D8E7F5' },
+        tabBarItemStyle: { width: '25%' },
+        tabBarLabelStyle: { fontSize: 11, fontWeight: '700', marginTop: 2 },
+        tabBarStyle: {
+          backgroundColor: '#FFFFFF',
+          borderTopColor: palette.line,
+          paddingTop: 6,
+          paddingBottom: 4,
+        },
       }}>
       <Tabs.Screen
         name="index"
@@ -23,21 +33,21 @@ export default function TabLayout() {
         name="focus"
         options={{
           title: t('tabs.focus'),
-          tabBarIcon: ({ color }) => <TabBarIcon name="clock-o" color={color} />,
+          tabBarIcon: ({ color }) => <TabBarIcon name="focus" color={color} />,
         }}
       />
       <Tabs.Screen
         name="history"
         options={{
           title: t('tabs.history'),
-          tabBarIcon: ({ color }) => <TabBarIcon name="bar-chart" color={color} />,
+          tabBarIcon: ({ color }) => <TabBarIcon name="history" color={color} />,
         }}
       />
       <Tabs.Screen
         name="settings"
         options={{
           title: t('tabs.settings'),
-          tabBarIcon: ({ color }) => <TabBarIcon name="cog" color={color} />,
+          tabBarIcon: ({ color }) => <TabBarIcon name="settings" color={color} />,
         }}
       />
     </Tabs>
