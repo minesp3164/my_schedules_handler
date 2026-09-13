@@ -3,7 +3,9 @@ require "digest"
 
 class Rewards::EvaluateTest < ActiveSupport::TestCase
   setup do
+    @user = User.create!
     @device = Device.create!(
+      user: @user,
       installation_id: SecureRandom.uuid,
       name: "Reward device",
       platform: "web",
@@ -18,21 +20,21 @@ class Rewards::EvaluateTest < ActiveSupport::TestCase
     create_event(date: @date - 1, points: 100, key: "reward-2")
     create_event(date: @date, points: 100, key: "reward-3")
 
-    first = Rewards::Evaluate.call(date: @date, achieved_at: Time.zone.parse("2026-09-09 12:00:00"))
-    replay = Rewards::Evaluate.call(date: @date, achieved_at: Time.zone.parse("2026-09-09 12:01:00"))
+    first = Rewards::Evaluate.call(date: @date, achieved_at: Time.zone.parse("2026-09-09 12:00:00"), user: @user)
+    replay = Rewards::Evaluate.call(date: @date, achieved_at: Time.zone.parse("2026-09-09 12:01:00"), user: @user)
 
     assert_equal %w[daily weekly], first.achievements.map { |achievement| achievement.reward_rule.period }.sort
     assert_empty replay.achievements
     assert_equal 2, RewardAchievement.count
-    assert_equal "2026-W37", RewardAchievement.find_by!(reward_rule: RewardRule.find_by!(period: "weekly")).period_key
+    assert_equal "2026-W37", RewardAchievement.find_by!(reward_rule: RewardRule.find_by!(user: @user, period: "weekly")).period_key
   end
 
   test "uses changed settings when syncing the default reward rules" do
     Setting.instance.update!(daily_reward_points: 50, daily_reward_text: "50점 달성!")
     create_event(date: @date, points: 50, key: "reward-setting")
 
-    result = Rewards::Evaluate.call(date: @date)
-    daily_rule = RewardRule.find_by!(period: "daily")
+    result = Rewards::Evaluate.call(date: @date, user: @user)
+    daily_rule = RewardRule.find_by!(user: @user, period: "daily")
 
     assert_equal 50, daily_rule.required_points
     assert_equal "50점 달성!", daily_rule.reward_text
@@ -43,6 +45,7 @@ class Rewards::EvaluateTest < ActiveSupport::TestCase
 
   def create_event(date:, points:, key:)
     PointEvent.create!(
+      user: @user,
       source_device: @device,
       activity_date: date,
       event_type: "adjustment",

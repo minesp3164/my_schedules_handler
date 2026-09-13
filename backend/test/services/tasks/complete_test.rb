@@ -3,14 +3,16 @@ require "digest"
 
 class Tasks::CompleteTest < ActiveSupport::TestCase
   setup do
+    @user = User.create!
     @device = Device.create!(
+      user: @user,
       installation_id: SecureRandom.uuid,
       name: "Test device",
       platform: "web",
       access_token_digest: Digest::SHA256.hexdigest("test-token")
     )
-    @task = TaskTemplate.create!(title: "알고리즘 1문제", points: 15, target_count: 1, position: 0, kind: "algorithm")
-    TaskTemplate.create!(title: "이력서 개선", points: 20, target_count: 1, position: 1, kind: "portfolio")
+    @task = TaskTemplate.create!(user: @user, title: "알고리즘 1문제", points: 15, target_count: 1, position: 0, kind: "algorithm")
+    TaskTemplate.create!(user: @user, title: "이력서 개선", points: 20, target_count: 1, position: 1, kind: "portfolio")
     @now = Time.zone.parse("2026-09-11 10:00:00")
   end
 

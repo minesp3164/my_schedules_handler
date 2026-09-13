@@ -6,6 +6,7 @@ class Api::V1::PushSubscriptionsControllerTest < ActionDispatch::IntegrationTest
     @token = "push-subscription-token"
     @headers = { "Authorization" => "Bearer #{@token}" }
     @device = Device.create!(
+      user: User.create!,
       installation_id: SecureRandom.uuid,
       name: "Push device",
       platform: "web",

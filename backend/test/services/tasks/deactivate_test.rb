@@ -3,14 +3,16 @@ require "digest"
 
 class Tasks::DeactivateTest < ActiveSupport::TestCase
   setup do
+    @user = User.create!
     @device = Device.create!(
+      user: @user,
       installation_id: SecureRandom.uuid,
       name: "Test device",
       platform: "web",
       access_token_digest: Digest::SHA256.hexdigest("test-token")
     )
-    @task = TaskTemplate.create!(title: "독서", points: 15, target_count: 1, position: 0, kind: "custom")
-    TaskTemplate.create!(title: "운동", points: 10, target_count: 1, position: 1, kind: "custom")
+    @task = TaskTemplate.create!(user: @user, title: "독서", points: 15, target_count: 1, position: 0, kind: "custom")
+    TaskTemplate.create!(user: @user, title: "운동", points: 10, target_count: 1, position: 1, kind: "custom")
     @now = Time.zone.parse("2026-09-12 10:00:00")
   end
 
@@ -22,7 +24,7 @@ class Tasks::DeactivateTest < ActiveSupport::TestCase
       now: @now
     ).completion
 
-    result = Tasks::Deactivate.call(task_template_id: @task.id)
+    result = Tasks::Deactivate.call(task_template_id: @task.id, user: @user)
 
     assert result.changed
     assert_not result.task.active?
