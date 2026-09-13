@@ -2,24 +2,29 @@ module Api
   module V1
     class TaskTemplatesController < BaseController
       def index
-        tasks = TaskTemplate.active_in_order
+        tasks = current_user.task_templates.active_in_order
         render json: { data: tasks.map { |task| task_payload(task) } }
       end
 
       def create
-        task = TaskTemplate.create!(task_params)
+        task = current_user.task_templates.create!(task_params)
         render json: { data: task_payload(task) }, status: :created
       end
 
       def update
-        task = TaskTemplate.find(params[:id])
+        task = current_user.task_templates.find(params[:id])
         task.update!(task_params)
         render json: { data: task_payload(task) }
       end
 
       def destroy
-        task = TaskTemplate.find(params[:id])
-        task.update!(active: false)
+        result = Tasks::Deactivate.call(task_template_id: params[:id], user: current_user)
+        if result.changed
+          Realtime::Publish.call(
+            event: "task.deactivated",
+            data: { task_template_id: result.task.id, reverted_completion_count: result.summaries.size }
+          )
+        end
         head :no_content
       end
 
