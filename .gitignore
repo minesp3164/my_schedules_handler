@@ -9,3 +9,7 @@
 
 # macOS Finder metadata
 .DS_Store
+
+# Local working notes
+agent.md
+design.md

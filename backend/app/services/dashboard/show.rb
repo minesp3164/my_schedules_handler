@@ -12,7 +12,7 @@ module Dashboard
     end
 
     def call
-      tasks = @user.task_templates.active_in_order.to_a
+      tasks = @user.task_templates.active_in_order.select { |task| task.scheduled_for?(@date) }
       completions_by_task = DailyTaskCompletion.active
         .where(task_template_id: tasks.map(&:id), completed_on: @date)
         .order(:sequence)
@@ -34,6 +34,7 @@ module Dashboard
         id: task.id,
         title: task.title,
         kind: task.kind,
+        weekdays: task.weekdays,
         points: task.points,
         target_count: task.target_count,
         position: task.position,
