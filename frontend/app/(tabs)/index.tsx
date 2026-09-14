@@ -16,12 +16,17 @@ import {
   completeTask,
   createIdempotencyKey,
   getDashboard,
+  getSettings,
   revertCompletion,
   type Dashboard,
 } from '@/services/api';
 import { getDeviceToken } from '@/services/device-token';
 import { formatDate, t } from '@/services/i18n';
 import { useTheme } from '@/services/theme';
+import { RewardPaceCard } from '@/components/home/RewardPaceCard';
+import { isStalePausedFocus } from '@/services/focus-session';
+import { NextActionCard } from '@/components/home/NextActionCard';
+import { getTodayRecommendations } from '@/services/today-recommendation';
 
 type DashboardTask = NonNullable<Dashboard['tasks']>[number];
 type BoardStatus = 'todo' | 'doing' | 'done';
@@ -61,6 +66,7 @@ function getTaskStatus(task: DashboardTask): BoardStatus {
 export default function Home() {
   const [token, setToken] = useState<string | null | undefined>();
   const [activePage, setActivePage] = useState(0);
+  const [recommendationIndex, setRecommendationIndex] = useState(0);
   const { width } = useWindowDimensions();
   const queryClient = useQueryClient();
   const { palette } = useTheme();
@@ -74,6 +80,11 @@ export default function Home() {
   const dashboard = useQuery({
     queryKey: ['dashboard'],
     queryFn: () => getDashboard(token!),
+    enabled: Boolean(token),
+  });
+  const settings = useQuery({
+    queryKey: ['settings'],
+    queryFn: () => getSettings(token!),
     enabled: Boolean(token),
   });
   const taskMutation = useMutation({
@@ -96,6 +107,10 @@ export default function Home() {
   const doneCount = tasks.filter((task) => task.goal_completed).length;
   const completionRate = totalGoal ? Math.round((doneCount / totalGoal) * 100) : 0;
   const remaining = Math.max(100 - points, 0);
+  const focusMinutes = settings.data?.focus_minutes ?? 25;
+  const stalePausedFocus = isStalePausedFocus(dashboard.data?.focus_session);
+  const recommendations = getTodayRecommendations(tasks, points);
+  const recommendation = recommendations[recommendationIndex % recommendations.length];
   const board = boardColumns.map((column) => ({
     ...column,
     label: t(column.labelKey),
@@ -130,7 +145,9 @@ export default function Home() {
               <Text className="text-lg text-white">▦</Text>
             </View>
             <View className="items-center">
-              <Text className="text-[11px] font-bold tracking-[2px] text-[#2479CC]">
+              <Text
+                className="text-[11px] font-bold tracking-[2px]"
+                style={{ color: palette.accent }}>
                 {t('home.brand')}
               </Text>
               <Text className="mt-0.5 text-xs text-muted">{formatDate(new Date())}</Text>
@@ -145,15 +162,21 @@ export default function Home() {
               </Text>
               <Text className="mt-2 text-sm leading-5 text-muted">{t('home.description')}</Text>
             </View>
-            <View className="h-[62px] w-[62px] items-center justify-center rounded-full border-[6px] border-[#DCEEFF] bg-[#EAF4FF]">
-              <Text className="text-base font-bold text-[#2479CC]">{completionRate}%</Text>
+            <View
+              className="h-[62px] w-[62px] items-center justify-center rounded-full border-[6px]"
+              style={{ backgroundColor: palette.accentSoft, borderColor: palette.line }}>
+              <Text className="text-base font-bold" style={{ color: palette.accent }}>
+                {completionRate}%
+              </Text>
               <Text className="text-[10px] font-semibold text-muted">
                 {t('home.completionLabel')}
               </Text>
             </View>
           </View>
 
-          <View className="mt-6 flex-row rounded-2xl bg-[#EAF4FF] p-1.5">
+          <View
+            className="mt-6 flex-row rounded-2xl p-1.5"
+            style={{ backgroundColor: palette.accentSoft }}>
             {board.map((column, index) => (
               <Pressable
                 key={column.id}
@@ -187,6 +210,38 @@ export default function Home() {
           </View>
         ) : null}
 
+        {stalePausedFocus ? (
+          <Pressable
+            onPress={() => router.push('/focus')}
+            accessibilityRole="button"
+            accessibilityLabel={t('home.staleFocusAction')}
+            className="mx-5 mt-4 rounded-2xl border border-line bg-surface px-4 py-4">
+            <Text className="font-bold text-[#173052]">{t('home.staleFocusTitle')}</Text>
+            <Text className="mt-1 text-sm leading-5 text-muted">
+              {t('home.staleFocusDescription')}
+            </Text>
+            <Text className="mt-3 text-sm font-bold" style={{ color: palette.accent }}>
+              {t('home.staleFocusAction')}
+            </Text>
+          </Pressable>
+        ) : null}
+
+        {recommendation ? (
+          <NextActionCard
+            recommendation={recommendation}
+            hasAlternatives={recommendations.length > 1}
+            disabled={taskMutation.isPending}
+            onAct={() => {
+              if (recommendation.type === 'focus') {
+                router.push('/focus');
+                return;
+              }
+              taskMutation.mutate(recommendation.task);
+            }}
+            onNext={() => setRecommendationIndex((current) => current + 1)}
+          />
+        ) : null}
+
         <ScrollView
           ref={pagerRef}
           horizontal
@@ -203,14 +258,18 @@ export default function Home() {
                   <View>
                     <View className="flex-row items-center">
                       <View
-                        style={{ backgroundColor: column.accent }}
+                        style={{ backgroundColor: palette.accent }}
                         className="mr-2 h-2.5 w-2.5 rounded-full"
                       />
-                      <Text className="text-[17px] font-bold text-[#173052]">{column.label}</Text>
+                      <Text className="text-[17px] font-bold" style={{ color: palette.accent }}>
+                        {column.label}
+                      </Text>
                     </View>
                     <Text className="mt-1 text-xs text-muted">{column.caption}</Text>
                   </View>
-                  <Text className="rounded-full bg-[#EAF4FF] px-2.5 py-1 text-xs font-bold text-[#2479CC]">
+                  <Text
+                    className="rounded-full px-2.5 py-1 text-xs font-bold"
+                    style={{ backgroundColor: palette.accentSoft, color: palette.accent }}>
                     {t('home.taskCount', { count: column.tasks.length })}
                   </Text>
                 </View>
@@ -266,13 +325,15 @@ export default function Home() {
                             </Text>
                           </View>
                           <View
-                            className={`h-7 min-w-7 items-center justify-center rounded-full px-1.5 ${
-                              task.goal_completed ? 'bg-success' : 'bg-[#EAF4FF]'
-                            }`}>
+                            className="h-7 min-w-7 items-center justify-center rounded-full px-1.5"
+                            style={{
+                              backgroundColor: task.goal_completed
+                                ? palette.accent
+                                : palette.accentSoft,
+                            }}>
                             <Text
-                              className={`text-xs font-bold ${
-                                task.goal_completed ? 'text-white' : 'text-[#2479CC]'
-                              }`}>
+                              className={`text-xs font-bold ${task.goal_completed ? 'text-white' : ''}`}
+                              style={task.goal_completed ? undefined : { color: palette.accent }}>
                               {task.goal_completed ? '✓' : `+${task.points}`}
                             </Text>
                           </View>
@@ -280,7 +341,7 @@ export default function Home() {
                         {!task.goal_completed ? (
                           <View className="mt-4 h-1.5 overflow-hidden rounded-full bg-[#EAF4FF]">
                             <View
-                              style={{ width: `${taskProgress}%`, backgroundColor: column.accent }}
+                              style={{ width: `${taskProgress}%`, backgroundColor: palette.accent }}
                               className="h-full rounded-full"
                             />
                           </View>
@@ -304,7 +365,10 @@ export default function Home() {
                 onPress={() => goToPage(index)}
                 style={{ left: index * 16 }}
                 className="absolute h-7 w-[22px] items-center justify-center">
-                <View className="h-1.5 w-1.5 rounded-full bg-[#C8D7E7]" />
+                <View
+                  className="h-1.5 w-1.5 rounded-full"
+                  style={{ backgroundColor: palette.accentSoft }}
+                />
               </Pressable>
             ))}
             <Animated.View
@@ -316,7 +380,7 @@ export default function Home() {
                 zIndex: 1,
                 height: 7,
                 borderRadius: 999,
-                backgroundColor: '#2479CC',
+                backgroundColor: palette.accent,
                 width: indicatorProgress.interpolate({
                   inputRange: [0, 0.5, 1, 1.5, 2],
                   outputRange: [7, 22, 7, 22, 7],
@@ -334,27 +398,7 @@ export default function Home() {
           </View>
         </View>
 
-        <View className="mx-5 mt-6 rounded-[20px] bg-[#173052] p-5">
-          <View className="flex-row items-center justify-between">
-            <View className="flex-1 pr-3">
-              <Text className="text-[17px] font-bold text-white">{t('home.paceTitle')}</Text>
-              <Text className="mt-1 text-sm leading-5 text-[#B9CCE3]">
-                {remaining > 0
-                  ? t('home.remaining', { points: t('common.point', { count: remaining }) })
-                  : t('home.rewardComplete')}
-              </Text>
-            </View>
-            <Text className="text-2xl font-bold text-[#79CEFF]">
-              {t('common.point', { count: points })}
-            </Text>
-          </View>
-          <Pressable
-            onPress={() => router.push('/focus')}
-            style={{ backgroundColor: palette.accent }}
-            className="mt-5 items-center rounded-xl bg-[#79CEFF] px-4 py-3.5">
-            <Text className="font-bold text-[#173052]">{t('home.startFocus')}</Text>
-          </Pressable>
-        </View>
+        <RewardPaceCard points={points} remaining={remaining} focusMinutes={focusMinutes} />
       </ScrollView>
     </SafeAreaView>
   );

@@ -13,6 +13,7 @@ export type Dashboard = {
     points: number;
     target_count: number;
     position: number;
+    weekdays: number[];
     completed_count: number;
     goal_completed: boolean;
     completions: { id: string }[];
@@ -130,6 +131,7 @@ export type TaskTemplate = {
   position: number;
   kind: string;
   active: boolean;
+  weekdays: number[];
 };
 
 export async function getTaskTemplates(token: string) {

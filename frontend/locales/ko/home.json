@@ -14,6 +14,17 @@
   "emptyDone": "완료한 업무가 여기에 쌓여요.",
   "emptyColumn": "이 상태의 업무가 없어요.",
   "loading": "업무를 불러오는 중이에요.",
+  "nextActionEyebrow": "지금의 다음 행동",
+  "nextActionFocusTitle": "가볍게 집중을 시작해 볼까요?",
+  "nextActionFocusDescription": "첫 시작이 막막한 날에는 자리에 앉는 것만으로 충분해요.",
+  "nextActionRewardDescription": "+%{points}점을 기록하면 오늘의 보상에 닿을 수 있어요.",
+  "nextActionTaskDescription": "+%{points}점으로 오늘의 흐름을 이어가 보세요.",
+  "nextActionStartFocus": "집중 시작",
+  "nextActionCompleteTask": "이 할 일 기록하기",
+  "nextActionAnother": "다른 제안",
+  "staleFocusTitle": "멈춘 집중 세션이 있어요",
+  "staleFocusDescription": "오래 일시정지된 세션을 계속할지, 오늘은 마칠지 정리해 보세요.",
+  "staleFocusAction": "집중 세션 정리하기",
   "completeAction": "완료 처리",
   "revertAction": "완료 취소",
   "taskAccessibility": "%{title}, %{action}",
@@ -32,5 +43,5 @@
   "progress": "%{completed} / %{total}회",
   "reward": "오늘의 보상 궤도",
   "remaining": "보상까지 %{points} 남았어요",
-  "startFocus": "25분 집중 시작"
+  "startFocus": "%{minutes}분 집중 시작"
 }

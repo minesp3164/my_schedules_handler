@@ -14,6 +14,17 @@
   "emptyDone": "完了したタスクがここに表示されます。",
   "emptyColumn": "この状態のタスクはありません。",
   "loading": "タスクを読み込んでいます。",
+  "nextActionEyebrow": "今できる次の行動",
+  "nextActionFocusTitle": "気軽に集中を始めてみませんか？",
+  "nextActionFocusDescription": "始めづらい日は、席につくことだけでも十分です。",
+  "nextActionRewardDescription": "+%{points}ポイントを記録すれば、今日の報酬に届きます。",
+  "nextActionTaskDescription": "+%{points}ポイントで、今日の流れを続けましょう。",
+  "nextActionStartFocus": "集中を開始",
+  "nextActionCompleteTask": "このタスクを記録",
+  "nextActionAnother": "別の提案",
+  "staleFocusTitle": "中断した集中セッションがあります",
+  "staleFocusDescription": "しばらく停止したセッションを再開するか、今日は終了するか決めましょう。",
+  "staleFocusAction": "集中セッションを整理する",
   "completeAction": "完了にする",
   "revertAction": "完了を取り消す",
   "taskAccessibility": "%{title}、%{action}",
@@ -32,5 +43,5 @@
   "progress": "%{completed} / %{total}回",
   "reward": "今日の報酬への道",
   "remaining": "報酬まであと %{points}",
-  "startFocus": "25分集中を開始"
+  "startFocus": "%{minutes}分集中を開始"
 }

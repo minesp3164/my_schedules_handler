@@ -31,11 +31,11 @@ module Api
       private
 
       def task_params
-        params.require(:task_template).permit(:title, :points, :target_count, :position, :kind, :active)
+        params.require(:task_template).permit(:title, :points, :target_count, :position, :kind, :active, weekdays: [])
       end
 
       def task_payload(task)
-        task.slice(:id, :title, :points, :target_count, :position, :kind, :active)
+        task.slice(:id, :title, :points, :target_count, :position, :kind, :active).merge(weekdays: task.weekdays)
       end
     end
   end

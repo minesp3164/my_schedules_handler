@@ -25,9 +25,8 @@ module Tasks
         return replay(existing) if existing
 
         task = @source_device.user.task_templates.lock.find(@task_template_id)
-        raise InactiveTask unless task.active?
-
         date = @now.in_time_zone("Asia/Seoul").to_date
+        raise InactiveTask unless task.active? && task.scheduled_for?(date)
         completions_for_day = task.daily_task_completions.where(completed_on: date)
         completed_count = completions_for_day.active.count
         raise TargetAlreadyMet if completed_count >= task.target_count
@@ -79,7 +78,7 @@ module Tasks
     end
 
     def all_goals_completed?(date)
-      @source_device.user.task_templates.active_in_order.all? do |task|
+      @source_device.user.task_templates.active_in_order.select { |task| task.scheduled_for?(date) }.all? do |task|
         task.daily_task_completions.active.where(completed_on: date).count >= task.target_count
       end
     end

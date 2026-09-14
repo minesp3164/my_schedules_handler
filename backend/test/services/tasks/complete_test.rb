@@ -43,6 +43,14 @@ class Tasks::CompleteTest < ActiveSupport::TestCase
     end
   end
 
+  test "rejects a task that is not scheduled for today" do
+    @task.update!(weekdays: [1])
+
+    assert_raises(Tasks::Complete::InactiveTask) do
+      Tasks::Complete.call(task_template_id: @task.id, source_device: @device, idempotency_key: "complete-off-day", now: @now)
+    end
+  end
+
   test "reverting a completion removes its effective points" do
     result = Tasks::Complete.call(task_template_id: @task.id, source_device: @device, idempotency_key: "complete-005", now: @now)
     _completion, summary = Tasks::Revert.call(completion_id: result.completion.id)
