@@ -11,8 +11,8 @@
 		13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB51A68108700A75B9A /* Images.xcassets */; };
 		36D4118009B9BC1A3E946927 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8C45FA8842A0EB3735861FA8 /* Foundation.framework */; };
 		3E461D99554A48A4959DE609 /* SplashScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = AA286B85B6C04FC6940260E9 /* SplashScreen.storyboard */; };
-		77833D1B5CA9360231840227 /* TodayPointsWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = E637E6887B1D3285C8911278 /* TodayPointsWidget.swift */; };
-		86277894124CCFF24697473E /* TodayPointsWidgetBridge.m in Sources */ = {isa = PBXBuildFile; fileRef = 45FC7E93E27C5B09E6538B17 /* TodayPointsWidgetBridge.m */; };
+		77833D1B5CA9360231840227 /* tracker/TodayPointsWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = E637E6887B1D3285C8911278 /* tracker/TodayPointsWidget.swift */; };
+		86277894124CCFF24697473E /* tracker/TodayPointsWidgetBridge.m in Sources */ = {isa = PBXBuildFile; fileRef = 45FC7E93E27C5B09E6538B17 /* tracker/TodayPointsWidgetBridge.m */; };
 		874FAB4D589F3D59E15B5D27 /* libPods-tracker.a in Frameworks */ = {isa = PBXBuildFile; fileRef = C6C512BF9002021B944FBDAC /* libPods-tracker.a */; };
 		ADD0B7F00B4BE27247D87969 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = AC5F2793FF12012C9379BD91 /* PrivacyInfo.xcprivacy */; };
 		BB2F792D24A3F905000567C9 /* Expo.plist in Resources */ = {isa = PBXBuildFile; fileRef = BB2F792C24A3F905000567C9 /* Expo.plist */; };
@@ -50,7 +50,7 @@
 		13B07F961A680F5B00A75B9A /* tracker.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = tracker.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		13B07FB51A68108700A75B9A /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; name = Images.xcassets; path = tracker/Images.xcassets; sourceTree = "<group>"; };
 		13B07FB61A68108700A75B9A /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = Info.plist; path = tracker/Info.plist; sourceTree = "<group>"; };
-		45FC7E93E27C5B09E6538B17 /* TodayPointsWidgetBridge.m */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.objc; path = tracker/TodayPointsWidgetBridge.m; sourceTree = "<group>"; };
+		45FC7E93E27C5B09E6538B17 /* tracker/TodayPointsWidgetBridge.m */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.objc; path = tracker/TodayPointsWidgetBridge.m; sourceTree = "<group>"; };
 		647011B815D2A12BB6A1C12C /* Pods-tracker.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-tracker.debug.xcconfig"; path = "Target Support Files/Pods-tracker/Pods-tracker.debug.xcconfig"; sourceTree = "<group>"; };
 		8764A4226488AB1821EBBA2C /* TodayPointsWidgetBundle.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = TodayPointsWidgetBundle.swift; sourceTree = "<group>"; };
 		8C45FA8842A0EB3735861FA8 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS26.0.sdk/System/Library/Frameworks/Foundation.framework; sourceTree = DEVELOPER_DIR; };
@@ -61,7 +61,7 @@
 		C6C512BF9002021B944FBDAC /* libPods-tracker.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-tracker.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		CD520A0F0707C6D62BD454D5 /* TodayPointsWidget.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = TodayPointsWidget.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		E543FF2017EF0B60CD75905B /* Pods-tracker.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-tracker.release.xcconfig"; path = "Target Support Files/Pods-tracker/Pods-tracker.release.xcconfig"; sourceTree = "<group>"; };
-		E637E6887B1D3285C8911278 /* TodayPointsWidget.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = tracker/TodayPointsWidget.swift; sourceTree = "<group>"; };
+		E637E6887B1D3285C8911278 /* tracker/TodayPointsWidget.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = tracker/TodayPointsWidget.swift; sourceTree = "<group>"; };
 		ED297162215061F000B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
 		F11748412D0307B40044C1D9 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AppDelegate.swift; path = tracker/AppDelegate.swift; sourceTree = "<group>"; };
 		F11748442D0722820044C1D9 /* tracker-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "tracker-Bridging-Header.h"; path = "tracker/tracker-Bridging-Header.h"; sourceTree = "<group>"; };
@@ -98,8 +98,8 @@
 				13B07FB61A68108700A75B9A /* Info.plist */,
 				AA286B85B6C04FC6940260E9 /* SplashScreen.storyboard */,
 				AC5F2793FF12012C9379BD91 /* PrivacyInfo.xcprivacy */,
-				E637E6887B1D3285C8911278 /* TodayPointsWidget.swift */,
-				45FC7E93E27C5B09E6538B17 /* TodayPointsWidgetBridge.m */,
+				E637E6887B1D3285C8911278 /* tracker/TodayPointsWidget.swift */,
+				45FC7E93E27C5B09E6538B17 /* tracker/TodayPointsWidgetBridge.m */,
 			);
 			name = tracker;
 			sourceTree = "<group>";
@@ -136,7 +136,6 @@
 				FAF1E1B39677755E57E745BA /* TodayPointsWidget.swift */,
 				8764A4226488AB1821EBBA2C /* TodayPointsWidgetBundle.swift */,
 			);
-			name = TodayPointsWidget;
 			path = TodayPointsWidget;
 			sourceTree = "<group>";
 		};
@@ -436,8 +435,8 @@
 			files = (
 				F11748422D0307B40044C1D9 /* AppDelegate.swift in Sources */,
 				0E6850212B6E027F025207C3 /* ExpoModulesProvider.swift in Sources */,
-				77833D1B5CA9360231840227 /* TodayPointsWidget.swift in Sources */,
-				86277894124CCFF24697473E /* TodayPointsWidgetBridge.m in Sources */,
+				77833D1B5CA9360231840227 /* tracker/TodayPointsWidget.swift in Sources */,
+				86277894124CCFF24697473E /* tracker/TodayPointsWidgetBridge.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -477,13 +476,15 @@
 					"FB_SONARKIT_ENABLED=1",
 				);
 				INFOPLIST_FILE = tracker/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = "스케줄";
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.lifestyle";
 				IPHONEOS_DEPLOYMENT_TARGET = 16.4;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 13.4;
-				MARKETING_VERSION = 1.0;
+				MARKETING_VERSION = 0.1.0;
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-ObjC",
@@ -510,13 +511,15 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = FB8CAYQA53;
 				INFOPLIST_FILE = tracker/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = "스케줄";
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.lifestyle";
 				IPHONEOS_DEPLOYMENT_TARGET = 16.4;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 13.4;
-				MARKETING_VERSION = 1.0;
+				MARKETING_VERSION = 0.1.0;
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-ObjC",
@@ -539,7 +542,9 @@
 				CODE_SIGN_ENTITLEMENTS = TodayPointsWidget/TodayPointsWidget.entitlements;
 				DEVELOPMENT_TEAM = FB8CAYQA53;
 				INFOPLIST_FILE = TodayPointsWidget/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = "스케줄";
 				IPHONEOS_DEPLOYMENT_TARGET = 16.4;
+				MARKETING_VERSION = 0.1.0;
 				OTHER_SWIFT_FLAGS = "$(inherited) -D EXPO_CONFIGURATION_DEBUG";
 				PRODUCT_BUNDLE_IDENTIFIER = "com.minesp.shcedule-handler.TodayPointsWidget";
 				PRODUCT_NAME = TodayPointsWidget;
@@ -690,7 +695,9 @@
 				CODE_SIGN_ENTITLEMENTS = TodayPointsWidget/TodayPointsWidget.entitlements;
 				DEVELOPMENT_TEAM = FB8CAYQA53;
 				INFOPLIST_FILE = TodayPointsWidget/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = "스케줄";
 				IPHONEOS_DEPLOYMENT_TARGET = 16.4;
+				MARKETING_VERSION = 0.1.0;
 				OTHER_SWIFT_FLAGS = "$(inherited) -D EXPO_CONFIGURATION_RELEASE";
 				PRODUCT_BUNDLE_IDENTIFIER = "com.minesp.shcedule-handler.TodayPointsWidget";
 				PRODUCT_NAME = TodayPointsWidget;
