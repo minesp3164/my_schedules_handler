@@ -12,6 +12,7 @@ type ThemePalette = {
   surface: string;
   accent: string;
   accentSoft: string;
+  accentDeep: string;
   line: string;
 };
 
@@ -32,12 +33,19 @@ function mixWithWhite(hex: string, amount: number) {
   return `#${mixed.map((channel) => channel.toString(16).padStart(2, '0')).join('')}`;
 }
 
+function mixWithBlack(hex: string, amount: number) {
+  const channels = [1, 3, 5].map((index) => Number.parseInt(hex.slice(index, index + 2), 16));
+  const mixed = channels.map((channel) => Math.round(channel * (1 - amount)));
+  return `#${mixed.map((channel) => channel.toString(16).padStart(2, '0')).join('')}`;
+}
+
 function paletteFor(colors: ThemeColors): ThemePalette {
   return {
     screen: colors.background,
     surface: '#FFFFFF',
     accent: colors.button,
     accentSoft: mixWithWhite(colors.button, 0.86),
+    accentDeep: mixWithBlack(colors.button, 0.45),
     line: mixWithWhite(colors.button, 0.78),
   };
 }

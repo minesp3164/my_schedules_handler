@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_09_12_000008) do
+ActiveRecord::Schema[8.1].define(version: 2026_09_13_000000) do
   create_table "daily_summaries", primary_key: "date", id: :date, force: :cascade do |t|
     t.datetime "all_goals_completed_at"
     t.datetime "created_at", null: false
@@ -177,6 +177,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_12_000008) do
     t.string "title", null: false
     t.datetime "updated_at", null: false
     t.string "user_id", null: false
+    t.text "weekdays", default: "[]", null: false
     t.index ["user_id"], name: "index_task_templates_on_user_id"
     t.check_constraint "points >= 0", name: "task_template_points_non_negative"
     t.check_constraint "target_count > 0", name: "task_template_target_count_positive"

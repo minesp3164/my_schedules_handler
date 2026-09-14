@@ -47,6 +47,17 @@ class Api::V1::DashboardAndHistoryControllerTest < ActionDispatch::IntegrationTe
     assert_nil response.parsed_body.dig("data", "focus_session")
   end
 
+  test "dashboard only returns tasks scheduled for the requested weekday" do
+    @task.update!(weekdays: [5])
+    @other_task.update!(weekdays: [1])
+
+    get "/api/v1/dashboard?date=2026-09-11", headers: @headers
+
+    assert_response :success
+    assert_equal [@task.id], response.parsed_body.dig("data", "tasks").map { |task| task.fetch("id") }
+    assert_equal [5], response.parsed_body.dig("data", "tasks", 0, "weekdays")
+  end
+
   test "history fills the requested range and includes reversed point events" do
     occurred_at = Time.zone.parse("2026-09-11 09:00:00")
     PointEvent.create!(user: @user, source_device: @device, activity_date: @date, event_type: "adjustment", points: 5, idempotency_key: "history-event", occurred_at: occurred_at, reversed_at: occurred_at + 1.hour)
