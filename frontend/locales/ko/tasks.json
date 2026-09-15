@@ -42,6 +42,8 @@
   "add": "추가",
   "openAddSheet": "새 할 일 추가",
   "sheetTitle": "새 할 일 등록",
+  "editSheetTitle": "할 일 수정",
+  "saveEdit": "수정 저장",
   "closeAddSheet": "할 일 등록 닫기",
   "cancel": "취소",
   "saving": "추가 중…",

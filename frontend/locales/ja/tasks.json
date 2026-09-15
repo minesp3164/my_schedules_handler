@@ -42,6 +42,8 @@
   "add": "追加",
   "openAddSheet": "新しいタスクを追加",
   "sheetTitle": "新しいタスクを登録",
+  "editSheetTitle": "タスクを編集",
+  "saveEdit": "変更を保存",
   "closeAddSheet": "タスク登録を閉じる",
   "cancel": "キャンセル",
   "saving": "追加中…",

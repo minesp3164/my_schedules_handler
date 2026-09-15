@@ -183,6 +183,14 @@ export function createTaskTemplate(token: string, task: NewTaskTemplate) {
   });
 }
 
+export function updateTaskTemplate(token: string, id: string, task: NewTaskTemplate) {
+  return request<ApiResponse<TaskTemplate>>(`/task_templates/${id}`, token, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ task_template: task }),
+  });
+}
+
 export function deactivateTaskTemplate(token: string, id: string) {
   return request(`/task_templates/${id}`, token, { method: 'DELETE' });
 }

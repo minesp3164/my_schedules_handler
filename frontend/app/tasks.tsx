@@ -7,6 +7,7 @@ import {
   createTaskTemplate,
   deactivateTaskTemplate,
   getTaskTemplates,
+  updateTaskTemplate,
   type Dashboard,
   type TaskTemplate,
 } from '@/services/api';
@@ -41,6 +42,7 @@ export default function TasksScreen() {
   const [token, setToken] = useState<string | null>();
   const [composerVisible, setComposerVisible] = useState(false);
   const [composerKey, setComposerKey] = useState(0);
+  const [editingTask, setEditingTask] = useState<TaskTemplate | null>(null);
   const queryClient = useQueryClient();
   const { palette } = useTheme();
   useEffect(() => {
@@ -91,16 +93,20 @@ export default function TasksScreen() {
       await refreshTasks();
     },
   });
-  const duplicate = useMutation({
-    mutationFn: (task: TaskTemplate) =>
-      createTaskTemplate(token!, {
-        title: t('tasks.copyTitle', { title: task.title }),
-        target_count: task.target_count,
-        position: tasks.data?.length ?? 0,
-        kind: task.kind,
-        weekdays: task.weekdays,
+  const update = useMutation({
+    mutationFn: (input: NewTask) =>
+      updateTaskTemplate(token!, editingTask!.id, {
+        title: t(`tasks.category${input.kind.charAt(0).toUpperCase()}${input.kind.slice(1)}`),
+        target_count: input.targetCount,
+        position: editingTask!.position,
+        kind: input.kind,
+        weekdays: input.weekdays,
       }),
-    onSuccess: refreshTasks,
+    onSuccess: async () => {
+      setComposerVisible(false);
+      setEditingTask(null);
+      await refreshTasks();
+    },
   });
   return (
     <SafeAreaView className="flex-1" style={{ backgroundColor: palette.screen }}>
@@ -110,53 +116,56 @@ export default function TasksScreen() {
             {t('tasks.back')}
           </Text>
         </Pressable>
-        <Text className="mt-3 text-2xl font-bold text-[#173052]">{t('tasks.title')}</Text>
+        <Text className="mt-3 text-2xl font-bold text-[#26332D]">{t('tasks.title')}</Text>
         <Text className="mt-2 text-sm text-muted">{t('tasks.description')}</Text>
         <Pressable
-          onPress={() => setComposerVisible(true)}
+          onPress={() => {
+            setEditingTask(null);
+            setComposerVisible(true);
+          }}
           style={{ backgroundColor: palette.accent }}
           className="mt-6 h-12 items-center justify-center rounded-2xl bg-lavender transition duration-150 hover:-translate-y-px hover:opacity-90">
           <Text className="font-bold text-white">{t('tasks.openAddSheet')}</Text>
         </Pressable>
         <View className="mt-4 gap-3">
           {tasks.data?.map((task) => (
-            <View
+            <Pressable
               key={task.id}
+              onPress={() => {
+                setEditingTask(task);
+                setComposerVisible(true);
+              }}
               className="min-h-16 flex-row items-center rounded-2xl border border-line bg-surface p-4">
               <View className="flex-1">
-                <Text className="font-bold text-[#173052]">{task.title}</Text>
+                <Text className="font-bold text-[#26332D]">{task.title}</Text>
                 <Text className="mt-1 text-sm text-muted">
                   {t('tasks.taskMeta', { points: task.points, count: task.target_count })}
                 </Text>
                 <Text className="mt-1 text-xs text-muted">{scheduleLabel(task.weekdays)}</Text>
               </View>
               <Pressable
-                disabled={duplicate.isPending}
-                onPress={() => token && duplicate.mutate(task)}
-                className="min-h-11 min-w-11 items-center justify-center">
-                <Text className="text-sm" style={{ color: palette.accent }}>
-                  {t('tasks.duplicate')}
-                </Text>
-              </Pressable>
-              <Pressable
                 disabled={remove.isPending}
                 onPress={() => token && remove.mutate(task.id)}
                 className="min-h-11 min-w-11 items-center justify-center">
                 <Text className="text-sm text-[#FF9BA6]">{t('tasks.disable')}</Text>
               </Pressable>
-            </View>
+            </Pressable>
           ))}
         </View>
-        {add.isError || remove.isError || duplicate.isError ? (
+        {add.isError || update.isError || remove.isError ? (
           <Text className="mt-4 text-sm text-[#FF9BA6]">{t('tasks.saveFailed')}</Text>
         ) : null}
       </ScrollView>
       <TaskComposerSheet
-        key={composerKey}
+        key={editingTask?.id ?? composerKey}
         visible={composerVisible}
-        saving={add.isPending}
-        onClose={() => setComposerVisible(false)}
-        onSave={(input) => add.mutate(input)}
+        saving={add.isPending || update.isPending}
+        task={editingTask}
+        onClose={() => {
+          setComposerVisible(false);
+          setEditingTask(null);
+        }}
+        onSave={(input) => (editingTask ? update.mutate(input) : add.mutate(input))}
       />
     </SafeAreaView>
   );
