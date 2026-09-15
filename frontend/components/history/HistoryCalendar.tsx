@@ -1,5 +1,5 @@
 import { Pressable, Text, View } from 'react-native';
-import { getHistory } from '@/services/api';
+import { getHistory, type HistoryDay } from '@/services/api';
 import { formatMonth, formatShortDate, locale, t } from '@/services/i18n';
 import { useTheme } from '@/services/theme';
 
@@ -41,13 +41,14 @@ export function HistoryCalendar({ month, days, selectedDate, onSelect, onMove }:
     )
   );
   const selectedPoints = points.get(selectedDate) ?? 0;
+  const selectedDay = days.find((day) => day.date === selectedDate);
   return (
     <View
       className="mt-5 rounded-2xl p-4"
       style={{ backgroundColor: palette.surface, borderColor: palette.line, borderWidth: 1 }}>
       <View className="flex-row items-center justify-between">
         <View className="flex-1 pr-3">
-          <Text className="font-bold text-[#173052]">{t('history.calendarTitle')}</Text>
+          <Text className="font-bold text-[#26332D]">{t('history.calendarTitle')}</Text>
           <Text className="mt-1 text-xs leading-5 text-muted">
             {t('history.calendarDescription')}
           </Text>
@@ -96,7 +97,29 @@ export function HistoryCalendar({ month, days, selectedDate, onSelect, onMove }:
               })
             : t('history.noPoints')}
         </Text>
+        {selectedDay?.point_events.length ? (
+          <View className="mt-3 gap-2">
+            {selectedDay.point_events.map((event) => (
+              <PointEventRow key={event.id} event={event} />
+            ))}
+          </View>
+        ) : null}
       </View>
+    </View>
+  );
+}
+
+function PointEventRow({ event }: { event: HistoryDay['point_events'][number] }) {
+  const { palette } = useTheme();
+  const label = event.source_title || t(`history.event.${event.event_type}`);
+  const positive = event.points > 0;
+  return (
+    <View className="flex-row items-center justify-between rounded-lg bg-white px-3 py-2.5">
+      <Text className="flex-1 pr-3 text-xs font-semibold text-[#26332D]">{label}</Text>
+      <Text className="text-sm font-bold" style={{ color: positive ? palette.accent : '#D65050' }}>
+        {positive ? '+' : ''}
+        {event.points}점
+      </Text>
     </View>
   );
 }

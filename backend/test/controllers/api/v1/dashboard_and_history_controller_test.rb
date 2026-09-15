@@ -60,7 +60,7 @@ class Api::V1::DashboardAndHistoryControllerTest < ActionDispatch::IntegrationTe
     assert_equal [5], response.parsed_body.dig("data", "tasks", 0, "weekdays")
   end
 
-  test "history fills the requested range and includes reversed point events" do
+  test "history fills the requested range and omits reversed point events" do
     occurred_at = Time.zone.parse("2026-09-11 09:00:00")
     PointEvent.create!(user: @user, source_device: @device, activity_date: @date, event_type: "adjustment", points: 5, idempotency_key: "history-event", occurred_at: occurred_at, reversed_at: occurred_at + 1.hour)
     DailySummary.create!(date: @date, points_total: 0)
@@ -71,8 +71,19 @@ class Api::V1::DashboardAndHistoryControllerTest < ActionDispatch::IntegrationTe
     days = response.parsed_body.dig("data", "days")
     assert_equal 2, days.size
     assert_equal 0, days.first.dig("summary", "points_total")
-    assert_equal "adjustment", days.last.dig("point_events", 0, "event_type")
-    assert days.last.dig("point_events", 0, "reversed_at").present?
+    assert_empty days.last.fetch("point_events")
+  end
+
+  test "history includes the completed task title in point events" do
+    completed_at = Time.zone.parse("2026-09-11 09:00:00")
+    completion = DailyTaskCompletion.create!(task_template: @task, source_device: @device, completed_on: @date, sequence: 1, completed_at: completed_at)
+    PointEvent.create!(user: @user, daily_task_completion: completion, source_device: @device, activity_date: @date, event_type: "task_completion", points: 15, idempotency_key: "history-task-event", occurred_at: completed_at)
+    DailySummary.create!(date: @date, points_total: 15)
+
+    get "/api/v1/history?from=2026-09-11&to=2026-09-11", headers: @headers
+
+    assert_response :success
+    assert_equal "알고리즘", response.parsed_body.dig("data", "days", 0, "point_events", 0, "source_title")
   end
 
   test "history rejects invalid and oversized date ranges" do
