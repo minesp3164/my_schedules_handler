@@ -67,7 +67,7 @@ export default function TasksScreen() {
           ? {
               ...current,
               tasks: [
-                ...current.tasks,
+                ...current.tasks.filter((item) => item.id !== task.id),
                 { ...task, completed_count: 0, goal_completed: false, completions: [] },
               ].sort((left, right) => left.position - right.position),
             }

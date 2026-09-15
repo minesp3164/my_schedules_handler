@@ -9,10 +9,20 @@ module Api
 
       def create
         attributes = task_params.to_h.symbolize_keys
-        task = current_user.task_templates.create!(
-          attributes.merge(points: points_for(attributes[:kind], attributes[:target_count]))
-        )
-        render json: { data: task_payload(task) }, status: :created
+        Tasks::ConsolidateDuplicates.call(user: current_user)
+        task = current_user.task_templates.active_in_order.find do |candidate|
+          candidate.title == attributes[:title] && candidate.kind == attributes[:kind] && candidate.weekdays.sort == Array(attributes[:weekdays]).sort
+        end
+        if task
+          target_count = task.target_count + attributes[:target_count].to_i
+          task.update!(target_count: target_count, points: points_for(task.kind, target_count))
+          render json: { data: task_payload(task), meta: { merged: true } }
+        else
+          task = current_user.task_templates.create!(
+            attributes.merge(points: points_for(attributes[:kind], attributes[:target_count]))
+          )
+          render json: { data: task_payload(task) }, status: :created
+        end
       end
 
       def update
