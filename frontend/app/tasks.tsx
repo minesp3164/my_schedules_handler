@@ -23,13 +23,19 @@ type NewTask = {
 };
 
 const weekdayKeys = [1, 2, 3, 4, 5, 6, 0];
-const scheduleLabel = (weekdays: number[]) =>
-  weekdays.length === 7
-    ? t('tasks.everyDay')
-    : weekdayKeys
-        .filter((weekday) => weekdays.includes(weekday))
-        .map((weekday) => t(`tasks.weekdayShort${weekday}`))
-        .join(' · ');
+const sameWeekdays = (weekdays: number[], expected: number[]) =>
+  weekdays.length === expected.length && expected.every((weekday) => weekdays.includes(weekday));
+
+const scheduleLabel = (weekdays: number[]) => {
+  if (weekdays.length === 7) return t('tasks.everyDay');
+  if (sameWeekdays(weekdays, [1, 2, 3, 4, 5])) return t('tasks.weekdaysWeekdays');
+  if (sameWeekdays(weekdays, [6, 0])) return t('tasks.weekends');
+
+  return weekdayKeys
+    .filter((weekday) => weekdays.includes(weekday))
+    .map((weekday) => t(`tasks.weekdayShort${weekday}`))
+    .join(' · ');
+};
 
 export default function TasksScreen() {
   const [token, setToken] = useState<string | null>();
