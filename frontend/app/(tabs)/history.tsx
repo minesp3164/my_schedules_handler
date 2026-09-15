@@ -11,6 +11,12 @@ import { HistoryCalendar } from '@/components/history/HistoryCalendar';
 import { HistorySummary } from '@/components/history/HistorySummary';
 
 const iso = (date: Date) => date.toISOString().slice(0, 10);
+const addDays = (date: Date, days: number) => {
+  const result = new Date(date);
+  result.setDate(result.getDate() + days);
+  return result;
+};
+const mondayOf = (date: Date) => addDays(date, -((date.getDay() + 6) % 7));
 const summarize = (days: Awaited<ReturnType<typeof getHistory>>) => ({
   points: days.reduce((sum, day) => sum + day.summary.points_total, 0),
   completedDays: days.filter((day) => day.summary.all_goals_completed_at).length,
@@ -27,10 +33,8 @@ export default function History() {
     getDeviceToken().then(setToken);
   }, []);
   const range = useMemo(() => {
-    const end = new Date();
-    const start = new Date();
-    start.setDate(end.getDate() - 13);
-    return { start, end };
+    const thisMonday = mondayOf(new Date());
+    return { start: addDays(thisMonday, -7), end: addDays(thisMonday, 6), thisMonday };
   }, []);
   const history = useQuery({
     queryKey: ['history'],
@@ -45,8 +49,8 @@ export default function History() {
     enabled: Boolean(token),
   });
   const days = history.data ?? [];
-  const currentWeek = days.slice(-7);
-  const previousWeek = days.slice(0, -7);
+  const currentWeek = days.filter((day) => day.date >= iso(range.thisMonday));
+  const previousWeek = days.filter((day) => day.date < iso(range.thisMonday));
   const current = summarize(currentWeek);
   const previous = summarize(previousWeek);
   const pointChange = current.points - previous.points;
@@ -61,7 +65,7 @@ export default function History() {
   return (
     <SafeAreaView className="flex-1" style={{ backgroundColor: palette.screen }}>
       <ScrollView contentContainerClassName="px-5 pb-8 pt-8">
-        <Text className="text-2xl font-bold text-[#173052]">{t('history.title')}</Text>
+        <Text className="text-2xl font-bold text-[#26332D]">{t('history.title')}</Text>
         <Text className="mt-2 text-sm text-muted">{t('history.description')}</Text>
         <Pressable
           onPress={() => router.push('/milestones')}
