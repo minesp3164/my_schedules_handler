@@ -11,6 +11,13 @@
   "nextMonth": "次の月",
   "selectedDayPoints": "%{date}に%{points}を獲得しました。",
   "noPoints": "まだ獲得したポイントはありません。",
+  "event": {
+    "task_completion": "タスク完了",
+    "focus_completion": "集中完了",
+    "daily_bonus": "一日の目標ボーナス",
+    "reward_redemption": "報酬の利用",
+    "adjustment": "ポイント調整"
+  },
   "comparisonTitle": "今週と先週の比較",
   "comparisonDescription": "月曜日から日曜日までの週間記録",
   "comparisonWindow": "月〜日基準",

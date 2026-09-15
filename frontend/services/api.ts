@@ -117,6 +117,7 @@ export type HistoryDay = {
     points: number;
     occurred_at: string;
     reversed_at: string | null;
+    source_title: string | null;
   }[];
 };
 

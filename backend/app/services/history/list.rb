@@ -19,7 +19,11 @@ module History
       raise InvalidRange if @to < @from || (@to - @from).to_i >= MAXIMUM_DAYS
 
       summaries = DailySummary.where(date: @from..@to).index_by(&:date)
-      events_by_date = @user.point_events.where(activity_date: @from..@to).order(:occurred_at, :created_at).group_by(&:activity_date)
+      events_by_date = @user.point_events.effective
+        .includes(daily_task_completion: :task_template)
+        .where(activity_date: @from..@to)
+        .order(:occurred_at, :created_at)
+        .group_by(&:activity_date)
 
       Result.new(@from, @to, (@from..@to).map do |date|
         summary = summaries[date]
@@ -40,7 +44,9 @@ module History
     end
 
     def event_payload(event)
-      event.slice(:id, :event_type, :points, :activity_date, :occurred_at, :reversed_at, :daily_task_completion_id, :focus_session_id)
+      event.slice(:id, :event_type, :points, :activity_date, :occurred_at, :reversed_at, :daily_task_completion_id, :focus_session_id).merge(
+        source_title: event.daily_task_completion&.task_template&.title
+      )
     end
   end
 end
