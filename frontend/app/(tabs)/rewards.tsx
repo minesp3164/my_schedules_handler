@@ -168,7 +168,11 @@ export default function RewardsScreen() {
                 할 일을 완료해 포인트를 모으고, 원하는 회복 경험을 직접 골라 사용해요.
               </Text>
             </View>
-            <View
+            <Pressable
+              onPress={() => router.push('/point-history')}
+              accessibilityRole="button"
+              accessibilityLabel={`보유 포인트 ${totalPoints}점, 포인트 내역 보기`}
+              accessibilityHint="포인트가 쌓이거나 사용된 기록을 확인해요."
               className="mt-4 flex-row items-center rounded-2xl border bg-white p-4"
               style={{ borderColor: palette.line }}>
               <Text className="mr-3 text-xl" style={{ color: palette.accent }}>
@@ -183,8 +187,11 @@ export default function RewardsScreen() {
                     ? `${next.shortTitle}까지 ${Math.max(next.threshold - next.progress, 0)}점 남았어요.`
                     : '모든 보상을 구매할 수 있어요.'}
                 </Text>
+                <Text className="mt-2 text-[11px] font-bold" style={{ color: palette.accent }}>
+                  포인트 내역 보기 →
+                </Text>
               </View>
-            </View>
+            </Pressable>
             <View className="mt-8 flex-row items-end justify-between">
               <View>
                 <Text
