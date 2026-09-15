@@ -48,5 +48,6 @@
   "progress": "%{completed} / %{total}회",
   "reward": "오늘의 보상 궤도",
   "remaining": "보상까지 %{points} 남았어요",
-  "startFocus": "%{minutes}분 집중 시작"
+  "startFocus": "%{minutes}분 집중 시작",
+  "openFocusTimer": "집중 타이머 열기"
 }

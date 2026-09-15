@@ -24,6 +24,7 @@ export default function RootLayout() {
             <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
             <Stack.Screen name="tasks" options={{ headerShown: false }} />
             <Stack.Screen name="milestones" options={{ headerShown: false }} />
+            <Stack.Screen name="point-history" options={{ headerShown: false }} />
             <Stack.Screen name="rewards/[kind]" options={{ headerShown: false }} />
           </Stack>
         </SafeAreaProvider>

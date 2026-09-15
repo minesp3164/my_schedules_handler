@@ -48,5 +48,6 @@
   "progress": "%{completed} / %{total}回",
   "reward": "今日の報酬への道",
   "remaining": "報酬まであと %{points}",
-  "startFocus": "%{minutes}分集中を開始"
+  "startFocus": "%{minutes}分集中を開始",
+  "openFocusTimer": "集中タイマーを開く"
 }

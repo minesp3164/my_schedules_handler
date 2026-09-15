@@ -22,6 +22,7 @@ export type Dashboard = {
     weekdays: number[];
     completed_count: number;
     goal_completed: boolean;
+    read_only?: boolean;
     completions: { id: string }[];
   }[];
   focus_session: {
@@ -109,7 +110,15 @@ export function controlFocus(
 export type HistoryDay = {
   date: string;
   summary: { points_total: number; all_goals_completed_at: string | null };
-  point_events: { id: string; points: number; reversed_at: string | null }[];
+  point_events: {
+    id: string;
+    event_type:
+      'task_completion' | 'focus_completion' | 'daily_bonus' | 'reward_redemption' | 'adjustment';
+    points: number;
+    occurred_at: string;
+    reversed_at: string | null;
+    source_title: string | null;
+  }[];
 };
 
 export type MilestoneProgress = {
@@ -170,6 +179,14 @@ export type NewTaskTemplate = Omit<TaskTemplate, 'id' | 'active' | 'points'> & {
 export function createTaskTemplate(token: string, task: NewTaskTemplate) {
   return request<ApiResponse<TaskTemplate>>('/task_templates', token, {
     method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ task_template: task }),
+  });
+}
+
+export function updateTaskTemplate(token: string, id: string, task: NewTaskTemplate) {
+  return request<ApiResponse<TaskTemplate>>(`/task_templates/${id}`, token, {
+    method: 'PATCH',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ task_template: task }),
   });

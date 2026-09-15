@@ -1,5 +1,5 @@
 import { Pressable, Text, View } from 'react-native';
-import { getHistory } from '@/services/api';
+import { getHistory, type HistoryDay } from '@/services/api';
 import { formatMonth, formatShortDate, locale, t } from '@/services/i18n';
 import { useTheme } from '@/services/theme';
 
@@ -10,7 +10,17 @@ type Props = {
   onSelect: (date: string) => void;
   onMove: (amount: number) => void;
 };
-const iso = (date: Date) => date.toISOString().slice(0, 10);
+const iso = (date: Date) => {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
+
+const localDateFromIso = (value: string) => {
+  const [year, month, day] = value.split('-').map(Number);
+  return new Date(year, month - 1, day, 12);
+};
 
 export function HistoryCalendar({ month, days, selectedDate, onSelect, onMove }: Props) {
   const { palette } = useTheme();
@@ -31,13 +41,14 @@ export function HistoryCalendar({ month, days, selectedDate, onSelect, onMove }:
     )
   );
   const selectedPoints = points.get(selectedDate) ?? 0;
+  const selectedDay = days.find((day) => day.date === selectedDate);
   return (
     <View
       className="mt-5 rounded-2xl p-4"
       style={{ backgroundColor: palette.surface, borderColor: palette.line, borderWidth: 1 }}>
       <View className="flex-row items-center justify-between">
         <View className="flex-1 pr-3">
-          <Text className="font-bold text-[#173052]">{t('history.calendarTitle')}</Text>
+          <Text className="font-bold text-[#26332D]">{t('history.calendarTitle')}</Text>
           <Text className="mt-1 text-xs leading-5 text-muted">
             {t('history.calendarDescription')}
           </Text>
@@ -81,12 +92,34 @@ export function HistoryCalendar({ month, days, selectedDate, onSelect, onMove }:
         <Text className="text-center text-sm font-semibold text-[#173052]">
           {selectedPoints > 0
             ? t('history.selectedDayPoints', {
-                date: formatShortDate(new Date(`${selectedDate}T00:00:00`)),
+                date: formatShortDate(localDateFromIso(selectedDate)),
                 points: t('common.point', { count: selectedPoints }),
               })
             : t('history.noPoints')}
         </Text>
+        {selectedDay?.point_events.length ? (
+          <View className="mt-3 gap-2">
+            {selectedDay.point_events.map((event) => (
+              <PointEventRow key={event.id} event={event} />
+            ))}
+          </View>
+        ) : null}
       </View>
+    </View>
+  );
+}
+
+function PointEventRow({ event }: { event: HistoryDay['point_events'][number] }) {
+  const { palette } = useTheme();
+  const label = event.source_title || t(`history.event.${event.event_type}`);
+  const positive = event.points > 0;
+  return (
+    <View className="flex-row items-center justify-between rounded-lg bg-white px-3 py-2.5">
+      <Text className="flex-1 pr-3 text-xs font-semibold text-[#26332D]">{label}</Text>
+      <Text className="text-sm font-bold" style={{ color: positive ? palette.accent : '#D65050' }}>
+        {positive ? '+' : ''}
+        {event.points}점
+      </Text>
     </View>
   );
 }
