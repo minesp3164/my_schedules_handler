@@ -3,6 +3,7 @@ import { Animated, Modal, Pressable, ScrollView, Text, TextInput, View } from 'r
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import Svg, { Circle, Path } from 'react-native-svg';
 import { getSettings, updateSettings, type Settings as AppSettings } from '@/services/api';
 import { getDeviceToken } from '@/services/device-token';
 import {
@@ -15,7 +16,28 @@ import { isValidThemeColor, useTheme, type ThemeColors } from '@/services/theme'
 import { ColorWheel } from '@/components/ColorWheel';
 import { ThemeCard } from '@/components/settings/ThemeCard';
 
-const colorPresets = ['#2479CC', '#7C5ACD', '#D25575', '#188B72', '#E38A2D'];
+const buttonColorPresets = [
+  '#2479CC',
+  '#4F46E5',
+  '#7C3AED',
+  '#DB2777',
+  '#DC2626',
+  '#EA580C',
+  '#D97706',
+  '#16A34A',
+  '#0F766E',
+  '#475569',
+];
+const backgroundColorPresets = [
+  '#F5FAFF',
+  '#F8F5FF',
+  '#FFF7F1',
+  '#F1FBF6',
+  '#FFFBEA',
+  '#F7F7F8',
+  '#F2F6FC',
+  '#FFF1F5',
+];
 
 function darkenColor(value: string, amount: number) {
   if (!isValidThemeColor(value)) return value;
@@ -36,9 +58,6 @@ export default function Settings() {
   const [timeError, setTimeError] = useState<string | null>(null);
   const [permission, setPermission] = useState<NotificationPermission>('undetermined');
   const [themeEditorOpen, setThemeEditorOpen] = useState(false);
-  const [focusEditorOpen, setFocusEditorOpen] = useState(false);
-  const [focusMinutesDraft, setFocusMinutesDraft] = useState(25);
-  const [breakMinutesDraft, setBreakMinutesDraft] = useState(5);
   const [themeDraft, setThemeDraft] = useState<ThemeColors>({
     button: '#2479CC',
     background: '#F5FAFF',
@@ -101,18 +120,6 @@ export default function Settings() {
     setPaletteField('button');
     setThemeEditorOpen(true);
   };
-  const openFocusEditor = () => {
-    setFocusMinutesDraft(value?.focus_minutes ?? 25);
-    setBreakMinutesDraft(value?.break_minutes ?? 5);
-    setFocusEditorOpen(true);
-  };
-  const saveFocusTime = () => {
-    if (!token) return;
-    update.mutate(
-      { focus_minutes: focusMinutesDraft, break_minutes: breakMinutesDraft },
-      { onSuccess: () => setFocusEditorOpen(false) }
-    );
-  };
   const applyTheme = () => {
     if (!isValidThemeColor(themeDraft.button) || !isValidThemeColor(themeDraft.background)) {
       setThemeError(t('settings.invalidThemeColor'));
@@ -130,19 +137,15 @@ export default function Settings() {
         <Text className="text-2xl font-bold text-[#173052]">{t('settings.title')}</Text>
         <Text className="mt-2 text-sm text-muted">{t('settings.description')}</Text>
         <ThemeCard colors={colors} onPress={openThemeEditor} />
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel={t('settings.focusTime')}
-          onPress={openFocusEditor}
-          className="mt-4 rounded-2xl border border-line bg-surface p-4">
+        <View className="mt-4 rounded-2xl border border-line bg-surface p-4">
           <Text className="font-bold text-[#173052]">{t('settings.focusTime')}</Text>
           <Text className="mt-2 text-sm text-muted">
             {t('settings.focusTimeValue', {
-              focus: value?.focus_minutes ?? 25,
-              break: value?.break_minutes ?? 5,
+              focus: 25,
+              break: 5,
             })}
           </Text>
-        </Pressable>
+        </View>
         <View className="mt-4 rounded-2xl border border-line bg-surface p-4">
           <View className="flex-row items-center justify-between">
             <View>
@@ -254,74 +257,6 @@ export default function Settings() {
       <Modal
         transparent
         animationType="slide"
-        visible={focusEditorOpen}
-        onRequestClose={() => setFocusEditorOpen(false)}>
-        <View className="flex-1 justify-end bg-black/40">
-          <View
-            className="rounded-t-[28px] px-5 pb-8 pt-6"
-            style={{ backgroundColor: palette.surface }}>
-            <View className="flex-row items-center justify-between">
-              <Text className="text-xl font-bold text-[#173052]">
-                {t('settings.focusModalTitle')}
-              </Text>
-              <Pressable
-                onPress={() => setFocusEditorOpen(false)}
-                className="min-h-11 min-w-11 items-center justify-center">
-                <Text className="font-semibold text-muted">{t('settings.themeCancel')}</Text>
-              </Pressable>
-            </View>
-            {[
-              ['focus', focusMinutesDraft, setFocusMinutesDraft, 5],
-              ['break', breakMinutesDraft, setBreakMinutesDraft, 1],
-            ].map(([name, minutes, setMinutes, step]) => (
-              <View
-                key={name as string}
-                className="mt-5 flex-row items-center justify-between rounded-2xl border border-line bg-screen px-4 py-3">
-                <Text className="font-bold text-[#173052]">
-                  {name === 'focus' ? t('settings.focusMinutes') : t('settings.breakMinutes')}
-                </Text>
-                <View className="flex-row items-center">
-                  <Pressable
-                    onPress={() =>
-                      (setMinutes as (value: number) => void)(
-                        Math.max(step as number, (minutes as number) - (step as number))
-                      )
-                    }
-                    className="h-11 w-11 items-center justify-center rounded-xl"
-                    style={{ backgroundColor: palette.accentSoft }}>
-                    <Text className="text-xl font-bold" style={{ color: palette.accent }}>
-                      −
-                    </Text>
-                  </Pressable>
-                  <Text className="min-w-20 text-center text-base font-bold text-[#173052]">
-                    {t('settings.minutesValue', { minutes })}
-                  </Text>
-                  <Pressable
-                    onPress={() =>
-                      (setMinutes as (value: number) => void)(
-                        (minutes as number) + (step as number)
-                      )
-                    }
-                    className="h-11 w-11 items-center justify-center rounded-xl"
-                    style={{ backgroundColor: palette.accent }}>
-                    <Text className="text-xl font-bold text-white">+</Text>
-                  </Pressable>
-                </View>
-              </View>
-            ))}
-            <Pressable
-              disabled={update.isPending}
-              onPress={saveFocusTime}
-              className="mt-6 h-14 items-center justify-center rounded-2xl disabled:opacity-50"
-              style={{ backgroundColor: palette.accent }}>
-              <Text className="text-base font-bold text-white">{t('settings.focusSave')}</Text>
-            </Pressable>
-          </View>
-        </View>
-      </Modal>
-      <Modal
-        transparent
-        animationType="slide"
         visible={themeEditorOpen}
         onRequestClose={() => setThemeEditorOpen(false)}>
         <View className="flex-1 justify-end bg-black/40">
@@ -350,16 +285,6 @@ export default function Settings() {
                       ? t('settings.themeButtonColor')
                       : t('settings.themeBackgroundColor')}
                   </Text>
-                  <Pressable
-                    accessibilityRole="button"
-                    accessibilityLabel={t('settings.themePalette')}
-                    onPress={() => setPaletteField((current) => (current === field ? null : field))}
-                    className="rounded-full px-3 py-1"
-                    style={{ backgroundColor: palette.accentSoft }}>
-                    <Text className="text-xs font-bold" style={{ color: palette.accent }}>
-                      {t('settings.themePalette')}
-                    </Text>
-                  </Pressable>
                 </View>
                 <View className="mt-2 flex-row items-center">
                   <View
@@ -379,17 +304,39 @@ export default function Settings() {
                     className="ml-3 flex-1 rounded-xl border border-line bg-screen px-3 py-3 font-semibold text-[#173052]"
                   />
                 </View>
-                <View className="mt-3 flex-row gap-2">
-                  {colorPresets.map((color) => (
-                    <Pressable
-                      key={color}
-                      accessibilityRole="button"
-                      accessibilityLabel={color}
-                      onPress={() => setThemeDraft((current) => ({ ...current, [field]: color }))}
-                      className="h-8 w-8 rounded-full border-2 border-white"
-                      style={{ backgroundColor: color }}
-                    />
-                  ))}
+                <View className="mt-3 flex-row flex-wrap items-center gap-2">
+                  {(field === 'button' ? buttonColorPresets : backgroundColorPresets).map(
+                    (color) => (
+                      <Pressable
+                        key={color}
+                        accessibilityRole="button"
+                        accessibilityLabel={color}
+                        onPress={() => setThemeDraft((current) => ({ ...current, [field]: color }))}
+                        className="h-8 w-8 rounded-full border-2 border-white"
+                        style={{ backgroundColor: color }}
+                      />
+                    )
+                  )}
+                  <Pressable
+                    accessibilityRole="button"
+                    accessibilityLabel={t('settings.themePalette')}
+                    onPress={() => setPaletteField((current) => (current === field ? null : field))}
+                    accessibilityState={{ selected: paletteField === field }}
+                    className="h-8 w-9 items-center justify-center transition duration-150 hover:-translate-y-px hover:opacity-90">
+                    <Svg width={36} height={32} viewBox="0 0 36 32">
+                      <Path
+                        d="M18 2.5C9.8 2.5 3.2 7.8 3.2 15.2c0 7.5 6 13.3 13.5 13.3h2.7c1.8 0 2.9-1.8 2-3.3-.5-.8-.1-1.8.9-1.8H25c4.3 0 7.8-3.6 7.8-8.1C32.8 8 26.2 2.5 18 2.5Z"
+                        fill="#FFFDF8"
+                        stroke={palette.accent}
+                        strokeWidth={paletteField === field ? 2.5 : 1.4}
+                      />
+                      <Circle cx="11" cy="11.5" r="2.6" fill="#EF4444" />
+                      <Circle cx="17.5" cy="8.8" r="2.6" fill="#F59E0B" />
+                      <Circle cx="24" cy="12" r="2.6" fill="#22C55E" />
+                      <Circle cx="10.8" cy="18.2" r="2.6" fill="#3B82F6" />
+                      <Circle cx="17.5" cy="18.8" r="2.6" fill="#8B5CF6" />
+                    </Svg>
+                  </Pressable>
                 </View>
                 {paletteField === field ? (
                   <View className="mt-4 items-center rounded-2xl border border-line bg-screen py-4">

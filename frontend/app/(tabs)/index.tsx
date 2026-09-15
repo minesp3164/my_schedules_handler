@@ -63,6 +63,13 @@ function getTaskStatus(task: DashboardTask): BoardStatus {
   return 'todo';
 }
 
+function formatCompactPoints(points: number) {
+  if (points < 1_000) return points.toLocaleString();
+
+  const compact = (points / 1_000).toFixed(points >= 10_000 ? 0 : 1).replace(/\.0$/, '');
+  return `${compact}K`;
+}
+
 export default function Home() {
   const [token, setToken] = useState<string | null | undefined>();
   const [activePage, setActivePage] = useState(0);
@@ -103,12 +110,14 @@ export default function Home() {
 
   const tasks = dashboard.data?.tasks ?? [];
   const points = dashboard.data?.daily_summary.points_total ?? 0;
+  const totalPoints = dashboard.data?.total_points ?? 0;
   const totalGoal = tasks.length;
   const doneCount = tasks.filter((task) => task.goal_completed).length;
   const completionRate = totalGoal ? Math.round((doneCount / totalGoal) * 100) : 0;
   const remaining = Math.max(100 - points, 0);
   const focusMinutes = settings.data?.focus_minutes ?? 25;
   const stalePausedFocus = isStalePausedFocus(dashboard.data?.focus_session);
+  const hasTodoTasks = tasks.some((task) => getTaskStatus(task) === 'todo');
   const recommendations = getTodayRecommendations(tasks, points);
   const recommendation = recommendations[recommendationIndex % recommendations.length];
   const board = boardColumns.map((column) => ({
@@ -152,7 +161,22 @@ export default function Home() {
               </Text>
               <Text className="mt-0.5 text-xs text-muted">{formatDate(new Date())}</Text>
             </View>
-            <View className="h-11 w-11" />
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel={t('home.totalPointsAccessibility', {
+                points: totalPoints.toLocaleString(),
+              })}
+              accessibilityHint={t('home.totalPointsHint')}
+              onPress={() => router.push('/rewards')}
+              className="min-h-11 min-w-14 items-center justify-center rounded-xl border px-2 transition duration-150 hover:opacity-75"
+              style={{ backgroundColor: palette.accentSoft, borderColor: palette.line }}>
+              <Text className="text-[9px] font-bold tracking-[1px] text-muted">
+                {t('home.totalPoints')}
+              </Text>
+              <Text className="mt-px text-base font-bold" style={{ color: palette.accent }}>
+                {formatCompactPoints(totalPoints)}
+              </Text>
+            </Pressable>
           </View>
 
           <View className="mt-7 flex-row items-end justify-between">
@@ -226,22 +250,6 @@ export default function Home() {
           </Pressable>
         ) : null}
 
-        {recommendation ? (
-          <NextActionCard
-            recommendation={recommendation}
-            hasAlternatives={recommendations.length > 1}
-            disabled={taskMutation.isPending}
-            onAct={() => {
-              if (recommendation.type === 'focus') {
-                router.push('/focus');
-                return;
-              }
-              taskMutation.mutate(recommendation.task);
-            }}
-            onNext={() => setRecommendationIndex((current) => current + 1)}
-          />
-        ) : null}
-
         <ScrollView
           ref={pagerRef}
           horizontal
@@ -275,7 +283,42 @@ export default function Home() {
                 </View>
 
                 <View className="p-3">
-                  {column.tasks.length === 0 && !dashboard.isLoading ? (
+                  {column.id === 'todo' ? (
+                    <Pressable
+                      onPress={() => router.push('/tasks')}
+                      accessibilityRole="button"
+                      accessibilityLabel={t('home.configureGoals')}
+                      accessibilityHint={t('home.configureGoalsHint')}
+                      className="mb-3 flex-row items-center justify-between rounded-2xl border border-dashed border-line bg-[#F9FCFF] px-4 py-3 transition duration-150 hover:opacity-75">
+                      <View>
+                        <Text className="text-sm font-bold text-[#173052]">
+                          {t('home.configureGoals')}
+                        </Text>
+                        <Text className="mt-0.5 text-[11px] text-muted">
+                          {t('home.configureGoalsHint')}
+                        </Text>
+                      </View>
+                      <Text className="text-lg" style={{ color: palette.accent }}>
+                        ›
+                      </Text>
+                    </Pressable>
+                  ) : null}
+                  {column.id === 'todo' && !hasTodoTasks && recommendation ? (
+                    <NextActionCard
+                      embedded
+                      recommendation={recommendation}
+                      hasAlternatives={recommendations.length > 1}
+                      disabled={taskMutation.isPending}
+                      onAct={() => {
+                        if (recommendation.type === 'focus') {
+                          router.push('/focus');
+                          return;
+                        }
+                        taskMutation.mutate(recommendation.task);
+                      }}
+                      onNext={() => setRecommendationIndex((current) => current + 1)}
+                    />
+                  ) : column.tasks.length === 0 && !dashboard.isLoading ? (
                     <View className="items-center px-4 py-9">
                       <Text className="text-2xl">{column.id === 'done' ? '✦' : '○'}</Text>
                       <Text className="mt-2 text-sm text-muted">
@@ -307,7 +350,7 @@ export default function Home() {
                             ? t('home.revertAction')
                             : t('home.completeAction'),
                         })}
-                        className={`rounded-2xl border border-line bg-white p-4 disabled:opacity-50 ${
+                        className={`rounded-2xl border border-line bg-white p-4 transition duration-150 hover:-translate-y-px hover:opacity-90 disabled:opacity-50 ${
                           index ? 'mt-3' : ''
                         }`}>
                         <View className="flex-row items-start justify-between">

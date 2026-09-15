@@ -14,7 +14,7 @@ export function ThemeCard({ colors, onPress }: { colors: ThemeColors; onPress: (
         accessibilityRole="button"
         accessibilityLabel={t('settings.themeCustomize')}
         onPress={onPress}
-        className="mt-4 flex-row items-center justify-between rounded-xl px-3 py-3"
+        className="mt-4 flex-row items-center justify-between rounded-xl px-3 py-3 transition duration-150 hover:-translate-y-px hover:opacity-90"
         style={{ backgroundColor: palette.accentSoft }}>
         <View className="flex-row items-center">
           <View className="h-8 w-8 rounded-full" style={{ backgroundColor: colors.button }} />

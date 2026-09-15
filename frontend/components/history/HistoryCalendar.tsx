@@ -104,7 +104,7 @@ function MonthButton({
     <Pressable
       accessibilityLabel={label}
       onPress={onPress}
-      className="h-9 w-9 items-center justify-center rounded-lg"
+      className="h-9 w-9 items-center justify-center rounded-lg transition duration-150 hover:-translate-y-px hover:opacity-90"
       style={{ backgroundColor: palette.accentSoft }}>
       <Text className="text-lg font-bold" style={{ color: palette.accent }}>
         {symbol}

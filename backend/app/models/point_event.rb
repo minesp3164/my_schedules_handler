@@ -7,7 +7,7 @@ class PointEvent < ApplicationRecord
   validates :activity_date, :event_type, :idempotency_key, :occurred_at, presence: true
   validates :points, numericality: { only_integer: true }
   validates :idempotency_key, uniqueness: true
-  validates :event_type, inclusion: { in: %w[task_completion focus_completion daily_bonus adjustment] }
+  validates :event_type, inclusion: { in: %w[task_completion focus_completion daily_bonus adjustment reward_redemption] }
 
   scope :effective, -> { where(reversed_at: nil) }
 end

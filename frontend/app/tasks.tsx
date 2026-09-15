@@ -18,7 +18,6 @@ import { TaskComposerSheet } from '@/components/tasks/TaskComposerSheet';
 type NewTask = {
   title: string;
   targetCount: number;
-  points: number;
   kind: string;
   weekdays: number[];
 };
@@ -55,7 +54,6 @@ export default function TasksScreen() {
     mutationFn: (input: NewTask) =>
       createTaskTemplate(token!, {
         title: input.title,
-        points: input.points,
         target_count: input.targetCount,
         position: tasks.data?.length ?? 0,
         kind: input.kind,
@@ -91,7 +89,6 @@ export default function TasksScreen() {
     mutationFn: (task: TaskTemplate) =>
       createTaskTemplate(token!, {
         title: t('tasks.copyTitle', { title: task.title }),
-        points: task.points,
         target_count: task.target_count,
         position: tasks.data?.length ?? 0,
         kind: task.kind,

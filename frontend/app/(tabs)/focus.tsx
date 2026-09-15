@@ -6,7 +6,6 @@ import {
   createIdempotencyKey,
   type FocusSession,
   getCurrentFocus,
-  getSettings,
   startFocus,
 } from '@/services/api';
 import { getDeviceToken } from '@/services/device-token';
@@ -35,6 +34,7 @@ const getRemainingSeconds = (session: FocusSession, clock: number) => {
 
   return Math.max(session.planned_seconds - elapsed, 0);
 };
+const focusSeconds = 25 * 60;
 
 export default function Focus() {
   const [token, setToken] = useState<string | null>();
@@ -52,12 +52,6 @@ export default function Focus() {
     enabled: Boolean(token),
     refetchInterval: 15_000,
   });
-  const settings = useQuery({
-    queryKey: ['settings'],
-    queryFn: () => getSettings(token!),
-    enabled: Boolean(token),
-  });
-  const focusSeconds = (settings.data?.focus_minutes ?? 25) * 60;
   const session = current.data;
   useEffect(() => {
     if (session?.status !== 'running') return;
@@ -67,7 +61,7 @@ export default function Focus() {
   const remaining = useMemo(() => {
     if (!session) return focusSeconds;
     return getRemainingSeconds(session, now);
-  }, [focusSeconds, session, now]);
+  }, [session, now]);
   useEffect(() => {
     if (!session || session.status !== 'running' || remaining > 0) return;
     if (notifiedSession.current === session.id) return;
@@ -155,7 +149,7 @@ export default function Focus() {
             ? t('focus.paused')
             : session
               ? t('focus.running')
-              : t('focus.default', { minutes: settings.data?.focus_minutes ?? 25 })
+              : t('focus.default', { minutes: 25 })
         }
         primaryLabel={primary[1]}
         hasSession={Boolean(session)}

@@ -42,4 +42,32 @@ export default function Root({ children }: { children: React.ReactNode }) {
 
 const responsiveBackground = `
 body { background-color: #F5FAFF; }
+
+@media (hover: hover) and (pointer: fine) {
+  .r-cursor-1loqt21,
+  [role='button'],
+  [role='switch'],
+  [role='tab'],
+  [role='link'] {
+    transition: transform 150ms ease, opacity 150ms ease, filter 150ms ease;
+  }
+
+  .r-cursor-1loqt21:hover,
+  [role='button']:hover,
+  [role='switch']:hover,
+  [role='tab']:hover,
+  [role='link']:hover {
+    transform: translateY(-1px);
+    filter: brightness(0.96);
+  }
+
+  .r-cursor-1loqt21:active,
+  [role='button']:active,
+  [role='switch']:active,
+  [role='tab']:active,
+  [role='link']:active {
+    transform: translateY(0);
+    filter: brightness(0.91);
+  }
+}
 `;

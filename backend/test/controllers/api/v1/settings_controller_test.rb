@@ -28,7 +28,7 @@ class Api::V1::SettingsControllerTest < ActionDispatch::IntegrationTest
     assert_equal 1, Setting.count
   end
 
-  test "updates allowed settings while keeping the timezone fixed" do
+  test "updates allowed settings while keeping the focus timing and timezone fixed" do
     patch "/api/v1/settings", params: {
       settings: {
         focus_minutes: 50,
@@ -47,7 +47,8 @@ class Api::V1::SettingsControllerTest < ActionDispatch::IntegrationTest
 
     assert_response :success
     data = response.parsed_body.fetch("data")
-    assert_equal 50, data.fetch("focus_minutes")
+    assert_equal 25, data.fetch("focus_minutes")
+    assert_equal 5, data.fetch("break_minutes")
     assert_equal false, data.fetch("nudge_enabled")
     assert_equal "12:30", data.fetch("nudge_at")
     assert_equal "Asia/Seoul", data.fetch("timezone")
@@ -57,9 +58,10 @@ class Api::V1::SettingsControllerTest < ActionDispatch::IntegrationTest
     assert_equal "오늘 목표 달성!", data.fetch("daily_reward_text")
   end
 
-  test "rejects invalid durations, rewards, and nudge times" do
+  test "ignores focus duration changes and rejects invalid rewards and nudge times" do
     patch "/api/v1/settings", params: { settings: { focus_minutes: 0 } }, headers: @headers, as: :json
-    assert_response :unprocessable_entity
+    assert_response :success
+    assert_equal 25, response.parsed_body.dig("data", "focus_minutes")
 
     patch "/api/v1/settings", params: { settings: { nudge_at: "25:00" } }, headers: @headers, as: :json
     assert_response :unprocessable_entity
