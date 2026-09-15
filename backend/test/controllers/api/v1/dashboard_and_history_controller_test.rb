@@ -31,6 +31,7 @@ class Api::V1::DashboardAndHistoryControllerTest < ActionDispatch::IntegrationTe
     data = response.parsed_body.fetch("data")
     assert_equal "2026-09-11", data.fetch("date")
     assert_equal 15, data.dig("daily_summary", "points_total")
+    assert_equal 15, data.fetch("total_points")
     assert_equal 1, data.fetch("tasks").first.fetch("completed_count")
     assert_equal 1, data.fetch("tasks").first.fetch("remaining_count")
     assert_equal 2, data.fetch("tasks").size
@@ -44,6 +45,7 @@ class Api::V1::DashboardAndHistoryControllerTest < ActionDispatch::IntegrationTe
 
     assert_response :success
     assert_equal 0, response.parsed_body.dig("data", "daily_summary", "points_total")
+    assert_equal 0, response.parsed_body.dig("data", "total_points")
     assert_nil response.parsed_body.dig("data", "focus_session")
   end
 

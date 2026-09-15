@@ -7,6 +7,7 @@ Rails.application.routes.draw do
       delete "devices/current", to: "device_connections#destroy"
       get "dashboard", to: "dashboard#show"
       get "history", to: "histories#index"
+      get "milestones", to: "milestones#show"
       resource :settings, only: %i[show update]
       resource :push_subscription, only: :create
       post "push-subscriptions", to: "push_subscriptions#create"
@@ -23,6 +24,7 @@ Rails.application.routes.draw do
         resources :completions, only: :create, module: :task_templates
       end
       resources :completions, only: :destroy
+      resources :reward_redemptions, path: 'reward-redemptions', only: :create
     end
   end
 

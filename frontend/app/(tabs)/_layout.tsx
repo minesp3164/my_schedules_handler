@@ -13,7 +13,7 @@ export default function TabLayout() {
         animation: 'shift',
         tabBarActiveTintColor: palette.accent,
         tabBarInactiveTintColor: '#69809D',
-        tabBarItemStyle: { width: '25%' },
+        tabBarItemStyle: { width: '20%' },
         tabBarLabelStyle: { fontSize: 11, fontWeight: '700', marginTop: 2 },
         tabBarStyle: {
           backgroundColor: '#FFFFFF',
@@ -41,6 +41,13 @@ export default function TabLayout() {
         options={{
           title: t('tabs.history'),
           tabBarIcon: ({ color }) => <TabBarIcon name="history" color={color} />,
+        }}
+      />
+      <Tabs.Screen
+        name="rewards"
+        options={{
+          title: '보상',
+          tabBarIcon: ({ color }) => <TabBarIcon name="reward" color={color} />,
         }}
       />
       <Tabs.Screen

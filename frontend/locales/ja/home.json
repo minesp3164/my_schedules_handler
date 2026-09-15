@@ -1,5 +1,8 @@
 {
   "brand": "FLOW BOARD",
+  "totalPoints": "POINTS",
+  "totalPointsAccessibility": "累計 %{points}ポイント",
+  "totalPointsHint": "タップすると報酬アーカイブに移動します。",
   "board": {
     "todo": { "label": "未着手", "caption": "これから始めるタスク" },
     "doing": { "label": "進行中", "caption": "少しずつ進めているタスク" },
@@ -22,6 +25,8 @@
   "nextActionStartFocus": "集中を開始",
   "nextActionCompleteTask": "このタスクを記録",
   "nextActionAnother": "別の提案",
+  "configureGoals": "目標を設定する",
+  "configureGoalsHint": "今日のタスクと目標回数を決めます。",
   "staleFocusTitle": "中断した集中セッションがあります",
   "staleFocusDescription": "しばらく停止したセッションを再開するか、今日は終了するか決めましょう。",
   "staleFocusAction": "集中セッションを整理する",

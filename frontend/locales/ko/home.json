@@ -1,5 +1,8 @@
 {
   "brand": "FLOW BOARD",
+  "totalPoints": "POINTS",
+  "totalPointsAccessibility": "누적 %{points}점",
+  "totalPointsHint": "누르면 리워드 보관함으로 이동합니다.",
   "board": {
     "todo": { "label": "시작 전", "caption": "오늘 시작할 업무" },
     "doing": { "label": "진행 중", "caption": "조금씩 쌓이는 업무" },
@@ -22,6 +25,8 @@
   "nextActionStartFocus": "집중 시작",
   "nextActionCompleteTask": "이 할 일 기록하기",
   "nextActionAnother": "다른 제안",
+  "configureGoals": "목표 설정하러 가기",
+  "configureGoalsHint": "오늘 할 일과 목표 횟수를 정해요.",
   "staleFocusTitle": "멈춘 집중 세션이 있어요",
   "staleFocusDescription": "오래 일시정지된 세션을 계속할지, 오늘은 마칠지 정리해 보세요.",
   "staleFocusAction": "집중 세션 정리하기",

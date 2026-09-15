@@ -3,6 +3,7 @@ require "time"
 module Api
   module V1
     class FocusSessionsController < BaseController
+      DEFAULT_FOCUS_SECONDS = 25.minutes.to_i
       rescue_from FocusSessions::Start::ActiveFocusSessionExists, with: :render_active_session_exists
       rescue_from FocusSessions::Pause::InvalidState, FocusSessions::Resume::InvalidState, FocusSessions::Complete::InvalidState, FocusSessions::Cancel::InvalidState, with: :render_invalid_state
       rescue_from FocusSessions::Complete::TooShort, with: :render_too_short
@@ -15,7 +16,7 @@ module Api
       def create
         result = FocusSessions::Start.call(
           source_device: current_device,
-          planned_seconds: create_params[:planned_seconds],
+          planned_seconds: DEFAULT_FOCUS_SECONDS,
           idempotency_key: request.headers["Idempotency-Key"]
         )
         revision = unless result.replayed

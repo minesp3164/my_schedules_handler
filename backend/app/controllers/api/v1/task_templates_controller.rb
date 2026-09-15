@@ -1,13 +1,17 @@
 module Api
   module V1
     class TaskTemplatesController < BaseController
+      DEFAULT_POINTS = { "focus" => 10, "algorithm" => 15, "portfolio" => 20, "application" => 25 }.freeze
       def index
         tasks = current_user.task_templates.active_in_order
         render json: { data: tasks.map { |task| task_payload(task) } }
       end
 
       def create
-        task = current_user.task_templates.create!(task_params)
+        attributes = task_params.to_h.symbolize_keys
+        task = current_user.task_templates.create!(
+          attributes.merge(points: points_for(attributes[:kind], attributes[:target_count]))
+        )
         render json: { data: task_payload(task) }, status: :created
       end
 
@@ -31,7 +35,14 @@ module Api
       private
 
       def task_params
-        params.require(:task_template).permit(:title, :points, :target_count, :position, :kind, :active, weekdays: [])
+        params.require(:task_template).permit(:title, :target_count, :position, :kind, :active, weekdays: [])
+      end
+
+      def points_for(kind, target_count)
+        base_points = DEFAULT_POINTS.fetch(kind.to_s, 10)
+        return base_points if %w[portfolio application].include?(kind.to_s)
+
+        base_points * [target_count.to_i, 1].max
       end
 
       def task_payload(task)

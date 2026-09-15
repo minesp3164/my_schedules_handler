@@ -7,9 +7,15 @@ const apiBaseUrl = process.env.EXPO_PUBLIC_API_URL ?? 'http://192.168.200.104:30
 export type Dashboard = {
   date: string;
   daily_summary: { points_total: number; daily_bonus_awarded: boolean };
+  total_points: number;
+  rewards: {
+    daily: { required_points: number; current_points: number; achieved: boolean };
+    weekly: { required_points: number; current_points: number; achieved: boolean };
+  };
   tasks: {
     id: string;
     title: string;
+    kind: string;
     points: number;
     target_count: number;
     position: number;
@@ -48,6 +54,14 @@ export async function getDashboard(token: string) {
 
 export function createIdempotencyKey() {
   return createUuid();
+}
+
+export function redeemReward(token: string, rewardKind: string, idempotencyKey: string) {
+  return request<{ data: { remaining_points: number } }>('/reward-redemptions', token, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'Idempotency-Key': idempotencyKey },
+    body: JSON.stringify({ reward_kind: rewardKind }),
+  });
 }
 
 export function completeTask(taskId: string, token: string, idempotencyKey: string) {
@@ -97,6 +111,17 @@ export type HistoryDay = {
   summary: { points_total: number; all_goals_completed_at: string | null };
   point_events: { id: string; points: number; reversed_at: string | null }[];
 };
+
+export type MilestoneProgress = {
+  activity_days: number;
+  focus_minutes: number;
+  completed_tasks: number;
+  created_tasks: number;
+};
+
+export async function getMilestones(token: string) {
+  return (await request<ApiResponse<MilestoneProgress>>('/milestones', token)).data;
+}
 export type Settings = {
   focus_minutes: number;
   break_minutes: number;
@@ -138,7 +163,11 @@ export async function getTaskTemplates(token: string) {
   return (await request<ApiResponse<TaskTemplate[]>>('/task_templates', token)).data;
 }
 
-export function createTaskTemplate(token: string, task: Omit<TaskTemplate, 'id' | 'active'>) {
+export type NewTaskTemplate = Omit<TaskTemplate, 'id' | 'active' | 'points'> & {
+  points?: number;
+};
+
+export function createTaskTemplate(token: string, task: NewTaskTemplate) {
   return request<ApiResponse<TaskTemplate>>('/task_templates', token, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },

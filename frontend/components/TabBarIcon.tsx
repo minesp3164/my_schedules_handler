@@ -1,9 +1,12 @@
-import { ColorValue, Image, StyleSheet, View } from 'react-native';
+import { ColorValue, Image, StyleSheet, Text, View } from 'react-native';
 
 export const TabBarIcon = (props: {
-  name: 'home' | 'focus' | 'history' | 'settings';
+  name: 'home' | 'focus' | 'history' | 'reward' | 'settings';
   color: ColorValue;
 }) => {
+  if (props.name === 'reward') {
+    return <Text style={[styles.reward, { color: props.color }]}>✦</Text>;
+  }
   const offset = iconOffsets[props.name];
 
   return (
@@ -39,4 +42,5 @@ export const styles = StyleSheet.create({
     width: 52,
     height: 52,
   },
+  reward: { fontSize: 22, lineHeight: 26, fontWeight: '700' },
 });

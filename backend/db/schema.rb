@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_09_13_000000) do
+ActiveRecord::Schema[8.1].define(version: 2026_09_14_000000) do
   create_table "daily_summaries", primary_key: "date", id: :date, force: :cascade do |t|
     t.datetime "all_goals_completed_at"
     t.datetime "created_at", null: false
@@ -128,6 +128,20 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_13_000000) do
     t.index ["reward_rule_id"], name: "index_reward_achievements_on_reward_rule_id"
   end
 
+  create_table "reward_redemptions", id: :string, force: :cascade do |t|
+    t.integer "cost_points", null: false
+    t.datetime "created_at", null: false
+    t.string "point_event_id", null: false
+    t.datetime "redeemed_at", null: false
+    t.string "reward_kind", null: false
+    t.datetime "updated_at", null: false
+    t.string "user_id", null: false
+    t.index ["point_event_id"], name: "index_reward_redemptions_on_point_event_id"
+    t.index ["user_id"], name: "index_reward_redemptions_on_user_id"
+    t.check_constraint "cost_points > 0", name: "reward_redemptions_cost_positive"
+    t.check_constraint "reward_kind IN ('cheer', 'recovery', 'reflection', 'future', 'growth')", name: "reward_redemptions_valid_kind"
+  end
+
   create_table "reward_rules", id: :string, force: :cascade do |t|
     t.boolean "active", default: true, null: false
     t.datetime "created_at", null: false
@@ -199,6 +213,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_13_000000) do
   add_foreign_key "point_events", "focus_sessions"
   add_foreign_key "point_events", "users"
   add_foreign_key "reward_achievements", "reward_rules"
+  add_foreign_key "reward_redemptions", "point_events"
+  add_foreign_key "reward_redemptions", "users"
   add_foreign_key "reward_rules", "users"
   add_foreign_key "task_templates", "users"
 end

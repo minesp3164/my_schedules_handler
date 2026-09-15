@@ -17,8 +17,6 @@ module Api
 
       def settings_params
         params.require(:settings).permit(
-          :focus_minutes,
-          :break_minutes,
           :nudge_enabled,
           :nudge_at,
           :focus_completion_points,
