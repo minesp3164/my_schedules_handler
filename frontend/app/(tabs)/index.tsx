@@ -16,7 +16,6 @@ import {
   completeTask,
   createIdempotencyKey,
   getDashboard,
-  getSettings,
   revertCompletion,
   type Dashboard,
 } from '@/services/api';
@@ -89,11 +88,6 @@ export default function Home() {
     queryFn: () => getDashboard(token!),
     enabled: Boolean(token),
   });
-  const settings = useQuery({
-    queryKey: ['settings'],
-    queryFn: () => getSettings(token!),
-    enabled: Boolean(token),
-  });
   const taskMutation = useMutation({
     mutationFn: async (task: DashboardTask) => {
       if (!token) throw new Error(t('common.connectFirst'));
@@ -115,7 +109,6 @@ export default function Home() {
   const doneCount = tasks.filter((task) => task.goal_completed).length;
   const completionRate = totalGoal ? Math.round((doneCount / totalGoal) * 100) : 0;
   const remaining = Math.max(100 - points, 0);
-  const focusMinutes = settings.data?.focus_minutes ?? 25;
   const stalePausedFocus = isStalePausedFocus(dashboard.data?.focus_session);
   const hasTodoTasks = tasks.some((task) => getTaskStatus(task) === 'todo');
   const recommendations = getTodayRecommendations(tasks, points);
@@ -441,7 +434,7 @@ export default function Home() {
           </View>
         </View>
 
-        <RewardPaceCard points={points} remaining={remaining} focusMinutes={focusMinutes} />
+        <RewardPaceCard points={points} remaining={remaining} />
       </ScrollView>
     </SafeAreaView>
   );

@@ -3,15 +3,7 @@ import { router } from 'expo-router';
 import { t } from '@/services/i18n';
 import { useTheme } from '@/services/theme';
 
-export function RewardPaceCard({
-  points,
-  remaining,
-  focusMinutes,
-}: {
-  points: number;
-  remaining: number;
-  focusMinutes: number;
-}) {
+export function RewardPaceCard({ points, remaining }: { points: number; remaining: number }) {
   const { palette } = useTheme();
   return (
     <View className="mx-5 mt-6 rounded-[20px] p-5" style={{ backgroundColor: palette.accentDeep }}>
@@ -32,9 +24,7 @@ export function RewardPaceCard({
         onPress={() => router.push('/focus')}
         style={{ backgroundColor: palette.accent }}
         className="mt-5 items-center rounded-xl bg-[#79CEFF] px-4 py-3.5 transition duration-150 hover:-translate-y-px hover:opacity-90">
-        <Text className="font-bold text-[#173052]">
-          {t('home.startFocus', { minutes: focusMinutes })}
-        </Text>
+        <Text className="font-bold text-[#173052]">{t('home.openFocusTimer')}</Text>
       </Pressable>
     </View>
   );
