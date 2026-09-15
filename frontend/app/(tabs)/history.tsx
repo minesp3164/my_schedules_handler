@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
-import { ScrollView, Text } from 'react-native';
+import { Pressable, ScrollView, Text, View } from 'react-native';
+import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useQuery } from '@tanstack/react-query';
 import { getHistory } from '@/services/api';
@@ -62,6 +63,29 @@ export default function History() {
       <ScrollView contentContainerClassName="px-5 pb-8 pt-8">
         <Text className="text-2xl font-bold text-[#173052]">{t('history.title')}</Text>
         <Text className="mt-2 text-sm text-muted">{t('history.description')}</Text>
+        <Pressable
+          onPress={() => router.push('/milestones')}
+          className="mt-5 overflow-hidden rounded-3xl p-5"
+          style={{ backgroundColor: palette.accentSoft }}>
+          <View className="flex-row items-center justify-between">
+            <View>
+              <Text
+                className="text-[10px] font-bold tracking-[1.2px]"
+                style={{ color: palette.accent }}>
+                MILESTONE
+              </Text>
+              <Text className="mt-1 text-lg font-bold" style={{ color: palette.accentDeep }}>
+                쌓인 노력을 돌아보기
+              </Text>
+              <Text className="mt-1 text-xs" style={{ color: palette.accentDeep }}>
+                나의 발자국 보러가기
+              </Text>
+            </View>
+            <Text className="text-2xl" style={{ color: palette.accent }}>
+              ✦
+            </Text>
+          </View>
+        </Pressable>
         <HistorySummary
           current={current}
           pointChange={pointChange}

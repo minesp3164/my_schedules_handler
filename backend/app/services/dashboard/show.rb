@@ -1,6 +1,6 @@
 module Dashboard
   class Show
-    Result = Data.define(:date, :daily_summary, :tasks, :focus_session, :rewards)
+    Result = Data.define(:date, :daily_summary, :total_points, :tasks, :focus_session, :rewards)
 
     def self.call(...)
       new(...).call
@@ -21,6 +21,7 @@ module Dashboard
       Result.new(
         @date,
         DailySummary.find_by(date: @date),
+        PointEvent.effective.where(user: @user).sum(:points),
         tasks.map { |task| task_payload(task, completions_by_task.fetch(task.id, [])) },
         FocusSession.active.where(user: @user).order(created_at: :desc).first,
         Rewards::Progress.call(date: @date, user: @user)

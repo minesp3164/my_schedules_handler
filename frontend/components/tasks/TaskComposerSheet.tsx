@@ -15,29 +15,32 @@ type TaskComposerSheetProps = {
   visible: boolean;
   saving: boolean;
   onClose: () => void;
-  onSave: (input: {
-    title: string;
-    targetCount: number;
-    points: number;
-    kind: string;
-    weekdays: number[];
-  }) => void;
+  onSave: (input: { title: string; targetCount: number; kind: string; weekdays: number[] }) => void;
 };
 const categories = ['focus', 'algorithm', 'portfolio', 'application', 'custom'];
+const categoryPoints: Record<string, number> = {
+  focus: 10,
+  algorithm: 15,
+  portfolio: 20,
+  application: 25,
+  custom: 10,
+};
+const fixedPointCategories = new Set(['portfolio', 'application']);
 const weekdays = [1, 2, 3, 4, 5, 6, 0];
 
 export function TaskComposerSheet({ visible, saving, onClose, onSave }: TaskComposerSheetProps) {
   const [title, setTitle] = useState('');
   const [targetCount, setTargetCount] = useState(1);
-  const [points, setPoints] = useState(10);
   const [kind, setKind] = useState('focus');
   const [customKind, setCustomKind] = useState('');
   const [selectedWeekdays, setSelectedWeekdays] = useState<number[]>(weekdays);
   const { palette } = useTheme();
+  const autoPoints =
+    (categoryPoints[kind] ?? categoryPoints.custom) *
+    (fixedPointCategories.has(kind) ? 1 : targetCount);
   const close = () => {
     setTitle('');
     setTargetCount(1);
-    setPoints(10);
     setKind('focus');
     setCustomKind('');
     setSelectedWeekdays(weekdays);
@@ -97,16 +100,6 @@ export function TaskComposerSheet({ visible, saving, onClose, onSave }: TaskComp
               onDecrease={() => setTargetCount((count) => Math.max(1, count - 1))}
               onIncrease={() => setTargetCount((count) => count + 1)}
             />
-            <Counter
-              label={t('tasks.points')}
-              value={t('tasks.pointsValue', { points })}
-              decrementLabel={t('tasks.decreasePoints')}
-              incrementLabel={t('tasks.increasePoints')}
-              disabled={points === 0}
-              bordered
-              onDecrease={() => setPoints((value) => Math.max(0, value - 5))}
-              onIncrease={() => setPoints((value) => value + 5)}
-            />
             <View className="mt-4 border-t border-line pt-4">
               <Text className="text-sm font-semibold text-[#173052]">{t('tasks.category')}</Text>
               <View className="mt-3 flex-row flex-wrap gap-2">
@@ -139,6 +132,9 @@ export function TaskComposerSheet({ visible, saving, onClose, onSave }: TaskComp
                   className="mt-3 rounded-xl border border-line bg-screen px-4 py-3 text-[#173052]"
                 />
               ) : null}
+              <Text className="mt-3 text-xs font-semibold text-muted">
+                {t('tasks.autoPoints', { points: autoPoints })}
+              </Text>
             </View>
             <View className="mt-4 border-t border-line pt-4">
               <Text className="text-sm font-semibold text-[#173052]">{t('tasks.weekdays')}</Text>
@@ -177,7 +173,6 @@ export function TaskComposerSheet({ visible, saving, onClose, onSave }: TaskComp
                 onSave({
                   title,
                   targetCount,
-                  points,
                   kind: kind === 'custom' && customKind.trim() ? customKind.trim() : kind,
                   weekdays: selectedWeekdays,
                 })

@@ -13,6 +13,7 @@ export function RealtimeSync() {
         queryClient.invalidateQueries({ queryKey: ['dashboard'] });
         queryClient.invalidateQueries({ queryKey: ['focus-session'] });
         queryClient.invalidateQueries({ queryKey: ['history'] });
+        queryClient.invalidateQueries({ queryKey: ['milestones'] });
         queryClient.invalidateQueries({ queryKey: ['settings'] });
         queryClient.invalidateQueries({ queryKey: ['task-templates'] });
       });

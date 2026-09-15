@@ -11,6 +11,7 @@ module Api
           data: {
             date: result.date,
             daily_summary: summary_payload(result.daily_summary),
+            total_points: result.total_points,
             tasks: result.tasks,
             focus_session: focus_session_payload(result.focus_session),
             rewards: {

@@ -9,6 +9,7 @@ type NextActionCardProps = {
   disabled: boolean;
   onAct: () => void;
   onNext: () => void;
+  embedded?: boolean;
 };
 
 export function NextActionCard({
@@ -17,6 +18,7 @@ export function NextActionCard({
   disabled,
   onAct,
   onNext,
+  embedded = false,
 }: NextActionCardProps) {
   const { palette } = useTheme();
   const isFocus = recommendation.type === 'focus';
@@ -28,7 +30,8 @@ export function NextActionCard({
       : t('home.nextActionTaskDescription', { points: recommendation.task.points });
 
   return (
-    <View className="mx-5 mt-5 rounded-[20px] border border-line bg-surface p-5">
+    <View
+      className={`${embedded ? '' : 'mx-5 mt-5 '}rounded-[20px] border border-line bg-surface p-5`}>
       <Text className="text-xs font-bold tracking-[1.5px]" style={{ color: palette.accent }}>
         {t('home.nextActionEyebrow')}
       </Text>
@@ -39,7 +42,7 @@ export function NextActionCard({
           disabled={disabled}
           onPress={onAct}
           style={{ backgroundColor: palette.accent }}
-          className="min-h-11 flex-1 items-center justify-center rounded-xl px-3 disabled:opacity-50">
+          className="min-h-11 flex-1 items-center justify-center rounded-xl px-3 transition duration-150 hover:-translate-y-px hover:opacity-90 disabled:opacity-50">
           <Text className="font-bold text-white">
             {isFocus ? t('home.nextActionStartFocus') : t('home.nextActionCompleteTask')}
           </Text>
@@ -48,7 +51,7 @@ export function NextActionCard({
           <Pressable
             disabled={disabled}
             onPress={onNext}
-            className="min-h-11 items-center justify-center rounded-xl border border-line px-3 disabled:opacity-50">
+            className="min-h-11 items-center justify-center rounded-xl border border-line px-3 transition duration-150 hover:-translate-y-px hover:opacity-90 disabled:opacity-50">
             <Text className="font-bold text-muted">{t('home.nextActionAnother')}</Text>
           </Pressable>
         ) : null}
