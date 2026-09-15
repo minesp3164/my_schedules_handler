@@ -1,39 +1,11 @@
-import { useEffect, useState } from 'react';
 import { Pressable, ScrollView, Text, View } from 'react-native';
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { t } from '@/services/i18n';
-import { hasSeenLandingRecently, markLandingSeen } from '@/services/landing-visibility';
 import { useTheme } from '@/services/theme';
 
 export default function LandingScreen() {
-  const [isReady, setIsReady] = useState(false);
   const { palette } = useTheme();
-
-  useEffect(() => {
-    let isMounted = true;
-
-    async function prepareLanding() {
-      try {
-        if (await hasSeenLandingRecently()) {
-          router.replace('/(tabs)');
-          return;
-        }
-
-        await markLandingSeen();
-        if (isMounted) setIsReady(true);
-      } catch {
-        if (isMounted) setIsReady(true);
-      }
-    }
-
-    prepareLanding();
-    return () => {
-      isMounted = false;
-    };
-  }, []);
-
-  if (!isReady) return <View className="flex-1" style={{ backgroundColor: palette.screen }} />;
 
   return (
     <SafeAreaView className="flex-1" style={{ backgroundColor: palette.screen }}>
