@@ -51,6 +51,11 @@ export default function History() {
   const days = history.data ?? [];
   const currentWeek = days.filter((day) => day.date >= iso(range.thisMonday));
   const previousWeek = days.filter((day) => day.date < iso(range.thisMonday));
+  const weeklyDailyPoints = Array.from({ length: 7 }, (_, index) => {
+    const date = iso(addDays(range.thisMonday, index));
+    const day = currentWeek.find((item) => item.date === date);
+    return { date, points: day?.summary.points_total ?? 0 };
+  });
   const current = summarize(currentWeek);
   const previous = summarize(previousWeek);
   const pointChange = current.points - previous.points;
@@ -95,10 +100,7 @@ export default function History() {
           pointChange={pointChange}
           completedDayChange={current.completedDays - previous.completedDays}
           comparisonMessage={comparisonMessage}
-          dailyPoints={currentWeek.map((day) => ({
-            date: day.date,
-            points: day.summary.points_total,
-          }))}
+          dailyPoints={weeklyDailyPoints}
         />
         <HistoryCalendar
           month={month}
