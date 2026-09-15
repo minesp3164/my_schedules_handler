@@ -335,7 +335,13 @@ export default function Home() {
                       <Pressable
                         key={task.id}
                         disabled={taskMutation.isPending}
-                        onPress={() => taskMutation.mutate(task)}
+                        onPress={() => {
+                          if (!task.goal_completed && task.kind === "focus") {
+                            router.push("/focus");
+                            return;
+                          }
+                          taskMutation.mutate(task);
+                        }}
                         accessibilityRole="button"
                         accessibilityLabel={t('home.taskAccessibility', {
                           title: task.title,
