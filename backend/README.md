@@ -100,8 +100,9 @@ ERD의 상세 컬럼과 제약은 상위 [erd.md](../erd.md)에 둔다.
 
 | 메서드 | 경로 | 요청 핵심 | 응답 핵심 |
 | --- | --- | --- | --- |
-| POST | `/devices/activate` | `installation_id`, `platform`, `name` | 기기 토큰, device |
+| POST | `/devices/activate` | `installation_id`, `platform`, `name`, `access_key` | 기기 토큰, device |
 | DELETE | `/devices/current` | 현재 기기 토큰 | 기기 연결 해제·토큰 무효화 |
+| POST | `/realtime-tickets` | 현재 기기 토큰 | Cable 접속용 단기 ticket |
 | GET | `/dashboard?date=YYYY-MM-DD` | 날짜 선택 | 오늘 할 일, 점수, 보상 진행도, 요약 |
 | POST | `/tasks/:task_template_id/completions` | `idempotency_key` | completion, point_event, dashboard revision |
 | DELETE | `/completions/:id` | `idempotency_key` | 취소된 completion, 음수 point_event |
@@ -173,7 +174,10 @@ ERD의 상세 컬럼과 제약은 상위 [erd.md](../erd.md)에 둔다.
 ## 9. 보안과 운영
 
 - `.env`는 커밋하지 않는다. `RAILS_MASTER_KEY`, VAPID 키, Expo 설정은 서버 환경 변수 또는 Rails credentials에 둔다.
+- `PERSONAL_ACCESS_KEY`는 기기 등록 시 필요한 개인 접속 키다. 설정되어 있으면 `POST /devices/activate`가 `access_key`를 검증하고, production에서 미설정이면 활성화가 실패한다.
+- 기기 활성화는 IP당 시간당 10회로 제한된다.
 - 기기 토큰은 DB에 해시로 저장하고, 원문은 발급 순간 한 번만 반환한다.
+- Action Cable은 기기 토큰이 아니라 `POST /realtime-tickets`가 발급하는 12시간짜리 서명 ticket으로 인증한다. 장기 토큰이 접속 로그에 남지 않는다.
 - CORS는 웹 PWA 도메인만 허용한다.
 - SQLite는 WAL 모드·foreign keys 활성화·매일 백업을 사용한다. 단일 서버와 영속 볼륨이 전제다.
 - `/up` 헬스 체크와 작업 큐 상태 점검을 제공한다.
@@ -201,4 +205,4 @@ bin/rails server
 
 개발 데이터는 `bin/rails db:seed`로 만든다. 로컬 Task API를 확인할 때만 `Authorization: Bearer development-token`을 사용한다. 이 토큰은 개발 전용이므로 실제 배포에서는 기기 활성화 API가 발급한 토큰으로 교체한다.
 
-새 기기는 첫 실행 시 `POST /api/v1/devices/activate`에 `installation_id`, `name`, `platform`을 전송해 자동 등록된다. 반환된 `access_token`은 그 응답에서만 보이며, 이후 모든 보호된 API에 `Authorization: Bearer <access_token>`으로 전송한다.
+새 기기는 첫 실행 시 `POST /api/v1/devices/activate`에 `installation_id`, `name`, `platform`을 전송해 자동 등록된다. 서버에 `PERSONAL_ACCESS_KEY`가 설정되어 있으면 `access_key`도 함께 보내야 한다. 반환된 `access_token`은 그 응답에서만 보이며, 이후 모든 보호된 API에 `Authorization: Bearer <access_token>`으로 전송한다.
