@@ -8,7 +8,7 @@ export function ThemeCard({ colors, onPress }: { colors: ThemeColors; onPress: (
     <View
       className="mt-6 rounded-2xl p-4"
       style={{ backgroundColor: palette.surface, borderColor: palette.line, borderWidth: 1 }}>
-      <Text className="font-bold text-[#173052]">{t('settings.theme')}</Text>
+      <Text className="font-bold text-[#26332D]">{t('settings.theme')}</Text>
       <Text className="mt-1 text-sm text-muted">{t('settings.themeDescription')}</Text>
       <Pressable
         accessibilityRole="button"
@@ -22,11 +22,11 @@ export function ThemeCard({ colors, onPress }: { colors: ThemeColors; onPress: (
             className="ml-2 h-8 w-8 rounded-full border"
             style={{ backgroundColor: colors.background, borderColor: palette.line }}
           />
-          <Text className="ml-3 text-sm font-bold text-[#173052]">
+          <Text className="ml-3 text-sm font-bold text-[#26332D]">
             {t('settings.themeCustomize')}
           </Text>
         </View>
-        <Text className="text-lg text-[#173052]">›</Text>
+        <Text className="text-lg text-[#26332D]">›</Text>
       </Pressable>
     </View>
   );

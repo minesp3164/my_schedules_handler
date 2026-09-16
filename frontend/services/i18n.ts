@@ -5,6 +5,7 @@ import jaFocus from '@/locales/ja/focus.json';
 import jaHistory from '@/locales/ja/history.json';
 import jaHome from '@/locales/ja/home.json';
 import jaLanding from '@/locales/ja/landing.json';
+import jaRetro from '@/locales/ja/retro.json';
 import jaSettings from '@/locales/ja/settings.json';
 import jaTabs from '@/locales/ja/tabs.json';
 import jaTasks from '@/locales/ja/tasks.json';
@@ -13,6 +14,7 @@ import koFocus from '@/locales/ko/focus.json';
 import koHistory from '@/locales/ko/history.json';
 import koHome from '@/locales/ko/home.json';
 import koLanding from '@/locales/ko/landing.json';
+import koRetro from '@/locales/ko/retro.json';
 import koSettings from '@/locales/ko/settings.json';
 import koTabs from '@/locales/ko/tabs.json';
 import koTasks from '@/locales/ko/tasks.json';
@@ -27,6 +29,7 @@ const translations = {
     history: koHistory,
     settings: koSettings,
     tasks: koTasks,
+    retro: koRetro,
   },
   ja: {
     common: jaCommon,
@@ -37,6 +40,7 @@ const translations = {
     history: jaHistory,
     settings: jaSettings,
     tasks: jaTasks,
+    retro: jaRetro,
   },
 };
 

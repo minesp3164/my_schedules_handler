@@ -10,7 +10,7 @@ export default function Root({ children }: { children: React.ReactNode }) {
       <head>
         <meta charSet="utf-8" />
         <meta httpEquiv="X-UA-Compatible" content="IE=edge" />
-        <meta name="theme-color" content="#F5FAFF" />
+        <meta name="theme-color" content="#F7F7F2" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
         <link rel="manifest" href="/manifest.webmanifest" />
@@ -23,7 +23,7 @@ export default function Root({ children }: { children: React.ReactNode }) {
         */}
         <meta
           name="viewport"
-          content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1.00001,viewport-fit=cover"
+          content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1.00001,viewport-fit=cover,interactive-widget=resizes-content"
         />
         {/*
           Disable body scrolling on web. This makes ScrollView components work closer to how they do on native.
@@ -41,7 +41,7 @@ export default function Root({ children }: { children: React.ReactNode }) {
 }
 
 const responsiveBackground = `
-body { background-color: #F5FAFF; }
+body { background-color: #F7F7F2; }
 
 @media (hover: hover) and (pointer: fine) {
   .r-cursor-1loqt21,
