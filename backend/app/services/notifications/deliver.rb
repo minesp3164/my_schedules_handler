@@ -6,9 +6,9 @@ module Notifications
       new(...).call
     end
 
-    def initialize(device:, notification_type:, schedule_key:, title:, body:, data: {}, client: PushClient.new)
+    def initialize(device:, notification_type:, schedule_key:, title:, body:, data: {}, silent: false, client: PushClient.new)
       @device, @notification_type, @schedule_key = device, notification_type, schedule_key
-      @title, @body, @data, @client = title, body, data, client
+      @title, @body, @data, @silent, @client = title, body, data, silent, client
     end
 
     def call
@@ -17,7 +17,7 @@ module Notifications
         channel: @device.push_channel, title: @title, body: @body
       )
       delivery.update!(attempted_at: Time.current)
-      @client.deliver(device: @device, title: @title, body: @body, data: @data)
+      @client.deliver(device: @device, title: @title, body: @body, data: @data, silent: @silent)
       delivery.update!(status: "sent", sent_at: Time.current)
       Result.new(delivery, true, false)
     rescue ActiveRecord::RecordNotUnique, ActiveRecord::RecordInvalid
