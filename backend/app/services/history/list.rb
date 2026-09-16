@@ -24,12 +24,16 @@ module History
         .where(activity_date: @from..@to)
         .order(:occurred_at, :created_at)
         .group_by(&:activity_date)
+      focus_seconds_by_date = @user.focus_sessions.focus.completed
+        .where(ended_at: @from.beginning_of_day..@to.end_of_day)
+        .group_by { |session| session.ended_at.in_time_zone("Asia/Seoul").to_date }
+        .transform_values { |sessions| sessions.sum { |session| session.completed_seconds || 0 } }
 
       Result.new(@from, @to, (@from..@to).map do |date|
         summary = summaries[date]
         {
           date: date,
-          summary: summary_payload(summary),
+          summary: summary_payload(summary).merge(focus_seconds: focus_seconds_by_date.fetch(date, 0)),
           point_events: events_by_date.fetch(date, []).map { |event| event_payload(event) }
         }
       end)
@@ -45,7 +49,8 @@ module History
 
     def event_payload(event)
       event.slice(:id, :event_type, :points, :activity_date, :occurred_at, :reversed_at, :daily_task_completion_id, :focus_session_id).merge(
-        source_title: event.daily_task_completion&.task_template&.title
+        source_title: event.daily_task_completion&.task_template&.title,
+        source_kind: event.daily_task_completion&.task_template&.kind
       )
     end
   end

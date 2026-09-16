@@ -13,7 +13,7 @@ module Milestones
     def call
       Result.new(
         @user.point_events.effective.distinct.count(:activity_date),
-        @user.focus_sessions.completed.sum(:completed_seconds) / 60,
+        @user.focus_sessions.focus.completed.sum(:completed_seconds) / 60,
         completed_tasks,
         @user.task_templates.count
       )

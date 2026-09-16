@@ -100,6 +100,29 @@ export default function History() {
             </Text>
           </View>
         </Pressable>
+        <Pressable
+          onPress={() => router.push('/weekly-retro')}
+          className="mt-3 overflow-hidden rounded-3xl p-5"
+          style={{ backgroundColor: palette.accentSoft }}>
+          <View className="flex-row items-center justify-between">
+            <View>
+              <Text
+                className="text-[10px] font-bold tracking-[1.2px]"
+                style={{ color: palette.accent }}>
+                WEEKLY RETRO
+              </Text>
+              <Text className="mt-1 text-lg font-bold" style={{ color: palette.accentDeep }}>
+                {t('retro.entryTitle')}
+              </Text>
+              <Text className="mt-1 text-xs" style={{ color: palette.accentDeep }}>
+                {t('retro.entryDescription')}
+              </Text>
+            </View>
+            <Text className="text-2xl" style={{ color: palette.accent }}>
+              ✎
+            </Text>
+          </View>
+        </Pressable>
         <HistorySummary
           current={current}
           pointChange={pointChange}

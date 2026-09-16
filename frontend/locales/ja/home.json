@@ -34,6 +34,8 @@
   "revertAction": "完了を取り消す",
   "taskAccessibility": "%{title}、%{action}",
   "goalCompleted": "目標達成・タップして完了を取り消す",
+  "goalCompletedProgress": "%{completed} / %{total}回達成・タップして完了を取り消す",
+  "goalCompletedReadOnly": "%{completed} / %{total}回完了",
   "taskProgress": "%{completed} / %{total}回を記録",
   "paceTitle": "今日のペース",
   "rewardComplete": "今日の報酬を達成しました！",

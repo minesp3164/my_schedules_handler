@@ -1,7 +1,10 @@
+import { useEffect, useState } from 'react';
 import { Pressable, Text, View } from 'react-native';
 import { getHistory, type HistoryDay } from '@/services/api';
 import { formatMonth, formatShortDate, locale, t } from '@/services/i18n';
 import { useTheme } from '@/services/theme';
+
+const EVENTS_PAGE_SIZE = 5;
 
 type Props = {
   month: Date;
@@ -42,6 +45,11 @@ export function HistoryCalendar({ month, days, selectedDate, onSelect, onMove }:
   );
   const selectedPoints = points.get(selectedDate) ?? 0;
   const selectedDay = days.find((day) => day.date === selectedDate);
+  const events = (selectedDay?.point_events ?? []).filter((event) => event.points !== 0);
+  const [visibleCount, setVisibleCount] = useState(EVENTS_PAGE_SIZE);
+  useEffect(() => setVisibleCount(EVENTS_PAGE_SIZE), [selectedDate]);
+  const visibleEvents = events.slice(0, visibleCount);
+  const hiddenCount = events.length - visibleEvents.length;
   return (
     <View
       className="mt-5 rounded-2xl p-4"
@@ -58,7 +66,7 @@ export function HistoryCalendar({ month, days, selectedDate, onSelect, onMove }:
           <MonthButton label={t('history.nextMonth')} symbol="›" onPress={() => onMove(1)} />
         </View>
       </View>
-      <Text className="mt-5 text-center text-base font-bold text-[#173052]">
+      <Text className="mt-5 text-center text-base font-bold text-[#26332D]">
         {formatMonth(month)}
       </Text>
       <View className="mt-4 flex-row">
@@ -89,7 +97,7 @@ export function HistoryCalendar({ month, days, selectedDate, onSelect, onMove }:
         ))}
       </View>
       <View className="mt-4 rounded-xl px-3 py-3" style={{ backgroundColor: palette.accentSoft }}>
-        <Text className="text-center text-sm font-semibold text-[#173052]">
+        <Text className="text-center text-sm font-semibold text-[#26332D]">
           {selectedPoints > 0
             ? t('history.selectedDayPoints', {
                 date: formatShortDate(localDateFromIso(selectedDate)),
@@ -97,11 +105,22 @@ export function HistoryCalendar({ month, days, selectedDate, onSelect, onMove }:
               })
             : t('history.noPoints')}
         </Text>
-        {selectedDay?.point_events.length ? (
+        {events.length ? (
           <View className="mt-3 gap-2">
-            {selectedDay.point_events.map((event) => (
+            {visibleEvents.map((event) => (
               <PointEventRow key={event.id} event={event} />
             ))}
+            {hiddenCount > 0 ? (
+              <Pressable
+                accessibilityRole="button"
+                onPress={() => setVisibleCount((count) => count + EVENTS_PAGE_SIZE)}
+                className="items-center rounded-lg px-3 py-2.5"
+                style={{ backgroundColor: palette.accentSoft }}>
+                <Text className="text-xs font-bold" style={{ color: palette.accent }}>
+                  {t('history.showMore', { count: hiddenCount })}
+                </Text>
+              </Pressable>
+            ) : null}
           </View>
         ) : null}
       </View>
@@ -175,7 +194,7 @@ function DayCell({
               ? palette.accentSoft
               : 'transparent',
         }}>
-        <Text className={`text-xs font-bold ${selected ? 'text-white' : 'text-[#173052]'}`}>
+        <Text className={`text-xs font-bold ${selected ? 'text-white' : 'text-[#26332D]'}`}>
           {day.date.getDate()}
         </Text>
         {hasPoints ? (

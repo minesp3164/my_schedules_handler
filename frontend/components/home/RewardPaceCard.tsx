@@ -24,7 +24,7 @@ export function RewardPaceCard({ points, remaining }: { points: number; remainin
         onPress={() => router.push('/focus')}
         style={{ backgroundColor: palette.accent }}
         className="mt-5 items-center rounded-xl bg-[#79CEFF] px-4 py-3.5 transition duration-150 hover:-translate-y-px hover:opacity-90">
-        <Text className="font-bold text-[#173052]">{t('home.openFocusTimer')}</Text>
+        <Text className="font-bold text-[#26332D]">{t('home.openFocusTimer')}</Text>
       </Pressable>
     </View>
   );

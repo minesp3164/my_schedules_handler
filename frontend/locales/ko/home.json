@@ -34,6 +34,8 @@
   "revertAction": "완료 취소",
   "taskAccessibility": "%{title}, %{action}",
   "goalCompleted": "목표 달성 · 누르면 완료를 취소해요",
+  "goalCompletedProgress": "%{completed} / %{total}회 달성 · 누르면 완료를 취소해요",
+  "goalCompletedReadOnly": "%{completed} / %{total}회 완료",
   "taskProgress": "%{completed} / %{total}회 기록됨",
   "paceTitle": "오늘의 페이스",
   "rewardComplete": "오늘의 보상을 달성했어요!",

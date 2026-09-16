@@ -26,5 +26,6 @@
   "lessPoints": "지난주보다 %{points}점 적어요.",
   "samePoints": "지난주와 같은 페이스예요.",
   "pointDelta": "포인트 변화",
-  "completedDayDelta": "완료 일수 변화"
+  "completedDayDelta": "완료 일수 변화",
+  "showMore": "%{count}개 더 보기"
 }
