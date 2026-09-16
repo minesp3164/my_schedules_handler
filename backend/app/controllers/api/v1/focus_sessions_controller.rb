@@ -8,6 +8,7 @@ module Api
       rescue_from FocusSessions::Pause::InvalidState, FocusSessions::Resume::InvalidState, FocusSessions::Complete::InvalidState, FocusSessions::Cancel::InvalidState, with: :render_invalid_state
       rescue_from FocusSessions::Complete::TooShort, with: :render_too_short
       rescue_from FocusSessions::Complete::InvalidEndedAt, with: :render_invalid_ended_at
+      rescue_from ActiveRecord::RecordInvalid, with: :render_validation_failed
 
       def current
         render json: { data: focus_session_payload(FocusSession.active.where(user: current_user).order(created_at: :desc).first) }
@@ -16,9 +17,11 @@ module Api
       def create
         result = FocusSessions::Start.call(
           source_device: current_device,
-          planned_seconds: DEFAULT_FOCUS_SECONDS,
-          idempotency_key: request.headers["Idempotency-Key"]
+          planned_seconds: create_params[:planned_seconds].presence&.to_i || DEFAULT_FOCUS_SECONDS,
+          idempotency_key: request.headers["Idempotency-Key"],
+          kind: create_params[:kind]
         )
+        schedule_focus_finalization(result.focus_session)
         revision = unless result.replayed
           Realtime::Publish.call(event: "dashboard.updated", data: { focus_session_id: result.focus_session.id }).revision
         end
@@ -33,6 +36,7 @@ module Api
 
       def resume
         session = FocusSessions::Resume.call(focus_session: find_session)
+        schedule_focus_finalization(session)
         revision = Realtime::Publish.call(event: "dashboard.updated", data: { focus_session_id: session.id }).revision
         render json: { data: focus_session_payload(session), meta: { revision: revision, server_time: Time.current } }
       end
@@ -50,8 +54,9 @@ module Api
         render json: {
           data: {
             focus_session: focus_session_payload(result.focus_session),
-            point_event: result.point_event.slice(:id, :event_type, :points, :activity_date, :occurred_at),
-            daily_summary: result.daily_summary.slice(:date, :points_total),
+            point_event: result.point_event&.slice(:id, :event_type, :points, :activity_date, :occurred_at),
+            focus_task_completion: result.focus_task_completion&.slice(:id, :task_template_id, :sequence, :completed_at),
+            daily_summary: result.daily_summary&.slice(:date, :points_total),
             reward_achievements: result.reward_achievements.map { |achievement| reward_payload(achievement) }
           },
           meta: { revision: revision || Realtime::Publish.current_revision, server_time: Time.current }
@@ -66,12 +71,16 @@ module Api
 
       private
 
+      def schedule_focus_finalization(session)
+        FinalizeFocusSessionJob.set(wait_until: session.scheduled_end_at).perform_later(session.id)
+      end
+
       def find_session
         current_user.focus_sessions.find(params[:id])
       end
 
       def create_params
-        params.require(:focus_session).permit(:planned_seconds)
+        params.require(:focus_session).permit(:planned_seconds, :kind)
       end
 
       def parse_ended_at
@@ -84,7 +93,7 @@ module Api
       def focus_session_payload(session)
         return nil unless session
 
-        session.slice(:id, :source_device_id, :started_at, :planned_seconds, :status, :paused_at, :paused_seconds, :ended_at, :completed_seconds)
+        session.slice(:id, :source_device_id, :kind, :started_at, :planned_seconds, :status, :paused_at, :paused_seconds, :ended_at, :completed_seconds)
       end
 
       def reward_payload(achievement)
@@ -108,6 +117,10 @@ module Api
 
       def render_invalid_ended_at
         render json: { error: { code: "invalid_ended_at", message: "유효한 종료 시각이 아니에요." } }, status: :unprocessable_entity
+      end
+
+      def render_validation_failed(error)
+        render json: { error: { code: "validation_failed", message: error.record.errors.full_messages.to_sentence } }, status: :unprocessable_entity
       end
     end
   end
