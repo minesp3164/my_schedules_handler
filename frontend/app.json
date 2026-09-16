@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "tracker",
+    "name": "차곡",
     "slug": "tracker",
     "version": "1.0.0",
     "scheme": "tracker",
@@ -32,7 +32,10 @@
     "assetBundlePatterns": ["**/*"],
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.minesp.tracker"
+      "bundleIdentifier": "com.minesp.tracker",
+      "infoPlist": {
+        "UIBackgroundModes": ["remote-notification"]
+      }
     },
     "android": {
       "adaptiveIcon": {
