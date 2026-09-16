@@ -140,7 +140,10 @@ function CheerArrivalPreview({
   );
 }
 
-function Cheer({ onRedeem }: { onRedeem: () => Promise<unknown> }) {
+type RedeemPayload = Record<string, string | number | undefined>;
+type OnRedeem = (payload: RedeemPayload) => Promise<unknown>;
+
+function Cheer({ onRedeem, accent }: { onRedeem: OnRedeem; accent: string }) {
   const [message, setMessage] = useState('');
   const [sent, setSent] = useState(false);
   const [showArrivalPreview, setShowArrivalPreview] = useState(false);
@@ -161,7 +164,7 @@ function Cheer({ onRedeem }: { onRedeem: () => Promise<unknown> }) {
         </Text>
         <Pressable
           onPress={() => router.back()}
-          className="mt-7 rounded-2xl bg-[#E85E4A] px-5 py-3">
+          className="mt-7 rounded-2xl px-5 py-3" style={{ backgroundColor: accent }}>
           <Text className="font-bold text-white">보관함으로 돌아가기</Text>
         </Pressable>
       </View>
@@ -219,10 +222,11 @@ function Cheer({ onRedeem }: { onRedeem: () => Promise<unknown> }) {
       <Pressable
         disabled={!message.trim()}
         onPress={async () => {
-          await onRedeem();
+          await onRedeem({ message: message.trim() });
           setSent(true);
         }}
-        className={`mt-7 flex-row items-center justify-between rounded-2xl px-5 py-4 ${message.trim() ? 'bg-[#E85E4A]' : 'bg-[#EBD9D5]'}`}>
+        className="mt-7 flex-row items-center justify-between rounded-2xl px-5 py-4"
+        style={{ backgroundColor: message.trim() ? accent : '#EBD9D5' }}>
         <Text className="font-bold text-white">응원 남기기</Text>
         <Text className="text-xl text-white">→</Text>
       </Pressable>
@@ -233,9 +237,11 @@ function Cheer({ onRedeem }: { onRedeem: () => Promise<unknown> }) {
 function Recovery({
   tasks,
   onRedeem,
+  accent,
 }: {
   tasks: Awaited<ReturnType<typeof getDashboard>>['tasks'];
-  onRedeem: () => Promise<unknown>;
+  onRedeem: OnRedeem;
+  accent: string;
 }) {
   const movable = tasks.filter((task) => task.kind !== 'application');
   const [selectedId, setSelectedId] = useState(movable[0]?.id);
@@ -250,7 +256,7 @@ function Recovery({
         </Text>
         <Pressable
           onPress={() => router.back()}
-          className="mt-7 rounded-2xl bg-[#334221] px-5 py-3">
+          className="mt-7 rounded-2xl px-5 py-3" style={{ backgroundColor: accent }}>
           <Text className="font-bold text-[#F4FFD5]">보관함으로 돌아가기</Text>
         </Pressable>
       </View>
@@ -296,10 +302,12 @@ function Recovery({
       <Pressable
         disabled={!selectedId}
         onPress={async () => {
-          await onRedeem();
+          const task = tasks.find((item) => item.id === selectedId);
+          await onRedeem({ task_id: selectedId, task_title: task?.title });
           setUsed(true);
         }}
-        className={`mt-7 flex-row items-center justify-between rounded-2xl px-5 py-4 ${selectedId ? 'bg-[#334221]' : 'bg-[#D8DDCE]'}`}>
+        className="mt-7 flex-row items-center justify-between rounded-2xl px-5 py-4"
+        style={{ backgroundColor: selectedId ? accent : '#D8DDCE' }}>
         <Text className="font-bold text-[#F4FFD5]">회복 패스 사용하기</Text>
         <Text className="text-xl text-[#F4FFD5]">→</Text>
       </Pressable>
@@ -313,31 +321,12 @@ function Recovery({
 function Reflection({
   totalPoints,
   tasks,
-  onRedeem,
+  accent,
 }: {
   totalPoints: number;
   tasks: Awaited<ReturnType<typeof getDashboard>>['tasks'];
-  onRedeem: () => Promise<unknown>;
+  accent: string;
 }) {
-  const [saved, setSaved] = useState(false);
-  const [win, setWin] = useState('');
-  const [start, setStart] = useState('');
-  const canSave = Boolean(win.trim() && start.trim());
-  if (saved)
-    return (
-      <View className="mx-5 mt-12 items-center rounded-3xl bg-[#ECE8FF] px-7 py-12">
-        <Text className="text-4xl">◔</Text>
-        <Text className="mt-4 text-xl font-bold text-[#393259]">이번 주를 기록했어요.</Text>
-        <Text className="mt-2 text-center text-sm leading-6 text-[#6C6388]">
-          비교 대신 당신이 실제로 쌓은 행동을 남겨뒀어요.
-        </Text>
-        <Pressable
-          onPress={() => router.back()}
-          className="mt-7 rounded-2xl bg-[#7057D5] px-5 py-3">
-          <Text className="font-bold text-white">보관함으로 돌아가기</Text>
-        </Pressable>
-      </View>
-    );
   return (
     <View className="px-5 pt-7">
       <Text className="text-[10px] font-bold tracking-[1.5px] text-[#7660CC]">
@@ -346,7 +335,9 @@ function Reflection({
       <Text className="mt-3 text-[29px] font-bold leading-9 tracking-tight text-[#2C2936]">
         이번 주, 당신이{`\n`}해낸 것들.
       </Text>
-      <Text className="mt-3 text-sm text-[#77717E]">점수가 아닌 실제 행동을 먼저 모아봤어요.</Text>
+      <Text className="mt-3 text-sm text-[#77717E]">
+        한 주의 포인트·집중·완료 기록을 모아보고, 한 줄 회고를 남겨요.
+      </Text>
       <View className="mt-7 flex-row gap-2">
         <View className="flex-1 rounded-2xl bg-[#EFEAFF] p-4">
           <Text className="text-2xl font-bold text-[#493D7B]">{totalPoints}</Text>
@@ -359,42 +350,16 @@ function Reflection({
           <Text className="mt-1 text-[11px] text-[#6B7E96]">완료한 목표</Text>
         </View>
       </View>
-      <View className="mt-6 gap-4">
-        <View>
-          <Text className="text-sm font-bold text-[#34303B]">이번 주 가장 잘한 한 가지는?</Text>
-          <TextInput
-            value={win}
-            onChangeText={setWin}
-            placeholder="작아도 좋아요. 기억하고 싶은 장면을 적어보세요."
-            placeholderTextColor="#A19BA7"
-            multiline
-            className="mt-2 min-h-20 rounded-2xl bg-[#F4F1FF] p-4 text-sm text-[#3D3655]"
-            textAlignVertical="top"
-          />
-        </View>
-        <View>
-          <Text className="text-sm font-bold text-[#34303B]">다음 주 가볍게 시작할 일은?</Text>
-          <TextInput
-            value={start}
-            onChangeText={setStart}
-            placeholder="월요일의 첫 5분을 정해두면 충분해요."
-            placeholderTextColor="#A19BA7"
-            multiline
-            className="mt-2 min-h-20 rounded-2xl bg-[#FFF5DC] p-4 text-sm text-[#5A4C28]"
-            textAlignVertical="top"
-          />
-        </View>
-      </View>
       <Pressable
-        disabled={!canSave}
-        onPress={async () => {
-          await onRedeem();
-          setSaved(true);
-        }}
-        className={`mt-7 flex-row items-center justify-between rounded-2xl px-5 py-4 ${canSave ? 'bg-[#7057D5]' : 'bg-[#D9D2EF]'}`}>
-        <Text className="font-bold text-white">이번 주를 기록할게요</Text>
+        onPress={() => router.push('/weekly-retro')}
+        className="mt-8 flex-row items-center justify-between rounded-2xl px-5 py-4"
+        style={{ backgroundColor: accent }}>
+        <Text className="font-bold text-white">주간 회고 열기</Text>
         <Text className="text-xl text-white">→</Text>
       </Pressable>
+      <Text className="mt-3 text-center text-[10px] text-[#878D7D]">
+        이번 주 회고를 처음 저장할 때 300점을 사용해요. 열람은 자유예요.
+      </Text>
     </View>
   );
 }
@@ -404,11 +369,13 @@ function Future({
   totalPoints,
   tasks,
   onRedeem,
+  accent,
 }: {
   growth: boolean;
   totalPoints: number;
   tasks: Awaited<ReturnType<typeof getDashboard>>['tasks'];
-  onRedeem: () => Promise<unknown>;
+  onRedeem: OnRedeem;
+  accent: string;
 }) {
   const [letter, setLetter] = useState('');
   const [saved, setSaved] = useState(false);
@@ -445,12 +412,16 @@ function Future({
         </View>
         <Pressable
           onPress={async () => {
-            await onRedeem();
+            await onRedeem({
+              total_points: totalPoints,
+              completed_goals: tasks.filter((task) => task.goal_completed).length,
+            });
             Alert.alert('성장 기록 카드', '카드를 보관함에 저장했어요.');
           }}
-          className="mt-5 flex-row items-center justify-between rounded-2xl border border-[#B8A471] px-5 py-4">
-          <Text className="font-bold text-[#5D4D29]">카드 저장하기</Text>
-          <Text className="text-xl text-[#5D4D29]">↓</Text>
+          className="mt-5 flex-row items-center justify-between rounded-2xl border px-5 py-4"
+          style={{ borderColor: accent }}>
+          <Text className="font-bold" style={{ color: accent }}>카드 저장하기</Text>
+          <Text className="text-xl" style={{ color: accent }}>↓</Text>
         </Pressable>
       </View>
     );
@@ -464,7 +435,7 @@ function Future({
         </Text>
         <Pressable
           onPress={() => router.back()}
-          className="mt-7 rounded-2xl bg-[#5D482D] px-5 py-3">
+          className="mt-7 rounded-2xl px-5 py-3" style={{ backgroundColor: accent }}>
           <Text className="font-bold text-[#FFF8E8]">보관함으로 돌아가기</Text>
         </Pressable>
       </View>
@@ -498,10 +469,11 @@ function Future({
       <Pressable
         disabled={!letter.trim()}
         onPress={async () => {
-          await onRedeem();
+          await onRedeem({ letter: letter.trim() });
           setSaved(true);
         }}
-        className={`mt-7 flex-row items-center justify-between rounded-2xl px-5 py-4 ${letter.trim() ? 'bg-[#4D638C]' : 'bg-[#D5DDEA]'}`}>
+        className="mt-7 flex-row items-center justify-between rounded-2xl px-5 py-4"
+        style={{ backgroundColor: letter.trim() ? accent : '#D5DDEA' }}>
         <Text className="font-bold text-white">미래의 나에게 남기기</Text>
         <Text className="text-xl text-white">→</Text>
       </Pressable>
@@ -518,7 +490,7 @@ export default function RewardDetailScreen() {
     ? (requestedKind as UnlockRewardKind)
     : 'cheer';
   const [token, setToken] = useState<string | null | undefined>();
-  const { palette } = useTheme();
+  const { palette, colors } = useTheme();
   useEffect(() => {
     getDeviceToken().then(setToken);
   }, []);
@@ -531,13 +503,17 @@ export default function RewardDetailScreen() {
   const [showArrivalPreview, setShowArrivalPreview] = useState(Boolean(preview));
   const totalPoints = dashboard.data?.total_points ?? 0;
   const redeem = useMutation({
-    mutationFn: () => redeemReward(token!, kind, createIdempotencyKey()),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['dashboard'] }),
+    mutationFn: (payload: RedeemPayload) =>
+      redeemReward(token!, kind, createIdempotencyKey(), payload),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['dashboard'] });
+      queryClient.invalidateQueries({ queryKey: ['redemptions'] });
+    },
     onError: (error: Error) => Alert.alert('구매할 수 없어요', error.message),
   });
   const reward = useMemo(
-    () => getUnlockRewards(totalPoints).find((item) => item.kind === kind)!,
-    [kind, totalPoints]
+    () => getUnlockRewards(totalPoints, 0, colors.button).find((item) => item.kind === kind)!,
+    [kind, totalPoints, colors.button]
   );
   const needed = Math.max(reward.threshold - reward.progress, 0);
   let content = (
@@ -556,17 +532,21 @@ export default function RewardDetailScreen() {
       />
     );
   } else if (reward.unlocked) {
-    if (kind === 'cheer') content = <Cheer onRedeem={() => redeem.mutateAsync()} />;
+    if (kind === 'cheer') content = <Cheer onRedeem={(payload) => redeem.mutateAsync(payload)} accent={reward.color} />;
     if (kind === 'recovery')
       content = (
-        <Recovery tasks={dashboard.data?.tasks ?? []} onRedeem={() => redeem.mutateAsync()} />
+        <Recovery
+          tasks={dashboard.data?.tasks ?? []}
+          onRedeem={(payload) => redeem.mutateAsync(payload)}
+          accent={reward.color}
+        />
       );
     if (kind === 'reflection')
       content = (
         <Reflection
           totalPoints={totalPoints}
           tasks={dashboard.data?.tasks ?? []}
-          onRedeem={() => redeem.mutateAsync()}
+          accent={reward.color}
         />
       );
     if (kind === 'future')
@@ -575,7 +555,8 @@ export default function RewardDetailScreen() {
           growth={false}
           totalPoints={totalPoints}
           tasks={dashboard.data?.tasks ?? []}
-          onRedeem={() => redeem.mutateAsync()}
+          onRedeem={(payload) => redeem.mutateAsync(payload)}
+          accent={reward.color}
         />
       );
     if (kind === 'growth')
@@ -584,7 +565,8 @@ export default function RewardDetailScreen() {
           growth
           totalPoints={totalPoints}
           tasks={dashboard.data?.tasks ?? []}
-          onRedeem={() => redeem.mutateAsync()}
+          onRedeem={(payload) => redeem.mutateAsync(payload)}
+          accent={reward.color}
         />
       );
   }

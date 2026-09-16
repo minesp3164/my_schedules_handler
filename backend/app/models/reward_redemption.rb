@@ -1,4 +1,6 @@
 class RewardRedemption < ApplicationRecord
+  attribute :payload, :json, default: {}
+
   belongs_to :user
   belongs_to :point_event
 

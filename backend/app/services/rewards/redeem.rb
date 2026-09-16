@@ -10,10 +10,11 @@ module Rewards
       new(...).call
     end
 
-    def initialize(user:, source_device:, reward_kind:, idempotency_key:, now: Time.current)
+    def initialize(user:, source_device:, reward_kind:, idempotency_key:, payload: {}, now: Time.current)
       @user = user
       @source_device = source_device
       @reward_kind = reward_kind
+      @payload = payload.is_a?(Hash) ? payload : {}
       @idempotency_key = idempotency_key.presence || raise(ActiveRecord::RecordInvalid.new(PointEvent.new))
       @now = now
     end
@@ -30,7 +31,7 @@ module Rewards
           user: @user, source_device: @source_device, activity_date: @now.to_date,
           event_type: "reward_redemption", points: -cost, idempotency_key: @idempotency_key, occurred_at: @now
         )
-        redemption = RewardRedemption.create!(user: @user, point_event: event, reward_kind: @reward_kind, cost_points: cost, redeemed_at: @now)
+        redemption = RewardRedemption.create!(user: @user, point_event: event, reward_kind: @reward_kind, cost_points: cost, redeemed_at: @now, payload: @payload)
         Result.new(redemption, balance, false)
       end
     end
