@@ -11,3 +11,5 @@ gem "webpush"
 group :development, :test do
   gem "debug"
 end
+
+gem "rack-attack", "~> 6.8"

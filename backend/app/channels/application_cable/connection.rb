@@ -1,5 +1,3 @@
-require "digest"
-
 module ApplicationCable
   class Connection < ActionCable::Connection::Base
     identified_by :current_device
@@ -11,8 +9,7 @@ module ApplicationCable
     private
 
     def find_verified_device
-      token = request.params["token"].to_s
-      device = Device.active.find_by(access_token_digest: Digest::SHA256.hexdigest(token))
+      device = Realtime::Ticket.device_for(request.params["ticket"])
       reject_unauthorized_connection unless device
 
       device.update_column(:last_seen_at, Time.current)

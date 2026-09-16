@@ -2,6 +2,7 @@ class Device < ApplicationRecord
   belongs_to :user
   validates :installation_id, :name, :platform, :access_token_digest, presence: true
   validates :installation_id, :access_token_digest, uniqueness: true
+  validates :installation_id, :name, length: { maximum: 100 }
   validates :platform, inclusion: { in: %w[ios android web] }
 
   has_many :daily_task_completions, foreign_key: :source_device_id, inverse_of: :source_device, dependent: :restrict_with_exception
