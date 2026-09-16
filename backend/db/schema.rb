@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_09_14_000000) do
+ActiveRecord::Schema[8.1].define(version: 2026_09_17_000001) do
   create_table "daily_summaries", primary_key: "date", id: :date, force: :cascade do |t|
     t.datetime "all_goals_completed_at"
     t.datetime "created_at", null: false
@@ -57,6 +57,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_14_000000) do
     t.integer "completed_seconds"
     t.datetime "created_at", null: false
     t.datetime "ended_at"
+    t.string "kind", default: "focus", null: false
     t.datetime "paused_at"
     t.integer "paused_seconds", default: 0, null: false
     t.integer "planned_seconds", null: false
@@ -66,13 +67,14 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_14_000000) do
     t.string "status", default: "running", null: false
     t.datetime "updated_at", null: false
     t.string "user_id", null: false
-    t.index ["active_lock"], name: "index_focus_sessions_on_active_lock", unique: true, where: "active_lock = 1"
     t.index ["source_device_id"], name: "index_focus_sessions_on_source_device_id"
     t.index ["start_idempotency_key"], name: "index_focus_sessions_on_start_idempotency_key", unique: true
+    t.index ["user_id", "active_lock"], name: "index_focus_sessions_on_active_lock", unique: true, where: "active_lock = 1"
     t.index ["user_id"], name: "index_focus_sessions_on_user_id"
     t.check_constraint "completed_seconds IS NULL OR completed_seconds >= 0", name: "focus_sessions_completed_seconds_non_negative"
+    t.check_constraint "kind IN ('focus', 'break')", name: "focus_sessions_valid_kind"
     t.check_constraint "paused_seconds >= 0", name: "focus_sessions_paused_seconds_non_negative"
-    t.check_constraint "planned_seconds BETWEEN 60 AND 7200", name: "focus_sessions_planned_seconds_range"
+    t.check_constraint "planned_seconds BETWEEN 10 AND 7200", name: "focus_sessions_planned_seconds_range"
     t.check_constraint "status IN ('running', 'paused', 'completed', 'cancelled')", name: "focus_sessions_valid_status"
   end
 
@@ -131,6 +133,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_14_000000) do
   create_table "reward_redemptions", id: :string, force: :cascade do |t|
     t.integer "cost_points", null: false
     t.datetime "created_at", null: false
+    t.text "payload", default: "{}", null: false
     t.string "point_event_id", null: false
     t.datetime "redeemed_at", null: false
     t.string "reward_kind", null: false
@@ -202,6 +205,17 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_14_000000) do
     t.datetime "updated_at", null: false
   end
 
+  create_table "weekly_retros", id: :string, force: :cascade do |t|
+    t.text "body", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.string "user_id", null: false
+    t.date "week_start", null: false
+    t.index ["user_id", "week_start"], name: "index_weekly_retros_on_user_id_and_week_start", unique: true
+    t.index ["user_id"], name: "index_weekly_retros_on_user_id"
+    t.check_constraint "length(body) <= 500", name: "weekly_retros_body_length"
+  end
+
   add_foreign_key "daily_task_completions", "devices", column: "source_device_id"
   add_foreign_key "daily_task_completions", "task_templates"
   add_foreign_key "devices", "users"
@@ -217,4 +231,5 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_14_000000) do
   add_foreign_key "reward_redemptions", "users"
   add_foreign_key "reward_rules", "users"
   add_foreign_key "task_templates", "users"
+  add_foreign_key "weekly_retros", "users"
 end
