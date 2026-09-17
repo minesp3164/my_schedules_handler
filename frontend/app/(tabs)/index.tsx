@@ -153,7 +153,8 @@ export default function Home() {
           <View className="flex-row items-center justify-between">
             <Image
               source={require('@/assets/icon.png')}
-              className="h-11 w-11 rounded-2xl"
+              resizeMode="cover"
+              style={{ width: 44, height: 44, borderRadius: 16 }}
               accessibilityLabel={t('home.brand')}
             />
             <View className="items-center">
