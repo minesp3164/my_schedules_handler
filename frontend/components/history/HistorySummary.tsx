@@ -61,7 +61,7 @@ export function HistorySummary({
         </View>
       </View>
       <View className="mt-5 rounded-2xl border border-line bg-surface p-4">
-        <Text className="font-bold text-[#173052]">{t('history.dailyPoints')}</Text>
+        <Text className="font-bold text-[#26332D]">{t('history.dailyPoints')}</Text>
         <View className="mt-5 flex-row items-end justify-between gap-2">
           {dailyPoints.map((day) => (
             <View key={day.date} className="flex-1 items-center">
@@ -85,7 +85,7 @@ function Metric({ label, value }: { label: string; value: string }) {
   return (
     <View className="flex-1 rounded-2xl bg-surface p-4">
       <Text className="text-xs text-muted">{label}</Text>
-      <Text className="mt-1 text-2xl font-bold text-[#173052]">{value}</Text>
+      <Text className="mt-1 text-2xl font-bold text-[#26332D]">{value}</Text>
     </View>
   );
 }

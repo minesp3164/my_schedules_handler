@@ -39,6 +39,7 @@
 | `started_at` | 서버가 수락한 시작 시각 (UTC) |
 | `planned_seconds` | 집중 예정 시간. 기본 1,500초(25분) |
 | `status` | `running`, `paused`, `completed`, `cancelled` |
+| `kind` | `focus` 또는 `break`. `break`는 휴식 타이머로 완료해도 포인트·할 일 완료를 만들지 않고, 집중 시간 통계에도 포함하지 않는다 |
 | `paused_at` | 현재 일시정지 시작 시각, 아닐 때 null |
 | `paused_seconds` | 누적 일시정지 시간 |
 | `ended_at` | 완료/취소 시각 |
@@ -88,7 +89,7 @@ stateDiagram-v2
 | 메서드 | 경로 | 요청 | 성공 응답 |
 | --- | --- | --- |
 | GET | `/api/v1/focus-sessions/current` | - | 활성 세션 또는 `null` |
-| POST | `/api/v1/focus-sessions` | `planned_seconds` | 생성된 `running` 세션 |
+| POST | `/api/v1/focus-sessions` | `planned_seconds`, `kind`(`focus`/`break`, 기본 `focus`) | 생성된 `running` 세션 |
 | PATCH | `/api/v1/focus-sessions/:id/pause` | - | `paused` 세션 |
 | PATCH | `/api/v1/focus-sessions/:id/resume` | - | `running` 세션 |
 | PATCH | `/api/v1/focus-sessions/:id/complete` | `ended_at` | 세션, 점수 이벤트, 일일 요약 |
@@ -136,6 +137,15 @@ stateDiagram-v2
 5. `PointEvent(event_type: focus_completion, points: 10)`을 unique하게 만든다.
 6. 일일 요약과 보상 달성 여부를 다시 계산한다.
 7. 앱은 예약한 로컬 알림을 해제하고 완료 화면을 보여준다.
+
+### `FocusSessions::AutoComplete` (`FinalizeFocusSessionJob`)
+
+- 세션 시작·재개 시 `scheduled_end_at`(=`started_at + planned_seconds + paused_seconds`)에 잡을 예약한다.
+- 잡 실행 시 세션이 `running`이고 종료 시각이 지났으면 `ended_at = scheduled_end_at`으로 `Complete`를 호출해 자동 완료한다(멱등 키 `auto-complete-<세션 id>`).
+- 앱이 열려 있으면 클라이언트도 남은 시간 0에 도달하는 즉시 `complete`를 호출한다. 먼저 성공한 쪽만 기록되고 나머지는 replay가 된다.
+- 완료 후 `focus.completed` 실시간 이벤트를 발행하고 보상 알림 잡을 큐에 넣는다.
+- 시작 기기에 Expo 사일런트 푸시(`_contentAvailable`, `type: focus_live_activity_end`)를 보내 잠금 상태에서도 Live Activity를 종료한다. 이미 끝난 세션에 대해서도 한 번 발송해 다른 기기에서 완료/취소된 잔여 Live Activity를 정리한다. `notification_deliveries`의 unique 제약으로 세션당 한 번만 발송된다.
+- `paused` 세션은 완료도 푸시도 하지 않는다. 재개 시 새 종료 시각으로 잡이 다시 예약된다.
 
 ### `FocusSessions::Cancel`
 

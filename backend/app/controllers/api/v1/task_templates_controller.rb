@@ -1,7 +1,7 @@
 module Api
   module V1
     class TaskTemplatesController < BaseController
-      DEFAULT_POINTS = { "focus" => 10, "algorithm" => 15, "portfolio" => 20, "application" => 25 }.freeze
+      DEFAULT_POINTS = { "focus" => 10, "algorithm" => 1, "portfolio" => 20, "application" => 25 }.freeze
       def index
         tasks = current_user.task_templates.active_in_order
         render json: { data: tasks.map { |task| task_payload(task) } }

@@ -5,4 +5,5 @@ class User < ApplicationRecord
   has_many :focus_sessions, dependent: :restrict_with_exception
   has_many :reward_rules, dependent: :restrict_with_exception
   has_many :reward_redemptions, dependent: :restrict_with_exception
+  has_many :weekly_retros, dependent: :destroy
 end

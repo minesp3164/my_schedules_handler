@@ -8,4 +8,5 @@ Rails.application.configure do
   config.log_level = :debug
   # ngrok를 통한 외부 기기 테스트 요청을 개발 환경에서 허용합니다.
   config.hosts << "rearrange-squash-spiny.ngrok-free.dev"
+  config.action_cable.allowed_request_origins = ["https://rearrange-squash-spiny.ngrok-free.dev"]
 end

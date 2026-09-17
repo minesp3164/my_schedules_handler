@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
 import * as SecureStore from 'expo-secure-store';
 import { Platform } from 'react-native';
+import { syncTodayPointsWidgetTheme } from '@/services/today-points-widget';
 
 export type ThemeColors = {
   button: string;
@@ -16,9 +17,11 @@ type ThemePalette = {
   line: string;
 };
 
-const defaultColors: ThemeColors = { button: '#2479CC', background: '#F5FAFF' };
+// A quiet sage palette keeps the first-use experience warm and intentional.
+// Users can still choose any color pair from Settings.
+const defaultColors: ThemeColors = { button: '#52786B', background: '#F7F7F2' };
 const legacyThemes: Record<string, ThemeColors> = {
-  blue: defaultColors,
+  blue: { button: '#2479CC', background: '#F5FAFF' },
   lavender: { button: '#7C5ACD', background: '#FAF7FF' },
 };
 const themeStorageKey = 'reward-tracker-theme';
@@ -97,6 +100,10 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
       if (parsed) setSelectedColors(parsed);
     });
   }, []);
+
+  useEffect(() => {
+    syncTodayPointsWidgetTheme(colors.button, colors.background);
+  }, [colors]);
 
   const value = useMemo<ThemeContextValue>(
     () => ({

@@ -1,5 +1,6 @@
 import { t } from '@/services/i18n';
 import { createUuid } from '@/services/ids';
+import { isOnline } from '@/services/network';
 import { syncTodayPointsWidget } from '@/services/today-points-widget';
 
 const apiBaseUrl = process.env.EXPO_PUBLIC_API_URL ?? 'http://192.168.200.104:3000/api/v1';
@@ -27,23 +28,40 @@ export type Dashboard = {
   }[];
   focus_session: {
     id: string;
+    kind: 'focus' | 'break';
     status: 'running' | 'paused';
     started_at: string;
     planned_seconds: number;
     paused_seconds: number;
     paused_at: string | null;
+    ended_at?: string | null;
   } | null;
 };
 
 type ApiResponse<T> = { data: T };
 
+// ngrok 무료판은 브라우저 User-Agent에 경고 페이지를 반환한다. 이 헤더로 우회한다.
+const NGROK_SKIP_HEADER = { 'ngrok-skip-browser-warning': '1' } as const;
+
 async function request<T>(path: string, token: string, init?: RequestInit) {
+  if (!isOnline()) throw new Error(t('common.offlineWrite'));
   const response = await fetch(`${apiBaseUrl}${path}`, {
     ...init,
-    headers: { Accept: 'application/json', Authorization: `Bearer ${token}`, ...init?.headers },
+    headers: {
+      Accept: 'application/json',
+      Authorization: `Bearer ${token}`,
+      ...NGROK_SKIP_HEADER,
+      ...init?.headers,
+    },
   });
   const body = response.status === 204 ? null : await response.json();
-  if (!response.ok) throw new Error(body.error?.message ?? t('common.requestFailed'));
+  if (!response.ok) {
+    const error = new Error(body?.error?.message ?? t('common.requestFailed')) as Error & {
+      code?: string;
+    };
+    error.code = body?.error?.code;
+    throw error;
+  }
   return body as T;
 }
 
@@ -57,11 +75,28 @@ export function createIdempotencyKey() {
   return createUuid();
 }
 
-export function redeemReward(token: string, rewardKind: string, idempotencyKey: string) {
+export type RewardRedemption = {
+  id: string;
+  reward_kind: 'cheer' | 'recovery' | 'reflection' | 'future' | 'growth';
+  cost_points: number;
+  redeemed_at: string;
+  payload: Record<string, string | number | undefined>;
+};
+
+export async function getRewardRedemptions(token: string) {
+  return (await request<ApiResponse<RewardRedemption[]>>('/reward-redemptions', token)).data;
+}
+
+export function redeemReward(
+  token: string,
+  rewardKind: string,
+  idempotencyKey: string,
+  payload: Record<string, string | number | undefined> = {}
+) {
   return request<{ data: { remaining_points: number } }>('/reward-redemptions', token, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', 'Idempotency-Key': idempotencyKey },
-    body: JSON.stringify({ reward_kind: rewardKind }),
+    body: JSON.stringify({ reward_kind: rewardKind, payload }),
   });
 }
 
@@ -85,11 +120,16 @@ export async function getCurrentFocus(token: string) {
   return (await request<ApiResponse<FocusSession | null>>('/focus-sessions/current', token)).data;
 }
 
-export function startFocus(token: string, plannedSeconds: number, idempotencyKey: string) {
+export function startFocus(
+  token: string,
+  plannedSeconds: number,
+  idempotencyKey: string,
+  kind: 'focus' | 'break' = 'focus'
+) {
   return request<ApiResponse<FocusSession>>('/focus-sessions', token, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', 'Idempotency-Key': idempotencyKey },
-    body: JSON.stringify({ focus_session: { planned_seconds: plannedSeconds } }),
+    body: JSON.stringify({ focus_session: { planned_seconds: plannedSeconds, kind } }),
   });
 }
 
@@ -109,7 +149,7 @@ export function controlFocus(
 
 export type HistoryDay = {
   date: string;
-  summary: { points_total: number; all_goals_completed_at: string | null };
+  summary: { points_total: number; all_goals_completed_at: string | null; focus_seconds: number };
   point_events: {
     id: string;
     event_type:
@@ -118,6 +158,7 @@ export type HistoryDay = {
     occurred_at: string;
     reversed_at: string | null;
     source_title: string | null;
+    source_kind: string | null;
   }[];
 };
 
@@ -143,6 +184,26 @@ export async function getHistory(token: string, from: string, to: string) {
   return (
     await request<ApiResponse<{ days: HistoryDay[] }>>(`/history?from=${from}&to=${to}`, token)
   ).data.days;
+}
+
+export type WeeklyRetro = {
+  week_start: string;
+  body: string | null;
+  updated_at: string | null;
+};
+
+export async function getWeeklyRetro(token: string, weekStart: string) {
+  return (
+    await request<ApiResponse<WeeklyRetro>>(`/weekly-retro?week_start=${weekStart}`, token)
+  ).data;
+}
+
+export function saveWeeklyRetro(token: string, weekStart: string, body: string) {
+  return request<ApiResponse<WeeklyRetro>>('/weekly-retro', token, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ week_start: weekStart, body }),
+  });
 }
 
 export async function getSettings(token: string) {
@@ -221,19 +282,38 @@ export async function activateDevice(input: {
   installationId: string;
   name: string;
   platform: string;
+  accessKey?: string;
 }) {
   const response = await fetch(`${apiBaseUrl}/devices/activate`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+    headers: {
+      'Content-Type': 'application/json',
+      Accept: 'application/json',
+      ...NGROK_SKIP_HEADER,
+    },
     body: JSON.stringify({
       device: {
         installation_id: input.installationId,
         name: input.name,
         platform: input.platform,
+        access_key: input.accessKey,
       },
     }),
   });
   const body = await response.json();
   if (!response.ok) throw new Error(body.error?.message ?? t('common.connectFailed'));
   return body.data as { access_token: string };
+}
+
+export async function issueRealtimeTicket(token: string) {
+  const body = await request<ApiResponse<{ ticket: string }>>('/realtime-tickets', token, {
+    method: 'POST',
+  });
+  return body.data.ticket;
+}
+
+export function sendTestNudge(token: string) {
+  return request<ApiResponse<{ status: string }>>('/notifications/test-nudge', token, {
+    method: 'POST',
+  });
 }

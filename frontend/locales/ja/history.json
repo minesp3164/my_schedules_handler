@@ -26,5 +26,6 @@
   "lessPoints": "先週より%{points}ポイント少ないです。",
   "samePoints": "先週と同じペースです。",
   "pointDelta": "ポイントの変化",
-  "completedDayDelta": "完了日数の変化"
+  "completedDayDelta": "完了日数の変化",
+  "showMore": "残り%{count}件を見る"
 }

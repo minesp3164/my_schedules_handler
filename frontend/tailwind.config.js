@@ -6,12 +6,12 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        screen: '#F5FAFF',
+        screen: '#F7F7F2',
         surface: '#FFFFFF',
-        line: '#D8E7F5',
-        lavender: '#2479CC',
-        muted: '#69809D',
-        success: '#31B9BD',
+        line: '#DDE5DC',
+        lavender: '#52786B',
+        muted: '#6F7D75',
+        success: '#78A88B',
       },
     },
   },

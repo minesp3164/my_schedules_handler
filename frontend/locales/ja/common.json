@@ -6,5 +6,7 @@
   "requestFailed": "リクエストを処理できませんでした。",
   "connectFailed": "デバイスを接続できませんでした。",
   "notFoundTitle": "画面が見つかりません。",
-  "goHome": "ホームに戻る"
+  "goHome": "ホームに戻る",
+  "offlineBanner": "オフラインです。最後に保存された画面を表示しています。",
+  "offlineWrite": "オフラインです。接続後に記録できます。"
 }

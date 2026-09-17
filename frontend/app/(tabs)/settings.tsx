@@ -4,10 +4,16 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import Svg, { Circle, Path } from 'react-native-svg';
-import { getSettings, updateSettings, type Settings as AppSettings } from '@/services/api';
+import {
+  getSettings,
+  sendTestNudge,
+  updateSettings,
+  type Settings as AppSettings,
+} from '@/services/api';
 import { getDeviceToken } from '@/services/device-token';
 import {
   getNotificationPermission,
+  previewNudgeNotification,
   requestNotificationPermission,
   type NotificationPermission,
 } from '@/services/focus-notifications';
@@ -17,7 +23,7 @@ import { ColorWheel } from '@/components/ColorWheel';
 import { ThemeCard } from '@/components/settings/ThemeCard';
 
 const buttonColorPresets = [
-  '#2479CC',
+  '#52786B',
   '#4F46E5',
   '#7C3AED',
   '#DB2777',
@@ -29,7 +35,7 @@ const buttonColorPresets = [
   '#475569',
 ];
 const backgroundColorPresets = [
-  '#F5FAFF',
+  '#F7F7F2',
   '#F8F5FF',
   '#FFF7F1',
   '#F1FBF6',
@@ -52,6 +58,23 @@ function darkenColor(value: string, amount: number) {
     .join('')}`;
 }
 
+function formatNudgeTimeInput(next: string) {
+  const digits = next.replace(/\D/g, '').slice(0, 4);
+  if (digits.length <= 2) return digits;
+
+  const splitAt = Number(digits.slice(0, 2)) <= 23 ? 2 : 1;
+  return `${digits.slice(0, splitAt)}:${digits.slice(splitAt, splitAt + 2)}`;
+}
+
+function normalizeNudgeAt(raw: string) {
+  const trimmed = raw.trim();
+  if (/^\d{1,2}$/.test(trimmed)) return `${trimmed.padStart(2, '0')}:00`;
+  if (!trimmed.includes(':')) return trimmed;
+
+  const [hours, minutes = ''] = trimmed.split(':');
+  return `${hours.padStart(2, '0')}:${minutes.padEnd(2, '0')}`;
+}
+
 export default function Settings() {
   const [token, setToken] = useState<string | null>();
   const [nudgeAtDraft, setNudgeAtDraft] = useState<string | null>(null);
@@ -59,8 +82,8 @@ export default function Settings() {
   const [permission, setPermission] = useState<NotificationPermission>('undetermined');
   const [themeEditorOpen, setThemeEditorOpen] = useState(false);
   const [themeDraft, setThemeDraft] = useState<ThemeColors>({
-    button: '#2479CC',
-    background: '#F5FAFF',
+    button: '#52786B',
+    background: '#F7F7F2',
   });
   const [themeError, setThemeError] = useState<string | null>(null);
   const [paletteField, setPaletteField] = useState<keyof ThemeColors | null>('button');
@@ -94,6 +117,20 @@ export default function Settings() {
       queryClient.invalidateQueries({ queryKey: ['settings'] });
     },
   });
+  const testNudge = useMutation({
+    mutationFn: async () => {
+      try {
+        await sendTestNudge(token!);
+        return 'sent' as const;
+      } catch (error) {
+        if ((error as { code?: string }).code === 'no_push_channel') {
+          const shown = await previewNudgeNotification();
+          if (shown) return 'preview' as const;
+        }
+        throw error;
+      }
+    },
+  });
   const value = settings.data;
   const nudgeAt = nudgeAtDraft ?? value?.nudge_at ?? '13:00';
   const nudgeEnabled = value?.nudge_enabled ?? true;
@@ -107,12 +144,14 @@ export default function Settings() {
   }, [nudgeEnabled, nudgeKnobOffset]);
   const saveNudgeTime = () => {
     if (!token) return;
-    if (!/^([01]\\d|2[0-3]):[0-5]\\d$/.test(nudgeAt)) {
+    const normalized = normalizeNudgeAt(nudgeAt);
+    if (!/^([01]\d|2[0-3]):[0-5]\d$/.test(normalized)) {
       setTimeError(t('settings.invalidTime'));
       return;
     }
     setTimeError(null);
-    update.mutate({ nudge_at: nudgeAt });
+    setNudgeAtDraft(normalized);
+    update.mutate({ nudge_at: normalized });
   };
   const openThemeEditor = () => {
     setThemeDraft(colors);
@@ -134,22 +173,13 @@ export default function Settings() {
   return (
     <SafeAreaView className="flex-1" style={{ backgroundColor: palette.screen }}>
       <ScrollView contentContainerClassName="px-5 pb-8 pt-8">
-        <Text className="text-2xl font-bold text-[#173052]">{t('settings.title')}</Text>
+        <Text className="text-2xl font-bold text-[#26332D]">{t('settings.title')}</Text>
         <Text className="mt-2 text-sm text-muted">{t('settings.description')}</Text>
         <ThemeCard colors={colors} onPress={openThemeEditor} />
         <View className="mt-4 rounded-2xl border border-line bg-surface p-4">
-          <Text className="font-bold text-[#173052]">{t('settings.focusTime')}</Text>
-          <Text className="mt-2 text-sm text-muted">
-            {t('settings.focusTimeValue', {
-              focus: 25,
-              break: 5,
-            })}
-          </Text>
-        </View>
-        <View className="mt-4 rounded-2xl border border-line bg-surface p-4">
           <View className="flex-row items-center justify-between">
             <View>
-              <Text className="font-bold text-[#173052]">{t('settings.nudge')}</Text>
+              <Text className="font-bold text-[#26332D]">{t('settings.nudge')}</Text>
               <Text className="mt-1 text-sm text-muted">
                 {canManageNudge
                   ? t('settings.nudgeDescription', { time: value?.nudge_at ?? '13:00' })
@@ -186,18 +216,23 @@ export default function Settings() {
           </View>
         </View>
         <View className="mt-4 rounded-2xl border border-line bg-surface p-4">
-          <Text className="font-bold text-[#173052]">{t('settings.nudgeTime')}</Text>
+          <Text className="font-bold text-[#26332D]">{t('settings.nudgeTime')}</Text>
           <Text className="mt-1 text-sm text-muted">{t('settings.nudgeTimeHint')}</Text>
           <View className="mt-3 flex-row gap-2">
             <TextInput
               value={nudgeAt}
-              onChangeText={(next) => setNudgeAtDraft(next)}
+              onFocus={() => setNudgeAtDraft('')}
+              onBlur={() => setNudgeAtDraft((current) => (current === '' ? null : current))}
+              onChangeText={(next) => {
+                setNudgeAtDraft(formatNudgeTimeInput(next));
+                setTimeError(null);
+              }}
               editable={Boolean(value) && !update.isPending}
               inputMode="numeric"
               maxLength={5}
               placeholder="13:00"
               placeholderTextColor="#829BB7"
-              className="flex-1 rounded-xl border border-line bg-screen px-3 py-3 font-semibold text-[#173052]"
+              className="flex-1 rounded-xl border border-line bg-screen px-3 py-3 font-semibold text-[#26332D]"
             />
             <Pressable
               disabled={update.isPending}
@@ -226,10 +261,28 @@ export default function Settings() {
               </Pressable>
             ))}
           </View>
+          <Pressable
+            disabled={!token || testNudge.isPending}
+            onPress={() => testNudge.mutate()}
+            className="mt-3 items-center rounded-xl border border-line bg-screen py-3 transition duration-150 hover:-translate-y-px hover:opacity-90 disabled:opacity-50">
+            <Text className="font-semibold text-muted">
+              {testNudge.isPending ? t('settings.nudgeTestSending') : t('settings.nudgeTest')}
+            </Text>
+          </Pressable>
+          {testNudge.isSuccess ? (
+            <Text className="mt-2 text-xs" style={{ color: palette.accent }}>
+              {testNudge.data === 'preview'
+                ? t('settings.nudgeTestPreviewed')
+                : t('settings.nudgeTestSent')}
+            </Text>
+          ) : null}
+          {testNudge.isError ? (
+            <Text className="mt-2 text-xs text-[#FF9BA6]">{testNudge.error.message}</Text>
+          ) : null}
           {timeError ? <Text className="mt-2 text-xs text-[#FF9BA6]">{timeError}</Text> : null}
         </View>
         <View className="mt-4 rounded-2xl border border-line bg-surface p-4">
-          <Text className="font-bold text-[#173052]">{t('settings.notificationPermission')}</Text>
+          <Text className="font-bold text-[#26332D]">{t('settings.notificationPermission')}</Text>
           <Text className="mt-1 text-sm text-muted">
             {t(`settings.permission${permission.charAt(0).toUpperCase()}${permission.slice(1)}`)}
           </Text>
@@ -246,8 +299,8 @@ export default function Settings() {
           onPress={() => {
             if (token) router.push('/tasks');
           }}
-          className="mt-4 rounded-2xl border border-line bg-surface p-4 transition duration-150 hover:-translate-y-px hover:bg-[#EAF4FF]">
-          <Text className="font-bold text-[#173052]">{t('settings.manageTasks')}</Text>
+          className="mt-4 rounded-2xl border border-line bg-surface p-4 transition duration-150 hover:-translate-y-px">
+          <Text className="font-bold text-[#26332D]">{t('settings.manageTasks')}</Text>
           <Text className="mt-1 text-sm text-muted">{t('settings.manageTasksDescription')}</Text>
         </Pressable>
         {settings.isError ? (
@@ -266,7 +319,7 @@ export default function Settings() {
             style={{ maxHeight: '88%' }}
             contentContainerClassName="rounded-t-[28px] bg-white px-5 pb-8 pt-6">
             <View className="flex-row items-center justify-between">
-              <Text className="text-xl font-bold text-[#173052]">
+              <Text className="text-xl font-bold text-[#26332D]">
                 {t('settings.themeModalTitle')}
               </Text>
               <Pressable
@@ -280,7 +333,7 @@ export default function Settings() {
             {(['button', 'background'] as const).map((field) => (
               <View key={field} className="mt-5">
                 <View className="flex-row items-center justify-between">
-                  <Text className="text-sm font-bold text-[#173052]">
+                  <Text className="text-sm font-bold text-[#26332D]">
                     {field === 'button'
                       ? t('settings.themeButtonColor')
                       : t('settings.themeBackgroundColor')}
@@ -299,9 +352,9 @@ export default function Settings() {
                     autoCapitalize="characters"
                     autoCorrect={false}
                     maxLength={7}
-                    placeholder="#2479CC"
+                    placeholder="#52786B"
                     placeholderTextColor="#829BB7"
-                    className="ml-3 flex-1 rounded-xl border border-line bg-screen px-3 py-3 font-semibold text-[#173052]"
+                    className="ml-3 flex-1 rounded-xl border border-line bg-screen px-3 py-3 font-semibold text-[#26332D]"
                   />
                 </View>
                 <View className="mt-3 flex-row flex-wrap items-center gap-2">
@@ -359,7 +412,7 @@ export default function Settings() {
             <View
               className="mt-6 rounded-2xl p-4"
               style={{ backgroundColor: themeDraft.background }}>
-              <Text className="text-sm font-bold text-[#173052]">{t('settings.themePreview')}</Text>
+              <Text className="text-sm font-bold text-[#26332D]">{t('settings.themePreview')}</Text>
               <View
                 className="mt-3 items-center rounded-xl py-3"
                 style={{ backgroundColor: themeDraft.button }}>

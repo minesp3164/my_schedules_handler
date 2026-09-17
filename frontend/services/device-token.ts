@@ -32,6 +32,7 @@ async function activateNewDevice() {
     installationId,
     name: Platform.OS === 'ios' ? 'iPhone' : Platform.OS === 'android' ? 'Android' : 'Web',
     platform: Platform.OS,
+    accessKey: process.env.EXPO_PUBLIC_PERSONAL_ACCESS_KEY,
   });
   await saveDeviceToken(result.access_token);
   return result.access_token;

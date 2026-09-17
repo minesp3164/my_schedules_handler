@@ -54,7 +54,7 @@ export default function PointHistoryScreen() {
           accessibilityLabel="뒤로 가기"
           className="min-h-11 justify-center self-start py-2">
           <Text className="text-sm font-bold" style={{ color: palette.accent }}>
-            ← 포인트 상점
+            ← 보상
           </Text>
         </Pressable>
         <Text className="mt-4 text-2xl font-bold tracking-tight text-[#24232A]">포인트 내역</Text>

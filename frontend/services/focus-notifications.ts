@@ -6,7 +6,8 @@ import {
   registerWebPushIfAvailable,
 } from '@/services/push-registration';
 
-const notificationKey = (sessionId: string) => `focus-notification:${sessionId}`;
+// SecureStore keys allow only alphanumeric characters, dots, hyphens, and underscores.
+const notificationKey = (sessionId: string) => `focus-notification-${sessionId}`;
 let nativeModule: typeof import('expo-notifications') | null = null;
 let handlerConfigured = false;
 
@@ -69,7 +70,11 @@ export async function requestNotificationPermission() {
   return getNotificationPermission();
 }
 
-export async function scheduleFocusCompletion(sessionId: string, seconds: number) {
+export async function scheduleFocusCompletion(
+  sessionId: string,
+  seconds: number,
+  kind: 'focus' | 'break' = 'focus'
+) {
   if (Platform.OS === 'web') {
     if ('Notification' in globalThis && globalThis.Notification.permission === 'default') {
       await globalThis.Notification.requestPermission();
@@ -92,8 +97,8 @@ export async function scheduleFocusCompletion(sessionId: string, seconds: number
   await cancelFocusCompletion(sessionId);
   const identifier = await module.scheduleNotificationAsync({
     content: {
-      title: t('focus.notificationTitle'),
-      body: t('focus.notificationBody'),
+      title: t(kind === 'break' ? 'focus.breakNotificationTitle' : 'focus.notificationTitle'),
+      body: t(kind === 'break' ? 'focus.breakNotificationBody' : 'focus.notificationBody'),
       sound: 'default',
       data: { sessionId },
     },
@@ -117,13 +122,37 @@ export async function cancelFocusCompletion(sessionId: string) {
   await SecureStore.deleteItemAsync(notificationKey(sessionId));
 }
 
-export function showWebFocusCompletion() {
+export function showWebFocusCompletion(kind: 'focus' | 'break' = 'focus') {
   if (Platform.OS !== 'web' || !('Notification' in globalThis)) return;
   if (globalThis.Notification.permission === 'granted') {
-    new globalThis.Notification(t('focus.notificationTitle'), {
-      body: t('focus.notificationBody'),
-    });
+    new globalThis.Notification(
+      t(kind === 'break' ? 'focus.breakNotificationTitle' : 'focus.notificationTitle'),
+      { body: t(kind === 'break' ? 'focus.breakNotificationBody' : 'focus.notificationBody') }
+    );
   }
+}
+
+export async function previewNudgeNotification() {
+  const title = t('settings.nudgePreviewTitle');
+  const body = t('settings.nudgePreviewBody');
+
+  if (Platform.OS === 'web') {
+    if (!('Notification' in globalThis)) return false;
+    if (globalThis.Notification.permission === 'default') {
+      await globalThis.Notification.requestPermission();
+    }
+    if (globalThis.Notification.permission !== 'granted') return false;
+    new globalThis.Notification(title, { body });
+    return true;
+  }
+
+  const module = await notifications();
+  if (!module || !(await hasPermission())) return false;
+  await module.scheduleNotificationAsync({
+    content: { title, body, sound: 'default' },
+    trigger: { type: module.SchedulableTriggerInputTypes.TIME_INTERVAL, seconds: 1 },
+  });
+  return true;
 }
 
 export async function previewFocusCompletion() {

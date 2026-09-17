@@ -1,3 +1,4 @@
+import ActivityKit
 internal import Expo
 import React
 import ReactAppDependencyProvider
@@ -29,6 +30,32 @@ class AppDelegate: ExpoAppDelegate {
 #endif
 
     return super.application(application, didFinishLaunchingWithOptions: launchOptions)
+  }
+
+  // 서버의 사일런트 푸시를 받아 잠금 화면의 Live Activity를 종료한다.
+  public override func application(
+    _ application: UIApplication,
+    didReceiveRemoteNotification userInfo: [AnyHashable: Any],
+    fetchCompletionHandler completionHandler: @escaping (UIBackgroundFetchResult) -> Void
+  ) {
+    guard (userInfo["type"] as? String) == "focus_live_activity_end" else {
+      return super.application(
+        application,
+        didReceiveRemoteNotification: userInfo,
+        fetchCompletionHandler: completionHandler
+      )
+    }
+
+    if #available(iOS 16.2, *) {
+      Task {
+        for activity in Activity<FocusLiveActivityAttributes>.activities {
+          await activity.end(nil, dismissalPolicy: .immediate)
+        }
+        completionHandler(.newData)
+      }
+    } else {
+      completionHandler(.noData)
+    }
   }
 
   // Linking API

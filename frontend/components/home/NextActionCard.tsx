@@ -35,7 +35,7 @@ export function NextActionCard({
       <Text className="text-xs font-bold tracking-[1.5px]" style={{ color: palette.accent }}>
         {t('home.nextActionEyebrow')}
       </Text>
-      <Text className="mt-2 text-lg font-bold text-[#173052]">{title}</Text>
+      <Text className="mt-2 text-lg font-bold text-[#26332D]">{title}</Text>
       <Text className="mt-1 text-sm leading-5 text-muted">{description}</Text>
       <View className="mt-4 flex-row gap-2">
         <Pressable

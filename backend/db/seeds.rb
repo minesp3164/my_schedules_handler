@@ -8,7 +8,7 @@ end
 
 [
   ["집중 세션 25분", 10, 2, "focus"],
-  ["알고리즘 1문제", 15, 1, "algorithm"],
+  ["알고리즘 1문제", 1, 1, "algorithm"],
   ["이력서/포트폴리오 개선", 20, 1, "portfolio"],
   ["실제 지원 1건", 25, 1, "application"]
 ].each_with_index do |(title, points, target_count, kind), position|

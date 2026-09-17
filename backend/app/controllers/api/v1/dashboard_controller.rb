@@ -40,7 +40,7 @@ module Api
       def focus_session_payload(session)
         return nil unless session
 
-        session.slice(:id, :source_device_id, :started_at, :planned_seconds, :status, :paused_at, :paused_seconds)
+        session.slice(:id, :source_device_id, :kind, :started_at, :planned_seconds, :status, :paused_at, :paused_seconds)
       end
 
       def render_invalid_date

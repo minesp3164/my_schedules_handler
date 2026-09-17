@@ -1,16 +1,7 @@
-import { useEffect, useRef, useState } from 'react';
-import {
-  Animated,
-  Pressable,
-  ScrollView,
-  Text,
-  useWindowDimensions,
-  View,
-  type NativeScrollEvent,
-  type NativeSyntheticEvent,
-} from 'react-native';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { Animated, Image, Pressable, ScrollView, Text, useWindowDimensions, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { router } from 'expo-router';
+import { router, useFocusEffect } from 'expo-router';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   completeTask,
@@ -40,19 +31,19 @@ const boardColumns: {
     id: 'todo',
     labelKey: 'home.board.todo.label',
     captionKey: 'home.board.todo.caption',
-    accent: '#7C8CB5',
+    accent: '#95A29A',
   },
   {
     id: 'doing',
     labelKey: 'home.board.doing.label',
     captionKey: 'home.board.doing.caption',
-    accent: '#2479CC',
+    accent: '#52786B',
   },
   {
     id: 'done',
     labelKey: 'home.board.done.label',
     captionKey: 'home.board.done.caption',
-    accent: '#31B9BD',
+    accent: '#78A88B',
   },
 ];
 
@@ -88,8 +79,14 @@ export default function Home() {
     queryFn: () => getDashboard(token!),
     enabled: Boolean(token),
   });
+  useFocusEffect(
+    useCallback(() => {
+      queryClient.invalidateQueries({ queryKey: ['dashboard'] });
+    }, [queryClient])
+  );
   const taskMutation = useMutation({
     mutationFn: async (task: DashboardTask) => {
+      if (task.read_only) return;
       if (!token) throw new Error(t('common.connectFirst'));
       const completion = task.completions.at(-1);
       const shouldRevert = task.goal_completed;
@@ -119,33 +116,47 @@ export default function Home() {
     caption: t(column.captionKey),
     tasks: tasks.filter((task) => getTaskStatus(task) === column.id),
   }));
+  const updatePage = (page: number) => {
+    setActivePage((currentPage) => (currentPage === page ? currentPage : page));
+    Animated.timing(indicatorProgress, {
+      toValue: page,
+      duration: 180,
+      // The indicator also interpolates `width`; layout properties cannot be
+      // driven by the native Animated module on iOS/Android.
+      useNativeDriver: false,
+    }).start();
+  };
 
-  const updatePage = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
-    const pagePosition = event.nativeEvent.contentOffset.x / width;
-    indicatorProgress.setValue(Math.max(0, Math.min(pagePosition, boardColumns.length - 1)));
-    const nextPage = Math.round(pagePosition);
-    const boundedPage = Math.max(0, Math.min(nextPage, boardColumns.length - 1));
-    setActivePage((currentPage) => (currentPage === boundedPage ? currentPage : boundedPage));
+  const handlePagerScroll = (event: { nativeEvent: { contentOffset: { x: number } } }) => {
+    const page = Math.max(
+      0,
+      Math.min(Math.round(event.nativeEvent.contentOffset.x / width), board.length - 1)
+    );
+    indicatorProgress.setValue(
+      Math.max(0, Math.min(event.nativeEvent.contentOffset.x / width, board.length - 1))
+    );
+    setActivePage((currentPage) => (currentPage === page ? currentPage : page));
   };
 
   const goToPage = (index: number) => {
     pagerRef.current?.scrollTo({ x: width * index, animated: true });
-    Animated.timing(indicatorProgress, {
-      toValue: index,
-      duration: 220,
-      useNativeDriver: true,
-    }).start();
-    setActivePage(index);
+    updatePage(index);
   };
 
   return (
-    <SafeAreaView className="flex-1" style={{ backgroundColor: palette.screen }}>
+    <SafeAreaView
+      className="flex-1"
+      edges={['top', 'left', 'right']}
+      style={{ backgroundColor: palette.screen }}>
       <ScrollView className="flex-1" contentContainerClassName="pb-8">
         <View className="px-5 pt-4">
           <View className="flex-row items-center justify-between">
-            <View className="h-11 w-11 items-center justify-center rounded-2xl bg-[#173052]">
-              <Text className="text-lg text-white">▦</Text>
-            </View>
+            <Image
+              source={require('@/assets/icon.png')}
+              resizeMode="cover"
+              style={{ width: 44, height: 44, borderRadius: 16 }}
+              accessibilityLabel={t('home.brand')}
+            />
             <View className="items-center">
               <Text
                 className="text-[11px] font-bold tracking-[2px]"
@@ -174,7 +185,7 @@ export default function Home() {
 
           <View className="mt-7 flex-row items-end justify-between">
             <View className="flex-1 pr-4">
-              <Text className="text-[28px] font-bold leading-9 text-[#173052]">
+              <Text className="text-[28px] font-bold leading-9 text-[#26332D]">
                 {t('home.title')}
               </Text>
               <Text className="mt-2 text-sm leading-5 text-muted">{t('home.description')}</Text>
@@ -208,7 +219,7 @@ export default function Home() {
                   }`}>
                   <Text
                     className={`text-xs font-bold ${
-                      activePage === index ? 'text-[#173052]' : 'text-muted'
+                      activePage === index ? 'text-[#26332D]' : 'text-muted'
                     }`}>
                     {column.label}
                   </Text>
@@ -233,7 +244,7 @@ export default function Home() {
             accessibilityRole="button"
             accessibilityLabel={t('home.staleFocusAction')}
             className="mx-5 mt-4 rounded-2xl border border-line bg-surface px-4 py-4">
-            <Text className="font-bold text-[#173052]">{t('home.staleFocusTitle')}</Text>
+            <Text className="font-bold text-[#26332D]">{t('home.staleFocusTitle')}</Text>
             <Text className="mt-1 text-sm leading-5 text-muted">
               {t('home.staleFocusDescription')}
             </Text>
@@ -248,13 +259,13 @@ export default function Home() {
           horizontal
           pagingEnabled
           showsHorizontalScrollIndicator={false}
-          onScroll={updatePage}
-          onMomentumScrollEnd={updatePage}
+          onScroll={handlePagerScroll}
+          onMomentumScrollEnd={handlePagerScroll}
           scrollEventThrottle={16}
           className="mt-5">
           {board.map((column) => (
             <View key={column.id} style={{ width }} className="px-5">
-              <View className="overflow-hidden rounded-[22px] border border-line bg-surface">
+              <View className="h-[500px] overflow-hidden rounded-[22px] border border-line bg-surface">
                 <View className="flex-row items-center justify-between border-b border-line bg-[#F9FCFF] px-5 py-4">
                   <View>
                     <View className="flex-row items-center">
@@ -275,8 +286,8 @@ export default function Home() {
                   </Text>
                 </View>
 
-                <View className="p-3">
-                  {column.id === 'todo' ? (
+                <View className="flex-1 p-4">
+                  {column.id === 'todo' && tasks.length === 0 ? (
                     <Pressable
                       onPress={() => router.push('/tasks')}
                       accessibilityRole="button"
@@ -284,7 +295,7 @@ export default function Home() {
                       accessibilityHint={t('home.configureGoalsHint')}
                       className="mb-3 flex-row items-center justify-between rounded-2xl border border-dashed border-line bg-[#F9FCFF] px-4 py-3 transition duration-150 hover:opacity-75">
                       <View>
-                        <Text className="text-sm font-bold text-[#173052]">
+                        <Text className="text-sm font-bold text-[#26332D]">
                           {t('home.configureGoals')}
                         </Text>
                         <Text className="mt-0.5 text-[11px] text-muted">
@@ -296,101 +307,123 @@ export default function Home() {
                       </Text>
                     </Pressable>
                   ) : null}
-                  {column.id === 'todo' && !hasTodoTasks && recommendation ? (
-                    <NextActionCard
-                      embedded
-                      recommendation={recommendation}
-                      hasAlternatives={recommendations.length > 1}
-                      disabled={taskMutation.isPending}
-                      onAct={() => {
-                        if (recommendation.type === 'focus') {
-                          router.push('/focus');
-                          return;
-                        }
-                        taskMutation.mutate(recommendation.task);
-                      }}
-                      onNext={() => setRecommendationIndex((current) => current + 1)}
-                    />
-                  ) : column.tasks.length === 0 && !dashboard.isLoading ? (
-                    <View className="items-center px-4 py-9">
-                      <Text className="text-2xl">{column.id === 'done' ? '✦' : '○'}</Text>
-                      <Text className="mt-2 text-sm text-muted">
-                        {column.id === 'done' ? t('home.emptyDone') : t('home.emptyColumn')}
-                      </Text>
-                    </View>
-                  ) : null}
-
-                  {dashboard.isLoading ? (
-                    <View className="px-2 py-5">
-                      <Text className="text-sm text-muted">{t('home.loading')}</Text>
-                    </View>
-                  ) : null}
-
-                  {column.tasks.map((task, index) => {
-                    const taskProgress = Math.min(
-                      100,
-                      Math.round((task.completed_count / task.target_count) * 100)
-                    );
-                    return (
-                      <Pressable
-                        key={task.id}
+                  <ScrollView
+                    nestedScrollEnabled
+                    showsVerticalScrollIndicator
+                    className="flex-1"
+                    contentContainerClassName="pb-1">
+                    {column.id === 'todo' && !hasTodoTasks && recommendation ? (
+                      <NextActionCard
+                        embedded
+                        recommendation={recommendation}
+                        hasAlternatives={recommendations.length > 1}
                         disabled={taskMutation.isPending}
-                        onPress={() => {
-                          if (!task.goal_completed && task.kind === "focus") {
-                            router.push("/focus");
+                        onAct={() => {
+                          if (recommendation.type === 'focus') {
+                            router.push('/focus');
                             return;
                           }
-                          taskMutation.mutate(task);
+                          taskMutation.mutate(recommendation.task);
                         }}
-                        accessibilityRole="button"
-                        accessibilityLabel={t('home.taskAccessibility', {
-                          title: task.title,
-                          action: task.goal_completed
-                            ? t('home.revertAction')
-                            : t('home.completeAction'),
-                        })}
-                        className={`rounded-2xl border border-line bg-white p-4 transition duration-150 hover:-translate-y-px hover:opacity-90 disabled:opacity-50 ${
-                          index ? 'mt-3' : ''
-                        }`}>
-                        <View className="flex-row items-start justify-between">
-                          <View className="mr-3 flex-1">
-                            <Text className="text-base font-bold leading-6 text-[#173052]">
-                              {task.title}
-                            </Text>
-                            <Text className="mt-1.5 text-xs text-muted">
-                              {task.goal_completed
-                                ? t('home.goalCompleted')
-                                : t('home.taskProgress', {
-                                    completed: task.completed_count,
-                                    total: task.target_count,
-                                  })}
-                            </Text>
-                          </View>
-                          <View
-                            className="h-7 min-w-7 items-center justify-center rounded-full px-1.5"
-                            style={{
-                              backgroundColor: task.goal_completed
-                                ? palette.accent
-                                : palette.accentSoft,
-                            }}>
-                            <Text
-                              className={`text-xs font-bold ${task.goal_completed ? 'text-white' : ''}`}
-                              style={task.goal_completed ? undefined : { color: palette.accent }}>
-                              {task.goal_completed ? '✓' : `+${task.points}`}
-                            </Text>
-                          </View>
-                        </View>
-                        {!task.goal_completed ? (
-                          <View className="mt-4 h-1.5 overflow-hidden rounded-full bg-[#EAF4FF]">
+                        onNext={() => setRecommendationIndex((current) => current + 1)}
+                      />
+                    ) : column.tasks.length === 0 && !dashboard.isLoading ? (
+                      <View className="items-center px-4 py-9">
+                        <Text className="text-2xl">{column.id === 'done' ? '✦' : '○'}</Text>
+                        <Text className="mt-2 text-sm text-muted">
+                          {column.id === 'done' ? t('home.emptyDone') : t('home.emptyColumn')}
+                        </Text>
+                      </View>
+                    ) : null}
+
+                    {dashboard.isLoading ? (
+                      <View className="px-2 py-5">
+                        <Text className="text-sm text-muted">{t('home.loading')}</Text>
+                      </View>
+                    ) : null}
+
+                    {column.tasks.map((task, index) => {
+                      const taskProgress = Math.min(
+                        100,
+                        Math.round((task.completed_count / task.target_count) * 100)
+                      );
+                      const statusLabel = task.goal_completed
+                        ? task.read_only
+                          ? t('home.goalCompletedReadOnly', {
+                              completed: task.completed_count,
+                              total: task.target_count,
+                            })
+                          : t('home.goalCompletedProgress', {
+                              completed: task.completed_count,
+                              total: task.target_count,
+                            })
+                        : t('home.taskProgress', {
+                            completed: task.completed_count,
+                            total: task.target_count,
+                          });
+                      return (
+                        <Pressable
+                          key={task.id}
+                          disabled={taskMutation.isPending || task.read_only}
+                          onPress={() => {
+                            if (!task.goal_completed && task.kind === 'focus') {
+                              router.push('/focus');
+                              return;
+                            }
+                            taskMutation.mutate(task);
+                          }}
+                          accessibilityRole="button"
+                          accessibilityLabel={t('home.taskAccessibility', {
+                            title: task.title,
+                            action: task.read_only
+                              ? t('home.goalCompleted')
+                              : task.goal_completed
+                                ? t('home.revertAction')
+                                : task.kind === 'focus'
+                                  ? t('focus.start')
+                                  : t('home.completeAction'),
+                          })}
+                          className={`rounded-2xl border border-line bg-white p-4 transition duration-150 hover:-translate-y-px hover:opacity-90 disabled:opacity-50 ${
+                            index ? 'mt-3' : ''
+                          }`}>
+                          <View className="flex-row items-start justify-between">
+                            <View className="mr-3 flex-1">
+                              <Text className="text-base font-bold leading-6 text-[#26332D]">
+                                {task.title}
+                              </Text>
+                              <Text className="mt-1.5 text-xs text-muted">
+                                {statusLabel}
+                              </Text>
+                            </View>
                             <View
-                              style={{ width: `${taskProgress}%`, backgroundColor: palette.accent }}
-                              className="h-full rounded-full"
-                            />
+                              className="h-7 min-w-7 items-center justify-center rounded-full px-1.5"
+                              style={{
+                                backgroundColor: task.goal_completed
+                                  ? palette.accent
+                                  : palette.accentSoft,
+                              }}>
+                              <Text
+                                className={`text-xs font-bold ${task.goal_completed ? 'text-white' : ''}`}
+                                style={task.goal_completed ? undefined : { color: palette.accent }}>
+                                {task.goal_completed ? '✓' : `+${task.points}`}
+                              </Text>
+                            </View>
                           </View>
-                        ) : null}
-                      </Pressable>
-                    );
-                  })}
+                          {!task.goal_completed ? (
+                            <View className="mt-4 h-1.5 overflow-hidden rounded-full bg-[#E8F0EA]">
+                              <View
+                                style={{
+                                  width: `${taskProgress}%`,
+                                  backgroundColor: palette.accent,
+                                }}
+                                className="h-full rounded-full"
+                              />
+                            </View>
+                          ) : null}
+                        </Pressable>
+                      );
+                    })}
+                  </ScrollView>
                 </View>
               </View>
             </View>

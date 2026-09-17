@@ -3,8 +3,9 @@ import { Pressable, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { useQuery } from '@tanstack/react-query';
-import { getDashboard } from '@/services/api';
+import { getDashboard, getRewardRedemptions, type RewardRedemption } from '@/services/api';
 import { getDeviceToken } from '@/services/device-token';
+import { formatShortDate } from '@/services/i18n';
 import { getUnlockRewards, rewardRequirement } from '@/services/reward-unlocks';
 import { useTheme } from '@/services/theme';
 
@@ -39,39 +40,52 @@ function RewardCard({ reward }: { reward: ReturnType<typeof getUnlockRewards>[nu
       className="mb-2.5 overflow-hidden rounded-2xl p-4"
       style={{ backgroundColor: reward.softColor }}>
       <View className="flex-row items-start justify-between">
-        <View className="h-9 w-9 items-center justify-center rounded-xl bg-white/80">
-          <Text className="text-lg" style={{ color: reward.color }}>
+        <View
+          className={`h-9 w-9 items-center justify-center rounded-xl ${reward.dark ? 'bg-white/20' : 'bg-white/80'}`}>
+          <Text className="text-lg" style={{ color: reward.dark ? '#FFFFFF' : reward.color }}>
             {reward.icon}
           </Text>
         </View>
-        <View className="rounded-full bg-white/70 px-2.5 py-1">
-          <Text className="text-[10px] font-bold" style={{ color: reward.color }}>
+        <View className={`rounded-full px-2.5 py-1 ${reward.dark ? 'bg-white/20' : 'bg-white/70'}`}>
+          <Text
+            className="text-[10px] font-bold"
+            style={{ color: reward.dark ? '#FFFFFF' : reward.color }}>
             {reward.unlocked ? '사용 가능' : `${remaining}점 남음`}
           </Text>
         </View>
       </View>
-      <Text className="mt-4 text-[17px] font-bold tracking-tight text-[#24232A]">
+      <Text
+        className="mt-4 text-[17px] font-bold tracking-tight"
+        style={{ color: reward.onColor }}>
         {reward.title}
       </Text>
-      <Text className="mt-1 text-[11px] leading-4 text-[#5E5B64]">{reward.description}</Text>
+      <Text className="mt-1 text-[11px] leading-4" style={{ color: reward.onSoft }}>
+        {reward.description}
+      </Text>
       {reward.unlocked ? (
         <View className="mt-3 flex-row items-center justify-between">
-          <Text className="text-[11px] font-bold" style={{ color: reward.color }}>
+          <Text
+            className="text-[11px] font-bold"
+            style={{ color: reward.dark ? '#FFFFFF' : reward.color }}>
             열어보기
           </Text>
-          <Text className="text-base" style={{ color: reward.color }}>
+          <Text className="text-base" style={{ color: reward.dark ? '#FFFFFF' : reward.color }}>
             →
           </Text>
         </View>
       ) : (
         <View className="mt-3">
-          <View className="h-1.5 overflow-hidden rounded-full bg-white/80">
+          <View
+            className={`h-1.5 overflow-hidden rounded-full ${reward.dark ? 'bg-white/25' : 'bg-white/80'}`}>
             <View
               className="h-full rounded-full"
-              style={{ width: `${progressPercent}%`, backgroundColor: reward.color }}
+              style={{
+                width: `${progressPercent}%`,
+                backgroundColor: reward.dark ? '#FFFFFF' : reward.color,
+              }}
             />
           </View>
-          <Text className="mt-1.5 text-[10px] text-[#6A6670]">
+          <Text className="mt-1.5 text-[10px]" style={{ color: reward.onSoft }}>
             {rewardRequirement(reward)} · {reward.progress}점 쌓음
           </Text>
         </View>
@@ -80,10 +94,40 @@ function RewardCard({ reward }: { reward: ReturnType<typeof getUnlockRewards>[nu
   );
 }
 
+function redemptionPreview(redemption: RewardRedemption) {
+  const { payload } = redemption;
+  return payload.message ?? payload.letter ?? payload.task_title ?? payload.win ?? '';
+}
+
+function RedemptionRow({ redemption }: { redemption: RewardRedemption }) {
+  const { palette, colors } = useTheme();
+  const meta = getUnlockRewards(0, 0, colors.button).find(
+    (reward) => reward.kind === redemption.reward_kind
+  );
+  const preview = redemptionPreview(redemption);
+  return (
+    <View className="mb-2 rounded-2xl border p-4" style={{ borderColor: palette.line, backgroundColor: palette.surface }}>
+      <View className="flex-row items-center justify-between">
+        <Text className="text-sm font-bold text-[#24232A]">
+          {meta?.icon} {meta?.shortTitle ?? redemption.reward_kind}
+        </Text>
+        <Text className="text-[10px] text-muted">
+          {formatShortDate(new Date(redemption.redeemed_at))}
+        </Text>
+      </View>
+      {preview ? (
+        <Text className="mt-2 text-xs leading-5 text-[#5E5B64]" numberOfLines={2}>
+          {preview}
+        </Text>
+      ) : null}
+    </View>
+  );
+}
+
 export default function RewardsScreen() {
   const [section, setSection] = useState<RewardSection>('rewards');
   const [token, setToken] = useState<string | null | undefined>();
-  const { palette } = useTheme();
+  const { palette, colors } = useTheme();
   useEffect(() => {
     getDeviceToken().then(setToken);
   }, []);
@@ -92,10 +136,14 @@ export default function RewardsScreen() {
     queryFn: () => getDashboard(token!),
     enabled: Boolean(token),
   });
+  const redemptions = useQuery({
+    queryKey: ['redemptions'],
+    queryFn: () => getRewardRedemptions(token!),
+    enabled: Boolean(token),
+  });
   const totalPoints = dashboard.data?.total_points ?? 0;
-  const rewards = getUnlockRewards(totalPoints);
+  const rewards = getUnlockRewards(totalPoints, 0, colors.button);
   const unlocked = rewards.filter((reward) => reward.unlocked);
-  const next = rewards.find((reward) => !reward.unlocked);
 
   return (
     <SafeAreaView className="flex-1" style={{ backgroundColor: palette.screen }}>
@@ -105,22 +153,24 @@ export default function RewardsScreen() {
             <Text
               className="text-[10px] font-bold tracking-[2px]"
               style={{ color: palette.accent }}>
-              POINT STORE
+              REWARDS
             </Text>
             <Text className="mt-1 text-2xl font-bold tracking-tight text-[#24232A]">
-              포인트 상점
+              보상
             </Text>
           </View>
-          <View
-            className="h-12 w-12 items-center justify-center rounded-full"
-            style={{ backgroundColor: palette.accentSoft }}>
-            <Text className="text-[17px] font-bold" style={{ color: palette.accent }}>
+          <Pressable
+            onPress={() => router.push('/point-history')}
+            accessibilityRole="button"
+            accessibilityLabel={`보유 포인트 ${totalPoints}점, 포인트 내역 보기`}
+            accessibilityHint="포인트가 쌓이거나 사용된 기록을 확인해요."
+            className="min-h-11 min-w-14 items-center justify-center rounded-xl border px-2"
+            style={{ backgroundColor: palette.accentSoft, borderColor: palette.line }}>
+            <Text className="text-[9px] font-bold tracking-[1px] text-muted">POINTS</Text>
+            <Text className="mt-px text-base font-bold" style={{ color: palette.accent }}>
               {totalPoints}
             </Text>
-            <Text className="text-[8px]" style={{ color: palette.accent }}>
-              보유
-            </Text>
-          </View>
+          </Pressable>
         </View>
         <View
           className="mt-6 flex-row rounded-2xl p-1"
@@ -168,30 +218,6 @@ export default function RewardsScreen() {
                 할 일을 완료해 포인트를 모으고, 원하는 회복 경험을 직접 골라 사용해요.
               </Text>
             </View>
-            <Pressable
-              onPress={() => router.push('/point-history')}
-              accessibilityRole="button"
-              accessibilityLabel={`보유 포인트 ${totalPoints}점, 포인트 내역 보기`}
-              accessibilityHint="포인트가 쌓이거나 사용된 기록을 확인해요."
-              className="mt-4 flex-row items-center rounded-2xl border bg-white p-4"
-              style={{ borderColor: palette.line }}>
-              <Text className="mr-3 text-xl" style={{ color: palette.accent }}>
-                ✦
-              </Text>
-              <View className="flex-1">
-                <Text className="text-xs font-bold text-[#37323F]">
-                  보유 포인트 {totalPoints}점
-                </Text>
-                <Text className="mt-1 text-[11px]" style={{ color: palette.accentDeep }}>
-                  {next
-                    ? `${next.shortTitle}까지 ${Math.max(next.threshold - next.progress, 0)}점 남았어요.`
-                    : '모든 보상을 구매할 수 있어요.'}
-                </Text>
-                <Text className="mt-2 text-[11px] font-bold" style={{ color: palette.accent }}>
-                  포인트 내역 보기 →
-                </Text>
-              </View>
-            </Pressable>
             <View className="mt-8 flex-row items-end justify-between">
               <View>
                 <Text
@@ -215,6 +241,21 @@ export default function RewardsScreen() {
               style={{ color: palette.accentDeep }}>
               보상 구매 시 해당 포인트가 차감돼요. 쉬고 돌아보고 다시 시작하도록 돕는 경험이에요.
             </Text>
+            {redemptions.data?.length ? (
+              <View className="mt-8">
+                <Text
+                  className="text-[10px] font-bold tracking-[1px]"
+                  style={{ color: palette.accent }}>
+                  USED REWARDS
+                </Text>
+                <Text className="mt-1 mb-3 text-lg font-bold text-[#24232A]">
+                  사용한 보상 {redemptions.data.length}개
+                </Text>
+                {redemptions.data.map((redemption) => (
+                  <RedemptionRow key={redemption.id} redemption={redemption} />
+                ))}
+              </View>
+            ) : null}
           </>
         ) : (
           <View className="mt-5">
