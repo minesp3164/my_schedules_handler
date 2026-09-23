@@ -13,6 +13,7 @@ module Api
             daily_summary: summary_payload(result.daily_summary),
             total_points: result.total_points,
             tasks: result.tasks,
+            deferrals: result.deferrals,
             focus_session: focus_session_payload(result.focus_session),
             rewards: {
               daily: result.rewards.daily,
