@@ -106,6 +106,42 @@ export default function Home() {
           )
         : completeTask(task.id, token, createIdempotencyKey());
     },
+    // 오프라인 큐 적재 시에도 보드의 +1이 즉시 보이도록 캐시를 미리 갱신한다.
+    onMutate: async (task) => {
+      await queryClient.cancelQueries({ queryKey: ['dashboard'] });
+      const previous = queryClient.getQueryData<Dashboard>(['dashboard']);
+      queryClient.setQueryData<Dashboard>(['dashboard'], (current) =>
+        current
+          ? {
+              ...current,
+              tasks: current.tasks.map((item) => {
+                if (item.id !== task.id) return item;
+                if (task.goal_completed) {
+                  return {
+                    ...item,
+                    completed_count: 0,
+                    remaining_count: item.target_count,
+                    goal_completed: false,
+                    completions: [],
+                  };
+                }
+                const completed = Math.min(item.completed_count + 1, item.target_count);
+                return {
+                  ...item,
+                  completed_count: completed,
+                  remaining_count: Math.max(item.target_count - completed, 0),
+                  goal_completed: completed >= item.target_count,
+                  completions: [...item.completions, { id: `optimistic-${Date.now()}` }],
+                };
+              }),
+            }
+          : current
+      );
+      return { previous };
+    },
+    onError: (_error, _task, context) => {
+      if (context?.previous) queryClient.setQueryData(['dashboard'], context.previous);
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['dashboard'] });
     },
@@ -115,6 +151,23 @@ export default function Home() {
     mutationFn: (deferralId: string) => {
       if (!token) throw new Error(t('common.connectFirst'));
       return undoDefer(token, deferralId);
+    },
+    onMutate: async (deferralId: string) => {
+      await queryClient.cancelQueries({ queryKey: ['dashboard'] });
+      const previous = queryClient.getQueryData<Dashboard>(['dashboard']);
+      // 이월 목록에서 바로 없애 화면에 즉시 반영한다(할 일 자체의 복귀는 재전송 후 갱신).
+      queryClient.setQueryData<Dashboard>(['dashboard'], (current) =>
+        current
+          ? {
+              ...current,
+              deferrals: current.deferrals.filter((item) => item.deferral_id !== deferralId),
+            }
+          : current
+      );
+      return { previous };
+    },
+    onError: (_error, _deferralId, context) => {
+      if (context?.previous) queryClient.setQueryData(['dashboard'], context.previous);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['dashboard'] });
