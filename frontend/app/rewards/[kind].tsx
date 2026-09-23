@@ -6,17 +6,24 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   claimReward,
   createIdempotencyKey,
+  deferTask,
   getDashboard,
   getRewardRedemptions,
   getRewardUnlocks,
+  undoDefer,
   updateRewardStatus,
   type GrowthCardStats,
   type RewardRedemption,
   type RewardUnlockState,
+  type TaskDeferral,
 } from '@/services/api';
 import { getDeviceToken } from '@/services/device-token';
 import { formatShortDate } from '@/services/i18n';
-import { getUnlockRewards, type UnlockReward, type UnlockRewardKind } from '@/services/reward-unlocks';
+import {
+  getUnlockRewards,
+  type UnlockReward,
+  type UnlockRewardKind,
+} from '@/services/reward-unlocks';
 import { useTheme } from '@/services/theme';
 
 const kindSet = new Set<UnlockRewardKind>(['cheer', 'recovery', 'reflection', 'future', 'growth']);
@@ -58,7 +65,9 @@ function Locked({ reward, onPreview }: { reward: UnlockReward; onPreview?: () =>
     <View className="mx-5 mt-12 items-center rounded-3xl bg-[#F4F1F7] px-7 py-10">
       <Text className="text-3xl">✦</Text>
       <Text className="mt-4 text-xl font-bold text-[#302D35]">아직 열리지 않았어요</Text>
-      <Text className="mt-2 text-center text-sm leading-6 text-[#77717D]">{lockedCopy(reward)}</Text>
+      <Text className="mt-2 text-center text-sm leading-6 text-[#77717D]">
+        {lockedCopy(reward)}
+      </Text>
       <Pressable onPress={() => router.back()} className="mt-7 rounded-2xl bg-[#302D35] px-5 py-3">
         <Text className="text-sm font-bold text-white">보관함으로 돌아가기</Text>
       </Pressable>
@@ -285,39 +294,117 @@ function RecoveryHeader() {
         오늘 못 한 일을{`\n`}내일로 옮겨요.
       </Text>
       <Text className="mt-3 text-sm leading-6 text-[#707865]">
-        이건 미루기가 아니라 회복을 선택하는 방법이에요. 효과는 다음 업데이트에서 열리고, 지금은
-        보상만 받아 보관해 둘 수 있어요.
+        이건 미루기가 아니라 회복을 선택하는 방법이에요. 받아 둔 패스 하나로 오늘의 할 일 하나를
+        내일로 옮길 수 있어요.
       </Text>
     </>
   );
 }
 
-function DisabledUseButton() {
+// 이월된 할 일 목록. 오늘 안에는 되돌릴 수 있다(회복 패스도 함께 돌아온다).
+function DeferredList({
+  deferrals,
+  onUndo,
+}: {
+  deferrals: TaskDeferral[];
+  onUndo: (deferralId: string) => Promise<boolean>;
+}) {
+  if (!deferrals.length) return null;
   return (
-    <>
-      <View className="mt-3 flex-row items-center justify-between rounded-2xl bg-[#D8DDCE] px-5 py-4">
-        <Text className="font-bold text-white">회복 패스 사용하기</Text>
-        <Text className="text-sm font-bold text-white">곧</Text>
-      </View>
-      <Text className="mt-2 text-center text-[10px] text-[#878D7D]">
-        할 일 옮기기 효과는 다음 업데이트에서 열려요.
-      </Text>
-    </>
+    <View className="mt-6 rounded-2xl bg-[#EFF3E6] p-4">
+      <Text className="text-xs font-bold text-[#667247]">내일로 보낸 할 일</Text>
+      {deferrals.map((item) => (
+        <View
+          key={item.deferral_id}
+          className="mt-2 flex-row items-center justify-between rounded-xl bg-white/70 px-3 py-2">
+          <Text className="flex-1 text-sm text-[#37451C]" numberOfLines={1}>
+            {item.title} → {Number(item.to_date.slice(5, 7))}월 {Number(item.to_date.slice(8))}일
+          </Text>
+          <Pressable
+            onPress={() => onUndo(item.deferral_id)}
+            accessibilityRole="button"
+            accessibilityLabel={`${item.title} 오늘로 되돌리기`}
+            className="ml-2 rounded-lg border border-[#9AC13C] px-2.5 py-1.5">
+            <Text className="text-[11px] font-bold text-[#4E6B15]">되돌리기</Text>
+          </Pressable>
+        </View>
+      ))}
+    </View>
   );
 }
+
+type RecoveryTasks = NonNullable<Awaited<ReturnType<typeof getDashboard>>['tasks']>;
 
 function RecoveryPass({
   record,
+  available,
+  progress,
+  tasks,
+  tasksLoading,
+  deferrals,
   onClaim,
   onStatusChange,
+  onDefer,
+  onUndo,
   accent,
 }: {
   record: RewardRedemption | null;
+  available: boolean;
+  progress: number;
+  tasks: RecoveryTasks;
+  tasksLoading: boolean;
+  deferrals: TaskDeferral[];
   onClaim: OnClaim;
   onStatusChange: OnStatusChange;
+  onDefer: (taskTemplateId: string) => Promise<boolean>;
+  onUndo: (deferralId: string) => Promise<boolean>;
   accent: string;
 }) {
+  const [usedTitle, setUsedTitle] = useState<string | null>(null);
+  const candidates = tasks.filter((task) => !task.goal_completed && task.remaining_count > 0);
+  const nextPassAt = (Math.floor(progress / 200) + 1) * 200;
+
+  if (usedTitle) {
+    return (
+      <View className="px-5 pt-7">
+        <RecoveryHeader />
+        <View className="mt-7 rounded-3xl bg-[#E9F9BC] p-6">
+          <Text className="text-2xl">🌿</Text>
+          <Text className="mt-3 text-xl font-bold text-[#37451C]">
+            {usedTitle}를 내일로 보냈어요.
+          </Text>
+          <Text className="mt-2 text-sm leading-6 text-[#667247]">
+            오늘의 몫은 여기까지. 내일 스케줄에 다시 나타나요. 오늘 안에는 아래에서 되돌릴 수
+            있어요.
+          </Text>
+        </View>
+        <DeferredList deferrals={deferrals} onUndo={onUndo} />
+        <Pressable
+          onPress={() => router.back()}
+          className="mt-6 rounded-2xl px-5 py-4"
+          style={{ backgroundColor: accent }}>
+          <Text className="text-center font-bold text-white">보관함으로 돌아가기</Text>
+        </Pressable>
+      </View>
+    );
+  }
+
   if (!record) {
+    if (!available) {
+      return (
+        <View className="px-5 pt-7">
+          <RecoveryHeader />
+          <View className="mt-7 rounded-3xl bg-[#EFF1E9] p-5">
+            <Text className="text-lg font-bold text-[#37401F]">다음 패스를 기다리는 중</Text>
+            <Text className="mt-2 text-sm leading-6 text-[#6E7563]">
+              이번 누적 구간의 패스는 썼어요. 누적 {nextPassAt}점이 되면 새 패스가 열려요. (현재{' '}
+              {progress}점)
+            </Text>
+          </View>
+          <DeferredList deferrals={deferrals} onUndo={onUndo} />
+        </View>
+      );
+    }
     return (
       <View className="px-5 pt-7">
         <RecoveryHeader />
@@ -338,8 +425,9 @@ function RecoveryPass({
           <Text className="text-xl text-white">→</Text>
         </Pressable>
         <Text className="mt-3 text-center text-[10px] text-[#878D7D]">
-          받으면 보관함의 보유 보상으로 남아요.
+          받으면 바로 아래에서 할 일을 내일로 옮길 수 있어요.
         </Text>
+        <DeferredList deferrals={deferrals} onUndo={onUndo} />
       </View>
     );
   }
@@ -360,12 +448,53 @@ function RecoveryPass({
         <Text className="mt-2 text-sm leading-6 text-[#667247]">
           {deferred
             ? '나중에 쓰기로 했어요. 회복 패스는 보관함에 그대로 남아 있어요.'
-            : '받아 둔 회복 패스예요. 언제든 다시 미뤄둘 수 있고, 잃지 않아요.'}
+            : '받아 둔 회복 패스예요. 할 일 하나를 내일로 옮기는 데 써요.'}
         </Text>
         <Text className="mt-3 text-[10px] text-[#7A8B5B]">
           해금일 {formatShortDate(new Date(record.unlocked_at))}
         </Text>
       </View>
+
+      {deferred ? null : (
+        <View className="mt-6">
+          <Text className="text-xs font-bold text-[#667247]">무엇을 내일로 보낼까요?</Text>
+          <Text className="mt-0.5 text-[11px] text-[#878D7D]">
+            패스 하나로 할 일 하나를 옮겨요. 완료한 기록은 그대로 남고, 내일 스케줄에 다시 나타나요.
+          </Text>
+          {tasksLoading ? (
+            <Text className="mt-3 rounded-2xl bg-[#EFF1E9] px-4 py-3 text-center text-sm text-[#6E7563]">
+              오늘의 할 일을 불러오는 중이에요…
+            </Text>
+          ) : candidates.length ? (
+            candidates.map((task) => (
+              <Pressable
+                key={task.id}
+                onPress={async () => {
+                  const ok = await onDefer(task.id);
+                  if (ok) setUsedTitle(task.title);
+                }}
+                accessibilityRole="button"
+                accessibilityLabel={`${task.title} 내일로 보내기`}
+                className="mt-2 flex-row items-center justify-between rounded-2xl border border-[#9AC13C] bg-white px-4 py-3">
+                <View className="flex-1 pr-3">
+                  <Text className="text-sm font-bold text-[#37451C]" numberOfLines={1}>
+                    {task.title}
+                  </Text>
+                  <Text className="text-[10px] text-[#878D7D]">
+                    {task.completed_count}/{task.target_count} 완료 · 내일로 보내기
+                  </Text>
+                </View>
+                <Text className="text-lg text-[#4E6B15]">→</Text>
+              </Pressable>
+            ))
+          ) : (
+            <Text className="mt-3 rounded-2xl bg-[#EFF1E9] px-4 py-3 text-center text-sm text-[#6E7563]">
+              오늘 남은 할 일이 없어요.
+            </Text>
+          )}
+        </View>
+      )}
+
       <Pressable
         onPress={async () => {
           await onStatusChange(deferred ? 'unlocked' : 'skipped');
@@ -376,7 +505,7 @@ function RecoveryPass({
         </Text>
         <Text className="text-xl text-[#4E6B15]">{deferred ? '↺' : '↓'}</Text>
       </Pressable>
-      <DisabledUseButton />
+      <DeferredList deferrals={deferrals} onUndo={onUndo} />
     </View>
   );
 }
@@ -506,7 +635,7 @@ function FutureLetter({
           <Text className="text-[10px] font-bold tracking-[1.5px] text-[#987C51]">
             SAVED LETTERS
           </Text>
-          <Text className="mt-1 mb-3 text-lg font-bold text-[#2B2A31]">
+          <Text className="mb-3 mt-1 text-lg font-bold text-[#2B2A31]">
             남긴 편지 {letters.length}개
           </Text>
           {letters.map((item) => (
@@ -629,7 +758,7 @@ function GrowthCard({
       {pastCards.length ? (
         <View className="mt-8">
           <Text className="text-[10px] font-bold tracking-[1.5px] text-[#9B761E]">PAST CARDS</Text>
-          <Text className="mt-1 mb-3 text-lg font-bold text-[#2E2A31]">
+          <Text className="mb-3 mt-1 text-lg font-bold text-[#2E2A31]">
             지난 성장 카드 {pastCards.length}장
           </Text>
           {pastCards.map((card) => {
@@ -687,14 +816,14 @@ export default function RewardDetailScreen() {
   const futureLetters = (redemptions.data ?? []).filter(
     (record) => record.reward_kind === 'future'
   );
-  const growthCards = (redemptions.data ?? []).filter(
-    (record) => record.reward_kind === 'growth'
-  );
+  const growthCards = (redemptions.data ?? []).filter((record) => record.reward_kind === 'growth');
 
   const invalidateRewards = () => {
     queryClient.invalidateQueries({ queryKey: ['dashboard'] });
     queryClient.invalidateQueries({ queryKey: ['redemptions'] });
     queryClient.invalidateQueries({ queryKey: ['reward-unlocks'] });
+    queryClient.invalidateQueries({ queryKey: ['history'] });
+    queryClient.invalidateQueries({ queryKey: ['history-calendar'] });
   };
   // 웹에서는 Alert가 무음이므로 화면 상단 배너로 오류를 보여준다.
   const redeem = useMutation({
@@ -727,6 +856,40 @@ export default function RewardDetailScreen() {
     if (!state?.record) return false;
     try {
       await changeStatus.mutateAsync({ id: state.record.id, status });
+      return true;
+    } catch {
+      return false;
+    }
+  };
+  // 회복 패스 사용 = 할 일 하나를 내일로 이월. 되돌리기는 패스도 되돌려 준다.
+  const defer = useMutation({
+    mutationFn: (taskTemplateId: string) =>
+      deferTask(token!, taskTemplateId, createIdempotencyKey()),
+    onSuccess: () => {
+      setClaimError(null);
+      invalidateRewards();
+    },
+    onError: (error: Error) => setClaimError(error.message),
+  });
+  const undo = useMutation({
+    mutationFn: (deferralId: string) => undoDefer(token!, deferralId),
+    onSuccess: () => {
+      setClaimError(null);
+      invalidateRewards();
+    },
+    onError: (error: Error) => setClaimError(error.message),
+  });
+  const onDefer = async (taskTemplateId: string) => {
+    try {
+      await defer.mutateAsync(taskTemplateId);
+      return true;
+    } catch {
+      return false;
+    }
+  };
+  const onUndo = async (deferralId: string) => {
+    try {
+      await undo.mutateAsync(deferralId);
       return true;
     } catch {
       return false;
@@ -772,8 +935,15 @@ export default function RewardDetailScreen() {
       content = state ? (
         <RecoveryPass
           record={state.record}
+          available={state.available}
+          progress={state.progress}
+          tasks={dashboard.data?.tasks ?? []}
+          tasksLoading={dashboard.isLoading}
+          deferrals={dashboard.data?.deferrals ?? []}
           onClaim={onClaim}
           onStatusChange={onStatusChange}
+          onDefer={onDefer}
+          onUndo={onUndo}
           accent={reward.color}
         />
       ) : unlocks.isError ? (

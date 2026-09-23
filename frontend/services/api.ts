@@ -5,6 +5,14 @@ import { syncTodayPointsWidget } from '@/services/today-points-widget';
 
 const apiBaseUrl = process.env.EXPO_PUBLIC_API_URL ?? 'http://192.168.200.104:3000/api/v1';
 
+export type TaskDeferral = {
+  deferral_id: string;
+  task_template_id: string;
+  title: string;
+  from_date: string;
+  to_date: string;
+};
+
 export type Dashboard = {
   date: string;
   daily_summary: { points_total: number; daily_bonus_awarded: boolean };
@@ -22,10 +30,15 @@ export type Dashboard = {
     position: number;
     weekdays: number[];
     completed_count: number;
+    remaining_count: number;
     goal_completed: boolean;
     read_only?: boolean;
+    /** 어제에서 회복 패스로 이월되어 온 할 일 */
+    deferred_in?: boolean;
     completions: { id: string }[];
   }[];
+  /** 오늘 목표에서 회복 패스로 내일 보낸 할 일 */
+  deferrals: TaskDeferral[];
   focus_session: {
     id: string;
     kind: 'focus' | 'break';
@@ -165,6 +178,22 @@ export function revertCompletion(completionId: string, token: string, idempotenc
   });
 }
 
+// 회복 패스 1개로 오늘 할 일 하나를 내일로 보낸다.
+export function deferTask(token: string, taskTemplateId: string, idempotencyKey: string) {
+  return request<{ data: { deferral: TaskDeferral } }>('/task-deferrals', token, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'Idempotency-Key': idempotencyKey },
+    body: JSON.stringify({ task_template_id: taskTemplateId }),
+  });
+}
+
+// 오늘 이월을 되돌리고 회복 패스를 되찾는다.
+export function undoDefer(token: string, deferralId: string) {
+  return request<{ data: { deferral: TaskDeferral } }>(`/task-deferrals/${deferralId}`, token, {
+    method: 'DELETE',
+  });
+}
+
 export type FocusSession = NonNullable<Dashboard['focus_session']>;
 
 export async function getCurrentFocus(token: string) {
@@ -198,6 +227,18 @@ export function controlFocus(
   });
 }
 
+export type HistoryDayRecap = {
+  tasks_total: number;
+  tasks_done: number;
+  goal_achieved: boolean;
+  deferred: {
+    deferral_id: string;
+    task_template_id: string;
+    title: string;
+    to_date: string;
+  }[];
+};
+
 export type HistoryDay = {
   date: string;
   summary: { points_total: number; all_goals_completed_at: string | null; focus_seconds: number };
@@ -211,6 +252,7 @@ export type HistoryDay = {
     source_title: string | null;
     source_kind: string | null;
   }[];
+  recap: HistoryDayRecap;
 };
 
 export type MilestoneProgress = {
@@ -244,9 +286,8 @@ export type WeeklyRetro = {
 };
 
 export async function getWeeklyRetro(token: string, weekStart: string) {
-  return (
-    await request<ApiResponse<WeeklyRetro>>(`/weekly-retro?week_start=${weekStart}`, token)
-  ).data;
+  return (await request<ApiResponse<WeeklyRetro>>(`/weekly-retro?week_start=${weekStart}`, token))
+    .data;
 }
 
 export function saveWeeklyRetro(token: string, weekStart: string, body: string) {
