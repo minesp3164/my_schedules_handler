@@ -1,6 +1,6 @@
 module Rewards
   class Redeem
-    COSTS = { "cheer" => 100, "recovery" => 200, "reflection" => 300, "future" => 400, "growth" => 500 }.freeze
+    COSTS = { "reflection" => 300 }.freeze
     Result = Data.define(:redemption, :remaining_points, :replayed)
 
     class InsufficientPoints < StandardError; end
@@ -31,7 +31,7 @@ module Rewards
           user: @user, source_device: @source_device, activity_date: @now.to_date,
           event_type: "reward_redemption", points: -cost, idempotency_key: @idempotency_key, occurred_at: @now
         )
-        redemption = RewardRedemption.create!(user: @user, point_event: event, reward_kind: @reward_kind, cost_points: cost, redeemed_at: @now, payload: @payload)
+        redemption = RewardRedemption.create!(user: @user, point_event: event, reward_kind: @reward_kind, cost_points: cost, unlocked_at: @now, redeemed_at: @now, payload: @payload)
         Result.new(redemption, balance, false)
       end
     end
