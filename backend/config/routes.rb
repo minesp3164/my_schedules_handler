@@ -27,7 +27,8 @@ Rails.application.routes.draw do
         resources :completions, only: :create, module: :task_templates
       end
       resources :completions, only: :destroy
-      resources :reward_redemptions, path: 'reward-redemptions', only: %i[index create]
+      resources :reward_redemptions, path: 'reward-redemptions', only: %i[index create update]
+      get "reward-unlocks", to: "reward_unlocks#index"
     end
   end
 

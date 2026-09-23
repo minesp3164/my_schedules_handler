@@ -111,6 +111,10 @@ ERD의 상세 컬럼과 제약은 상위 [erd.md](../erd.md)에 둔다.
 | GET | `/history?from=&to=` | 날짜 범위 | 날짜별 summary와 event 목록 |
 | GET/PATCH | `/settings` | 개인 설정 | settings |
 | POST | `/push-subscriptions` | Expo token 또는 Web Push subscription | 갱신된 device |
+| GET | `/reward-unlocks` | - | 5종 보상 해금 상태(주간/누적/보유 단위별 progress·available) |
+| GET | `/reward-redemptions` | - | 보상 기록 목록(status: unlocked/redeemed/skipped) |
+| POST | `/reward-redemptions` | `reward_kind`, `payload`, `Idempotency-Key` | 해금형 보상 기록. 포인트 차감 없음(reflection만 300점 구매) |
+| PATCH | `/reward-redemptions/:id` | `status`(unlocked↔skipped) | 회복 패스 보유/나중에 하기 전이 |
 
 ### 공통 응답 형식
 
