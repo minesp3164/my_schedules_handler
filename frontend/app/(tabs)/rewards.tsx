@@ -3,10 +3,10 @@ import { Pressable, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { useQuery } from '@tanstack/react-query';
-import { getDashboard, getRewardRedemptions, type RewardRedemption } from '@/services/api';
+import { getDashboard, getRewardRedemptions, getRewardUnlocks, type RewardRedemption } from '@/services/api';
 import { getDeviceToken } from '@/services/device-token';
 import { formatShortDate } from '@/services/i18n';
-import { getUnlockRewards, rewardRequirement } from '@/services/reward-unlocks';
+import { getUnlockRewards, rewardRequirement, type UnlockReward } from '@/services/reward-unlocks';
 import { useTheme } from '@/services/theme';
 
 type RewardSection = 'rewards' | 'cheers';
@@ -28,15 +28,24 @@ const inboxCheers = [
   },
 ];
 
+// 카드 상단 배지: 잠김/해금 가능/보유/이미 사용한 상태를 한 줄로 알린다.
+function badgeFor(reward: UnlockReward) {
+  if (!reward.unlocked) return `${Math.max(reward.threshold - reward.progress, 0)}점 남음`;
+  if (reward.available) return reward.kind === 'recovery' ? '보상 받기' : '사용 가능';
+  if (reward.reason === 'held') return '보유 중';
+  if (reward.reason === 'used') return reward.kind === 'cheer' ? '이번 주 완료' : '이번 달 완료';
+  return '곧 열려요';
+}
+
 function RewardCard({ reward }: { reward: ReturnType<typeof getUnlockRewards>[number] }) {
   const progressPercent = Math.round((reward.progress / reward.threshold) * 100);
-  const remaining = Math.max(reward.threshold - reward.progress, 0);
+  const badge = badgeFor(reward);
 
   return (
     <Pressable
       onPress={() => router.push({ pathname: '/rewards/[kind]', params: { kind: reward.kind } })}
       accessibilityRole="button"
-      accessibilityLabel={`${reward.title}, ${reward.unlocked ? '사용 가능' : `${remaining}점 남음`}`}
+      accessibilityLabel={`${reward.title}, ${badge}`}
       className="mb-2.5 overflow-hidden rounded-2xl p-4"
       style={{ backgroundColor: reward.softColor }}>
       <View className="flex-row items-start justify-between">
@@ -50,7 +59,7 @@ function RewardCard({ reward }: { reward: ReturnType<typeof getUnlockRewards>[nu
           <Text
             className="text-[10px] font-bold"
             style={{ color: reward.dark ? '#FFFFFF' : reward.color }}>
-            {reward.unlocked ? '사용 가능' : `${remaining}점 남음`}
+            {badge}
           </Text>
         </View>
       </View>
@@ -86,7 +95,7 @@ function RewardCard({ reward }: { reward: ReturnType<typeof getUnlockRewards>[nu
             />
           </View>
           <Text className="mt-1.5 text-[10px]" style={{ color: reward.onSoft }}>
-            {rewardRequirement(reward)} · {reward.progress}점 쌓음
+            {rewardRequirement(reward)}
           </Text>
         </View>
       )}
@@ -96,7 +105,8 @@ function RewardCard({ reward }: { reward: ReturnType<typeof getUnlockRewards>[nu
 
 function redemptionPreview(redemption: RewardRedemption) {
   const { payload } = redemption;
-  return payload.message ?? payload.letter ?? payload.task_title ?? payload.win ?? '';
+  const value = payload.message ?? payload.letter ?? payload.task_title ?? payload.win;
+  return typeof value === 'string' ? value : '';
 }
 
 function RedemptionRow({ redemption }: { redemption: RewardRedemption }) {
@@ -105,15 +115,23 @@ function RedemptionRow({ redemption }: { redemption: RewardRedemption }) {
     (reward) => reward.kind === redemption.reward_kind
   );
   const preview = redemptionPreview(redemption);
+  const usedAt = redemption.redeemed_at ?? redemption.unlocked_at;
   return (
     <View className="mb-2 rounded-2xl border p-4" style={{ borderColor: palette.line, backgroundColor: palette.surface }}>
       <View className="flex-row items-center justify-between">
         <Text className="text-sm font-bold text-[#24232A]">
           {meta?.icon} {meta?.shortTitle ?? redemption.reward_kind}
         </Text>
-        <Text className="text-[10px] text-muted">
-          {formatShortDate(new Date(redemption.redeemed_at))}
-        </Text>
+        <View className="flex-row items-center gap-2">
+          {redemption.cost_points ? (
+            <Text className="text-[10px] font-bold text-[#B25E50]">-{redemption.cost_points}점</Text>
+          ) : (
+            <Text className="text-[10px] font-bold" style={{ color: palette.accent }}>
+              해금 보상
+            </Text>
+          )}
+          <Text className="text-[10px] text-muted">{formatShortDate(new Date(usedAt))}</Text>
+        </View>
       </View>
       {preview ? (
         <Text className="mt-2 text-xs leading-5 text-[#5E5B64]" numberOfLines={2}>
@@ -141,9 +159,22 @@ export default function RewardsScreen() {
     queryFn: () => getRewardRedemptions(token!),
     enabled: Boolean(token),
   });
+  const unlocks = useQuery({
+    queryKey: ['reward-unlocks'],
+    queryFn: () => getRewardUnlocks(token!),
+    enabled: Boolean(token),
+  });
   const totalPoints = dashboard.data?.total_points ?? 0;
-  const rewards = getUnlockRewards(totalPoints, 0, colors.button);
+  const rewards = getUnlockRewards(
+    totalPoints,
+    unlocks.data?.weekly_points ?? 0,
+    colors.button,
+    unlocks.data?.unlocks
+  );
   const unlocked = rewards.filter((reward) => reward.unlocked);
+  const usedRewards = (redemptions.data ?? []).filter(
+    (redemption) => redemption.status === 'redeemed'
+  );
 
   return (
     <SafeAreaView className="flex-1" style={{ backgroundColor: palette.screen }}>
@@ -207,7 +238,7 @@ export default function RewardsScreen() {
               <Text
                 className="text-[10px] font-bold tracking-[1px]"
                 style={{ color: palette.accent }}>
-                REDEEM WITH POINTS
+                UNLOCK WITH POINTS
               </Text>
               <Text
                 className="mt-2 text-[22px] font-bold leading-7 tracking-tight"
@@ -215,7 +246,7 @@ export default function RewardsScreen() {
                 쌓은 노력으로{`\n`}작은 문을 열어요.
               </Text>
               <Text className="mt-3 text-xs leading-5" style={{ color: palette.accentDeep }}>
-                할 일을 완료해 포인트를 모으고, 원하는 회복 경험을 직접 골라 사용해요.
+                할 일을 완료해 포인트를 모으면 보상이 열려요. 포인트는 차감되지 않아요.
               </Text>
             </View>
             <View className="mt-8 flex-row items-end justify-between">
@@ -239,9 +270,10 @@ export default function RewardsScreen() {
             <Text
               className="mx-5 mt-3 text-center text-[11px] leading-5"
               style={{ color: palette.accentDeep }}>
-              보상 구매 시 해당 포인트가 차감돼요. 쉬고 돌아보고 다시 시작하도록 돕는 경험이에요.
+              해금 보상은 포인트를 차감하지 않아요. 주간 회고를 처음 저장할 때만 300점이
+              사용돼요.
             </Text>
-            {redemptions.data?.length ? (
+            {usedRewards.length ? (
               <View className="mt-8">
                 <Text
                   className="text-[10px] font-bold tracking-[1px]"
@@ -249,9 +281,9 @@ export default function RewardsScreen() {
                   USED REWARDS
                 </Text>
                 <Text className="mt-1 mb-3 text-lg font-bold text-[#24232A]">
-                  사용한 보상 {redemptions.data.length}개
+                  사용한 보상 {usedRewards.length}개
                 </Text>
-                {redemptions.data.map((redemption) => (
+                {usedRewards.map((redemption) => (
                   <RedemptionRow key={redemption.id} redemption={redemption} />
                 ))}
               </View>

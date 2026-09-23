@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_09_17_000001) do
+ActiveRecord::Schema[8.1].define(version: 2026_09_23_000001) do
   create_table "daily_summaries", primary_key: "date", id: :date, force: :cascade do |t|
     t.datetime "all_goals_completed_at"
     t.datetime "created_at", null: false
@@ -131,18 +131,25 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_17_000001) do
   end
 
   create_table "reward_redemptions", id: :string, force: :cascade do |t|
-    t.integer "cost_points", null: false
+    t.integer "cost_points"
     t.datetime "created_at", null: false
+    t.string "idempotency_key"
     t.text "payload", default: "{}", null: false
-    t.string "point_event_id", null: false
-    t.datetime "redeemed_at", null: false
+    t.string "period_key"
+    t.string "point_event_id"
+    t.datetime "redeemed_at"
     t.string "reward_kind", null: false
+    t.string "status", default: "redeemed", null: false
+    t.datetime "unlocked_at"
     t.datetime "updated_at", null: false
     t.string "user_id", null: false
     t.index ["point_event_id"], name: "index_reward_redemptions_on_point_event_id"
+    t.index ["user_id", "idempotency_key"], name: "index_reward_redemptions_on_user_idempotency_key", unique: true, where: "idempotency_key IS NOT NULL"
+    t.index ["user_id", "reward_kind", "period_key"], name: "index_reward_redemptions_on_user_kind_period", unique: true
     t.index ["user_id"], name: "index_reward_redemptions_on_user_id"
     t.check_constraint "cost_points > 0", name: "reward_redemptions_cost_positive"
     t.check_constraint "reward_kind IN ('cheer', 'recovery', 'reflection', 'future', 'growth')", name: "reward_redemptions_valid_kind"
+    t.check_constraint "status IN ('unlocked', 'redeemed', 'skipped')", name: "reward_redemptions_valid_status"
   end
 
   create_table "reward_rules", id: :string, force: :cascade do |t|

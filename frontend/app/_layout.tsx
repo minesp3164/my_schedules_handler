@@ -58,6 +58,7 @@ const PERSISTED_KEYS = new Set([
   'milestones',
   'point-history',
   'redemptions',
+  'reward-unlocks',
   'retro-week',
   'settings',
   'task-templates',
