@@ -3,10 +3,11 @@ import { Pressable, ScrollView, Text, View } from 'react-native';
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useQuery } from '@tanstack/react-query';
-import { getHistory } from '@/services/api';
+import { getHistory, getRewardUnlocks } from '@/services/api';
 import { getDeviceToken } from '@/services/device-token';
 import { t } from '@/services/i18n';
 import { useTheme } from '@/services/theme';
+import { DayRecap } from '@/components/history/DayRecap';
 import { HistoryCalendar } from '@/components/history/HistoryCalendar';
 import { HistorySummary } from '@/components/history/HistorySummary';
 
@@ -53,6 +54,11 @@ export default function History() {
     queryFn: () => getHistory(token!, iso(monthStart), iso(monthEnd)),
     enabled: Boolean(token),
   });
+  const unlocks = useQuery({
+    queryKey: ['reward-unlocks'],
+    queryFn: () => getRewardUnlocks(token!),
+    enabled: Boolean(token),
+  });
   const days = history.data ?? [];
   const currentWeek = days.filter((day) => day.date >= iso(range.thisMonday));
   const previousWeek = days.filter((day) => day.date < iso(range.thisMonday));
@@ -92,7 +98,7 @@ export default function History() {
                 쌓인 노력을 돌아보기
               </Text>
               <Text className="mt-1 text-xs" style={{ color: palette.accentDeep }}>
-                나의 발자국 보러가기
+                성장 등급과 랭크 확인하기
               </Text>
             </View>
             <Text className="text-2xl" style={{ color: palette.accent }}>
@@ -141,6 +147,17 @@ export default function History() {
             setSelectedDate(iso(next));
           }}
         />
+        {(() => {
+          const selectedDay = (calendar.data ?? days).find((day) => day.date === selectedDate);
+          if (!selectedDay) return null;
+          return (
+            <DayRecap
+              day={selectedDay}
+              isToday={selectedDate === iso(new Date())}
+              recovery={unlocks.data?.unlocks.find((state) => state.kind === 'recovery') ?? null}
+            />
+          );
+        })()}
         {history.isError ? (
           <Text className="mt-4 text-sm text-[#FF9BA6]">{history.error.message}</Text>
         ) : null}

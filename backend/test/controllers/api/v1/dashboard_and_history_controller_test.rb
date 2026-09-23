@@ -94,4 +94,44 @@ class Api::V1::DashboardAndHistoryControllerTest < ActionDispatch::IntegrationTe
     get "/api/v1/history?from=2026-09-01&to=2026-10-02", headers: @headers
     assert_response :unprocessable_entity
   end
+
+  test "dashboard splits deferred tasks out of the goal set and pulls deferred-in tasks in" do
+    pass = @user.reward_redemptions.create!(reward_kind: "recovery", status: "unlocked", unlocked_at: Time.current)
+    TaskDeferral.create!(user: @user, task_template: @task, from_date: @date, to_date: @date + 1, reward_redemption: pass)
+    @other_task.update!(weekdays: [1]) # 오늘 스케줄이 아니지만 어제에서 이월되어 옴
+    TaskDeferral.create!(user: @user, task_template: @other_task, from_date: @date - 1, to_date: @date)
+
+    get "/api/v1/dashboard?date=2026-09-11", headers: @headers
+
+    assert_response :success
+    data = response.parsed_body.fetch("data")
+    tasks = data.fetch("tasks")
+    assert_equal [@other_task.id], tasks.map { |task| task.fetch("id") }
+    assert tasks.first.fetch("deferred_in")
+
+    deferrals = data.fetch("deferrals")
+    assert_equal 1, deferrals.size
+    assert_equal @task.id, deferrals.first.fetch("task_template_id")
+    assert_equal "알고리즘", deferrals.first.fetch("title")
+    assert_equal "2026-09-12", deferrals.first.fetch("to_date")
+  end
+
+  test "history day includes a recap with goal progress and deferred tasks" do
+    pass = @user.reward_redemptions.create!(reward_kind: "recovery", status: "unlocked", unlocked_at: Time.current)
+    TaskDeferral.create!(user: @user, task_template: @task, from_date: @date, to_date: @date + 1, reward_redemption: pass)
+    completion = DailyTaskCompletion.create!(task_template: @other_task, source_device: @device, completed_on: @date, sequence: 1, completed_at: Time.zone.parse("2026-09-11 09:00:00"))
+    PointEvent.create!(user: @user, daily_task_completion: completion, source_device: @device, activity_date: @date, event_type: "task_completion", points: 20, idempotency_key: "recap-event", occurred_at: Time.zone.parse("2026-09-11 09:00:00"))
+    DailySummary.create!(date: @date, points_total: 20, first_activity_at: Time.zone.parse("2026-09-11 09:00:00"), all_goals_completed_at: Time.zone.parse("2026-09-11 09:00:00"), daily_bonus_awarded: true)
+
+    get "/api/v1/history?from=2026-09-11&to=2026-09-11", headers: @headers
+
+    assert_response :success
+    recap = response.parsed_body.dig("data", "days", 0, "recap")
+    assert_equal 1, recap.fetch("tasks_total"), "이월된 @task는 오늘 목표에서 빠진다"
+    assert_equal 1, recap.fetch("tasks_done")
+    assert recap.fetch("goal_achieved")
+    assert_equal 1, recap.fetch("deferred").size
+    assert_equal "알고리즘", recap.fetch("deferred").first.fetch("title")
+    assert_equal "2026-09-12", recap.fetch("deferred").first.fetch("to_date")
+  end
 end
