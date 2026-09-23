@@ -108,7 +108,9 @@ ERD의 상세 컬럼과 제약은 상위 [erd.md](../erd.md)에 둔다.
 | DELETE | `/completions/:id` | `idempotency_key` | 취소된 completion, 음수 point_event |
 | POST | `/focus-sessions` | `started_at`, `planned_seconds` | running session |
 | PATCH | `/focus-sessions/:id` | `status`, `ended_at`, `idempotency_key` | session, 완료 point_event |
-| GET | `/history?from=&to=` | 날짜 범위 | 날짜별 summary와 event 목록 |
+| GET | `/history?from=&to=` | 날짜 범위 | 날짜별 summary, event, **리캡**(목표 진척·이월 목록) |
+| POST | `/task-deferrals` | `task_template_id`, `Idempotency-Key` | 회복 패스 1개로 할 일 하나를 내일로 이월 |
+| DELETE | `/task-deferrals/:id` | - | 이월 되돌리기(회복 패스 복구, 당일만) |
 | GET/PATCH | `/settings` | 개인 설정 | settings |
 | POST | `/push-subscriptions` | Expo token 또는 Web Push subscription | 갱신된 device |
 | GET | `/reward-unlocks` | - | 5종 보상 해금 상태(주간/누적/보유 단위별 progress·available) |
