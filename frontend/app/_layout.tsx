@@ -64,7 +64,7 @@ const PERSISTED_KEYS = new Set([
   'task-templates',
 ]);
 
-initNetworkMonitor();
+initNetworkMonitor(queryClient);
 
 export const unstable_settings = {
   // Ensure that reloading on `/modal` keeps a back button present.

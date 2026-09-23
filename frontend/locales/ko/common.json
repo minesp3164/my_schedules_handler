@@ -8,5 +8,9 @@
   "notFoundTitle": "화면을 찾을 수 없어요.",
   "goHome": "홈으로 돌아가기",
   "offlineBanner": "오프라인이에요. 마지막으로 저장된 화면을 보여줘요.",
-  "offlineWrite": "오프라인이에요. 연결 후 기록할 수 있어요."
+  "offlineWrite": "오프라인이에요. 연결 후 기록할 수 있어요.",
+  "offlineQueued": "대기 중 %{count}건 · 연결되면 자동 전송",
+  "offlineQueuedOffline": "오프라인 · 기록 %{count}건 대기 중",
+  "offlineQueueFailed": "전송하지 못한 기록 %{count}건",
+  "dismiss": "닫기"
 }
