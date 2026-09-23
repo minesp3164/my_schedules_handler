@@ -1,3 +1,5 @@
+import type { RewardUnlockState } from '@/services/api';
+
 export type UnlockRewardKind = 'cheer' | 'recovery' | 'reflection' | 'future' | 'growth';
 
 export type UnlockReward = {
@@ -8,7 +10,9 @@ export type UnlockReward = {
   threshold: number;
   progress: number;
   unlocked: boolean;
-  unit: 'weekly' | 'total';
+  available: boolean;
+  reason: 'locked' | 'used' | 'held' | 'limit' | null;
+  unit: 'weekly' | 'total' | 'balance';
   color: string;
   softColor: string;
   dark: boolean;
@@ -115,20 +119,36 @@ const REWARD_DEFS = [
 
 export function getUnlockRewards(
   totalPoints: number,
-  _weeklyPoints = 0,
-  baseColor = '#52786B'
+  weeklyPoints = 0,
+  baseColor = '#52786B',
+  states?: RewardUnlockState[] | null
 ): UnlockReward[] {
   const total = Math.max(0, totalPoints);
+  const week = Math.max(0, weeklyPoints);
 
-  return REWARD_DEFS.map((def, index) => ({
-    ...def,
-    ...rewardPalette(baseColor, index),
-    progress: Math.min(total, def.threshold),
-    unlocked: total >= def.threshold,
-    unit: 'total',
-  }));
+  // 서버 해금 상태가 있으면 그것을 따른다. 없으면(로딩 중·오프라인) 기존 로컬 계산으로 버틴다.
+  return REWARD_DEFS.map((def, index) => {
+    const state = states?.find((item) => item.kind === def.kind);
+    const localProgress = def.kind === 'cheer' ? Math.min(week, def.threshold) : Math.min(total, def.threshold);
+    const unlocked = state ? state.unlocked : total >= def.threshold;
+    return {
+      ...def,
+      ...rewardPalette(baseColor, index),
+      progress: state ? state.progress : localProgress,
+      unlocked,
+      unit: state ? state.unit : 'total',
+      available: state ? state.available : unlocked,
+      reason: state ? state.reason : unlocked ? null : 'locked',
+    };
+  });
 }
 
 export function rewardRequirement(reward: UnlockReward) {
-  return `가격 ${reward.threshold}점`;
+  if (reward.unit === 'weekly') {
+    return `이번 주 ${reward.threshold}점 달성 · ${reward.progress}점 모음`;
+  }
+  if (reward.unit === 'balance') {
+    return `보유 ${reward.threshold}점 필요 · 현재 ${reward.progress}점`;
+  }
+  return `누적 ${reward.threshold}점 달성 · ${reward.progress}점 모음`;
 }
