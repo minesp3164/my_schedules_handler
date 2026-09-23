@@ -88,6 +88,8 @@ export function RealtimeSync() {
         queryClient.invalidateQueries({ queryKey: ['task-templates'] });
         queryClient.invalidateQueries({ queryKey: ['retro-week'] });
         queryClient.invalidateQueries({ queryKey: ['weekly-retro'] });
+        queryClient.invalidateQueries({ queryKey: ['redemptions'] });
+        queryClient.invalidateQueries({ queryKey: ['reward-unlocks'] });
       });
     });
     return () => unsubscribe?.();
