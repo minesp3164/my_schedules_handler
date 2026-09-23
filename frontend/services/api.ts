@@ -1,9 +1,9 @@
+import { apiBaseUrl } from '@/services/config';
 import { t } from '@/services/i18n';
 import { createUuid } from '@/services/ids';
 import { isOnline } from '@/services/network';
+import { enqueueOfflineRequest } from '@/services/offline-queue';
 import { syncTodayPointsWidget } from '@/services/today-points-widget';
-
-const apiBaseUrl = process.env.EXPO_PUBLIC_API_URL ?? 'http://192.168.200.104:3000/api/v1';
 
 export type TaskDeferral = {
   deferral_id: string;
@@ -56,26 +56,57 @@ type ApiResponse<T> = { data: T };
 // ngrok 무료판은 브라우저 User-Agent에 경고 페이지를 반환한다. 이 헤더로 우회한다.
 const NGROK_SKIP_HEADER = { 'ngrok-skip-browser-warning': '1' } as const;
 
-async function request<T>(path: string, token: string, init?: RequestInit) {
-  if (!isOnline()) throw new Error(t('common.offlineWrite'));
-  const response = await fetch(`${apiBaseUrl}${path}`, {
-    ...init,
-    headers: {
-      Accept: 'application/json',
-      Authorization: `Bearer ${token}`,
-      ...NGROK_SKIP_HEADER,
-      ...init?.headers,
-    },
-  });
-  const body = response.status === 204 ? null : await response.json();
-  if (!response.ok) {
-    const error = new Error(body?.error?.message ?? t('common.requestFailed')) as Error & {
-      code?: string;
-    };
-    error.code = body?.error?.code;
+// 쓰기 요청은 오프라인이거나 전송 중 연결이 끊기면 로컬 큐에 보존하고 재접속 시 재전송한다.
+// optimistic 은 큐에 적재될 때 돌려줄 낙관 응답, resolves 는 서버 id 로 갱신할 임시 id 다.
+type QueuableRequestInit = RequestInit & {
+  optimistic?: () => unknown;
+  resolves?: string;
+  queueable?: boolean;
+};
+
+async function request<T>(path: string, token: string, init?: QueuableRequestInit) {
+  const { optimistic, resolves, queueable = true, ...fetchInit } = init ?? {};
+  const method = (fetchInit.method ?? 'GET').toUpperCase();
+  const shouldQueue = method !== 'GET' && queueable;
+  const preserve = async (): Promise<T> => {
+    await enqueueOfflineRequest({
+      method,
+      path,
+      body: (fetchInit.body as string | null) ?? null,
+      headers: (fetchInit.headers ?? {}) as Record<string, string>,
+      token,
+      resolves,
+    });
+    return optimistic?.() as T;
+  };
+  if (!isOnline()) {
+    if (shouldQueue) return preserve();
+    throw new Error(t('common.offlineWrite'));
+  }
+  try {
+    const response = await fetch(`${apiBaseUrl}${path}`, {
+      ...fetchInit,
+      headers: {
+        Accept: 'application/json',
+        Authorization: `Bearer ${token}`,
+        ...NGROK_SKIP_HEADER,
+        ...fetchInit.headers,
+      },
+    });
+    const body = response.status === 204 ? null : await response.json();
+    if (!response.ok) {
+      const error = new Error(body?.error?.message ?? t('common.requestFailed')) as Error & {
+        code?: string;
+      };
+      error.code = body?.error?.code;
+      throw error;
+    }
+    return body as T;
+  } catch (error) {
+    // 서버가 응답한 오류가 아니라 전송 자체가 끊긴 경우(TypeError)만 큐에 남긴다.
+    if (shouldQueue && error instanceof TypeError) return preserve();
     throw error;
   }
-  return body as T;
 }
 
 export async function getDashboard(token: string) {
@@ -206,24 +237,66 @@ export function startFocus(
   idempotencyKey: string,
   kind: 'focus' | 'break' = 'focus'
 ) {
+  // 오프라인 시작은 임시 id 로 진행하고, 큐 재전송 성공 시 실제 세션 id 로 갱신한다.
+  const optimisticId = `pending:${createUuid()}`;
+  const startedAt = new Date().toISOString();
   return request<ApiResponse<FocusSession>>('/focus-sessions', token, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', 'Idempotency-Key': idempotencyKey },
     body: JSON.stringify({ focus_session: { planned_seconds: plannedSeconds, kind } }),
+    resolves: optimisticId,
+    optimistic: () => ({
+      data: {
+        id: optimisticId,
+        kind,
+        status: 'running',
+        started_at: startedAt,
+        planned_seconds: plannedSeconds,
+        paused_seconds: 0,
+        paused_at: null,
+        ended_at: null,
+      },
+    }),
   });
 }
 
 export function controlFocus(
   token: string,
-  id: string,
+  session: FocusSession,
   action: 'pause' | 'resume' | 'cancel' | 'complete',
   idempotencyKey?: string
 ) {
-  return request(`/focus-sessions/${id}/${action}`, token, {
+  const now = new Date();
+  const endedAt = action === 'complete' ? now.toISOString() : null;
+  return request(`/focus-sessions/${session.id}/${action}`, token, {
     method: 'PATCH',
     headers: idempotencyKey ? { 'Idempotency-Key': idempotencyKey } : undefined,
-    body:
-      action === 'complete' ? JSON.stringify({ ended_at: new Date().toISOString() }) : undefined,
+    body: endedAt ? JSON.stringify({ ended_at: endedAt }) : undefined,
+    // 오프라인에서도 집중 화면이 이어지도록 스냅샷 기반 낙관 응답을 쓴다.
+    optimistic: () => {
+      if (action === 'complete') {
+        return {
+          data: { focus_session: { ...session, ended_at: endedAt }, daily_summary: null },
+        };
+      }
+      if (action === 'pause') {
+        return { data: { ...session, status: 'paused', paused_at: now.toISOString() } };
+      }
+      if (action === 'resume') {
+        const pausedSince = session.paused_at ? Date.parse(session.paused_at) : now.getTime();
+        return {
+          data: {
+            ...session,
+            status: 'running',
+            paused_at: null,
+            paused_seconds:
+              session.paused_seconds +
+              Math.max(Math.floor((now.getTime() - pausedSince) / 1_000), 0),
+          },
+        };
+      }
+      return { data: { ...session, status: 'paused', ended_at: now.toISOString() } };
+    },
   });
 }
 
@@ -295,6 +368,9 @@ export function saveWeeklyRetro(token: string, weekStart: string, body: string) 
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ week_start: weekStart, body }),
+    optimistic: () => ({
+      data: { week_start: weekStart, body, updated_at: new Date().toISOString() },
+    }),
   });
 }
 
@@ -334,6 +410,19 @@ export function createTaskTemplate(token: string, task: NewTaskTemplate) {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ task_template: task }),
+    // 오프라인 추가는 임시 id 로 캐시에 먼저 반영한다(재전송 후 서버 id 로 교체된다).
+    optimistic: () => ({
+      data: {
+        id: `pending:${createUuid()}`,
+        title: task.title,
+        points: task.points ?? 0,
+        target_count: task.target_count,
+        position: task.position,
+        kind: task.kind,
+        active: true,
+        weekdays: task.weekdays,
+      },
+    }),
   });
 }
 
@@ -400,6 +489,8 @@ export async function activateDevice(input: {
 export async function issueRealtimeTicket(token: string) {
   const body = await request<ApiResponse<{ ticket: string }>>('/realtime-tickets', token, {
     method: 'POST',
+    // 티켓은 접속 순간에만 유효하므로 오프라인 큐에 보존하지 않는다.
+    queueable: false,
   });
   return body.data.ticket;
 }
