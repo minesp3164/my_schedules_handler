@@ -9,6 +9,7 @@ module Api
       rescue_from ActiveRecord::RecordNotFound, with: :render_not_found
       rescue_from Tasks::Complete::TargetAlreadyMet, with: :render_target_already_met
       rescue_from Tasks::Complete::InactiveTask, with: :render_inactive_task
+      rescue_from Tasks::Complete::NoteRequired, with: :render_note_required
 
       private
 
@@ -41,6 +42,10 @@ module Api
 
       def render_inactive_task
         render json: { error: { code: "inactive_task", message: "비활성화된 할 일은 완료할 수 없어요." } }, status: :unprocessable_entity
+      end
+
+      def render_note_required
+        render json: { error: { code: "note_required", message: "지원한 회사를 적어야 완료할 수 있어요." } }, status: :unprocessable_entity
       end
     end
   end

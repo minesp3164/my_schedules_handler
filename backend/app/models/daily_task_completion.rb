@@ -5,6 +5,7 @@ class DailyTaskCompletion < ApplicationRecord
 
   validates :completed_on, :completed_at, :sequence, presence: true
   validates :sequence, numericality: { only_integer: true, greater_than: 0 }
+  validates :note, length: { maximum: 100 }
 
   scope :active, -> { where(reverted_at: nil) }
 end

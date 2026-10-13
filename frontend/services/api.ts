@@ -35,7 +35,7 @@ export type Dashboard = {
     read_only?: boolean;
     /** 어제에서 회복 패스로 이월되어 온 할 일 */
     deferred_in?: boolean;
-    completions: { id: string }[];
+    completions: { id: string; note: string | null; note_verified: boolean | null }[];
   }[];
   /** 오늘 목표에서 회복 패스로 내일 보낸 할 일 */
   deferrals: TaskDeferral[];
@@ -207,10 +207,22 @@ export function searchCompanies(token: string, query: string) {
   return request<ApiResponse<Company[]>>(`/companies/search?q=${encodeURIComponent(query)}`, token);
 }
 
-export function completeTask(taskId: string, token: string, idempotencyKey: string) {
+// 회사 자동완성에서 고른 회사(company_id)를 함께 보내면 서버가 실존 확인으로 표시한다.
+export function completeTask(
+  taskId: string,
+  token: string,
+  idempotencyKey: string,
+  note?: string,
+  companyId?: string
+) {
+  const body = note || companyId ? JSON.stringify({ note, company_id: companyId }) : undefined;
   return request(`/task_templates/${taskId}/completions`, token, {
     method: 'POST',
-    headers: { 'Idempotency-Key': idempotencyKey },
+    headers: {
+      'Idempotency-Key': idempotencyKey,
+      ...(body ? { 'Content-Type': 'application/json' } : {}),
+    },
+    body,
   });
 }
 
@@ -336,6 +348,7 @@ export type HistoryDay = {
     reversed_at: string | null;
     source_title: string | null;
     source_kind: string | null;
+    source_note: string | null;
   }[];
   recap: HistoryDayRecap;
 };
