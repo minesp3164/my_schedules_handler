@@ -55,7 +55,7 @@ function FocusBackgroundPause() {
 
       pauseInFlight.current = true;
       const remainingSeconds = getRemainingSeconds(session, Date.now());
-      void controlFocus(token, session.id, 'pause')
+      void controlFocus(token, session, 'pause')
         .then(async (result) => {
           const { data } = result as { data: FocusSession };
           queryClient.setQueryData(['focus-session'], data);
