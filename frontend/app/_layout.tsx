@@ -94,6 +94,8 @@ export default function RootLayout() {
             <Stack.Screen name="index" options={{ headerShown: false }} />
             <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
             <Stack.Screen name="tasks" options={{ headerShown: false }} />
+            <Stack.Screen name="applications" options={{ headerShown: false }} />
+            <Stack.Screen name="application-stages" options={{ headerShown: false }} />
             <Stack.Screen name="footprint" options={{ headerShown: false }} />
             <Stack.Screen name="weekly-retro" options={{ headerShown: false }} />
             <Stack.Screen name="point-history" options={{ headerShown: false }} />

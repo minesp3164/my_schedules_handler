@@ -10,7 +10,55 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_09_23_000006) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_13_000002) do
+  create_table "application_stage_events", id: :string, force: :cascade do |t|
+    t.string "application_id", null: false
+    t.string "application_stage_id", null: false
+    t.datetime "completed_at", null: false
+    t.date "completed_on", null: false
+    t.datetime "created_at", null: false
+    t.string "idempotency_key", null: false
+    t.datetime "reverted_at"
+    t.string "source_device_id", null: false
+    t.string "stage_kind", null: false
+    t.datetime "updated_at", null: false
+    t.index ["application_id", "application_stage_id"], name: "index_stage_events_unique_active_stage", unique: true, where: "reverted_at IS NULL"
+    t.index ["application_id"], name: "index_application_stage_events_on_application_id"
+    t.index ["application_id"], name: "index_stage_events_unique_pass", unique: true, where: "stage_kind = 'pass' AND reverted_at IS NULL"
+    t.index ["application_id"], name: "index_stage_events_unique_submission", unique: true, where: "stage_kind = 'submission' AND reverted_at IS NULL"
+    t.index ["application_stage_id"], name: "index_application_stage_events_on_application_stage_id"
+    t.index ["idempotency_key"], name: "index_application_stage_events_on_idempotency_key", unique: true
+    t.index ["source_device_id"], name: "index_application_stage_events_on_source_device_id"
+    t.check_constraint "stage_kind IN ('submission', 'interview', 'pass')", name: "application_stage_events_valid_stage_kind"
+  end
+
+  create_table "application_stages", id: :string, force: :cascade do |t|
+    t.boolean "active", default: true, null: false
+    t.datetime "created_at", null: false
+    t.string "kind", null: false
+    t.string "name", null: false
+    t.integer "position", default: 0, null: false
+    t.datetime "updated_at", null: false
+    t.string "user_id", null: false
+    t.index ["user_id"], name: "index_application_stages_on_user_id"
+    t.check_constraint "kind IN ('submission', 'interview', 'pass')", name: "application_stages_valid_kind"
+    t.check_constraint "position >= 0", name: "application_stages_position_non_negative"
+  end
+
+  create_table "applications", id: :string, force: :cascade do |t|
+    t.datetime "closed_at"
+    t.string "company", null: false
+    t.datetime "created_at", null: false
+    t.text "memo"
+    t.string "status", default: "active", null: false
+    t.string "title"
+    t.datetime "updated_at", null: false
+    t.string "url"
+    t.string "user_id", null: false
+    t.index ["user_id"], name: "index_applications_on_user_id"
+    t.check_constraint "status IN ('active', 'rejected', 'withdrawn', 'accepted')", name: "applications_valid_status"
+  end
+
   create_table "badge_achievements", id: :string, force: :cascade do |t|
     t.datetime "achieved_at", null: false
     t.string "badge_rule_id", null: false
@@ -62,6 +110,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_23_000006) do
   end
 
   create_table "daily_task_completions", id: :string, force: :cascade do |t|
+    t.string "application_stage_event_id"
     t.datetime "completed_at", null: false
     t.date "completed_on", null: false
     t.datetime "created_at", null: false
@@ -72,6 +121,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_23_000006) do
     t.string "source_device_id", null: false
     t.string "task_template_id", null: false
     t.datetime "updated_at", null: false
+    t.index ["application_stage_event_id"], name: "index_daily_task_completions_on_application_stage_event_id"
     t.index ["source_device_id"], name: "index_daily_task_completions_on_source_device_id"
     t.index ["task_template_id", "completed_on", "sequence"], name: "index_task_completions_on_daily_sequence", unique: true
     t.index ["task_template_id"], name: "index_daily_task_completions_on_task_template_id"
@@ -143,6 +193,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_23_000006) do
 
   create_table "point_events", id: :string, force: :cascade do |t|
     t.date "activity_date", null: false
+    t.string "application_stage_event_id"
     t.datetime "created_at", null: false
     t.string "daily_task_completion_id"
     t.string "event_type", null: false
@@ -154,12 +205,15 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_23_000006) do
     t.string "source_device_id"
     t.datetime "updated_at", null: false
     t.string "user_id", null: false
+    t.index ["application_stage_event_id"], name: "index_point_events_on_application_stage_event", unique: true, where: "application_stage_event_id IS NOT NULL"
     t.index ["daily_task_completion_id"], name: "index_point_events_on_daily_task_completion_id"
     t.index ["focus_session_id"], name: "index_point_events_on_focus_session", unique: true, where: "focus_session_id IS NOT NULL"
     t.index ["idempotency_key"], name: "index_point_events_on_idempotency_key", unique: true
     t.index ["source_device_id"], name: "index_point_events_on_source_device_id"
     t.index ["user_id"], name: "index_point_events_on_user_id"
+    t.check_constraint "NOT (daily_task_completion_id IS NOT NULL AND application_stage_event_id IS NOT NULL)", name: "point_events_one_completion_source"
     t.check_constraint "NOT (daily_task_completion_id IS NOT NULL AND focus_session_id IS NOT NULL)", name: "point_events_one_activity_source"
+    t.check_constraint "NOT (focus_session_id IS NOT NULL AND application_stage_event_id IS NOT NULL)", name: "point_events_one_focus_source"
   end
 
   create_table "reward_achievements", id: :string, force: :cascade do |t|
@@ -280,14 +334,21 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_23_000006) do
     t.check_constraint "length(body) <= 500", name: "weekly_retros_body_length"
   end
 
+  add_foreign_key "application_stage_events", "application_stages"
+  add_foreign_key "application_stage_events", "applications"
+  add_foreign_key "application_stage_events", "devices", column: "source_device_id"
+  add_foreign_key "application_stages", "users"
+  add_foreign_key "applications", "users"
   add_foreign_key "badge_achievements", "badge_rules"
   add_foreign_key "badge_achievements", "users"
+  add_foreign_key "daily_task_completions", "application_stage_events"
   add_foreign_key "daily_task_completions", "devices", column: "source_device_id"
   add_foreign_key "daily_task_completions", "task_templates"
   add_foreign_key "devices", "users"
   add_foreign_key "focus_sessions", "devices", column: "source_device_id"
   add_foreign_key "focus_sessions", "users"
   add_foreign_key "notification_deliveries", "devices"
+  add_foreign_key "point_events", "application_stage_events"
   add_foreign_key "point_events", "daily_task_completions"
   add_foreign_key "point_events", "devices", column: "source_device_id"
   add_foreign_key "point_events", "focus_sessions"

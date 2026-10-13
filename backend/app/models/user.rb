@@ -8,4 +8,6 @@ class User < ApplicationRecord
   has_many :task_deferrals, dependent: :restrict_with_exception
   has_many :badge_achievements, dependent: :restrict_with_exception
   has_many :weekly_retros, dependent: :destroy
+  has_many :applications, dependent: :restrict_with_exception
+  has_many :application_stages, dependent: :restrict_with_exception
 end

@@ -10,6 +10,7 @@ Rails는 다음만 담당한다.
 
 - 기기별 자동 등록과 토큰 관리
 - 할 일 완료, 타이머 완료, 보너스의 트랜잭션 처리
+- 회사별 지원 단계 기록과 그에 따른 포인트·할 일 완료 자동 생성
 - SQLite를 기준으로 한 점수·보상·일일 집계
 - 웹·앱 간 실시간 동기화(Action Cable)
 - 타이머 종료·보상·13시 재촉 푸시의 예약과 발송
@@ -102,6 +103,9 @@ ERD의 상세 컬럼과 제약은 상위 [erd.md](../erd.md)에 둔다.
 | `BadgeAchievement` | 사용자별 배지 달성 기록(지표가 기준 미달이 되면 회수) |
 | `NotificationDelivery` | 기기별 알림 발송·실패 이력과 중복 방지 |
 | `Setting` | 단일 사용자 설정(타이머·포인트·13시 알림·시간대) |
+| `Application` | 회사별 지원 건과 종결 상태(active/rejected/withdrawn/accepted) |
+| `ApplicationStage` | 사용자 정의 단계(이름·순서는 자유, 포인트는 kind별 고정) |
+| `ApplicationStageEvent` | 단계 완료 기록. 지원 포인트의 유일한 근거이자 단계당 1회 제약의 주체 |
 
 ## 5. API 설계
 
@@ -115,6 +119,15 @@ ERD의 상세 컬럼과 제약은 상위 [erd.md](../erd.md)에 둔다.
 | GET | `/dashboard?date=YYYY-MM-DD` | 날짜 선택 | 오늘 할 일, 점수, 보상 진행도, 요약 |
 | POST | `/tasks/:task_template_id/completions` | `idempotency_key` | completion, point_event, dashboard revision |
 | DELETE | `/completions/:id` | `idempotency_key` | 취소된 completion, 음수 point_event |
+| GET | `/applications` | - | 지원 건 목록 + 활성 단계 목록(첫 호출 시 기본 단계 생성) |
+| POST | `/applications` | `application[company]` 등 | 지원 건 추가(진행 중 회사 중복은 422) |
+| PATCH | `/applications/:id` | `application[status]`(rejected/withdrawn) | 종결 처리, closed_at |
+| GET | `/application-stages` | - | 단계 목록(kind별 고정 points 포함) |
+| POST | `/application-stages` | `application_stage[name, kind]` | 단계 추가 |
+| PATCH | `/application-stages/:id` | `application_stage[name, position]` | 단계 이름·순서 수정 |
+| DELETE | `/application-stages/:id` | - | 단계 비활성화(마지막 활성 단계는 422) |
+| POST | `/applications/:id/stage-events` | `stage_event[application_stage_id]`, `Idempotency-Key` | 단계 기록, application_milestone point_event, 제출 시 할 일 완료 자동 생성 |
+| DELETE | `/stage-events/:id` | - | 단계 기록 취소(자동 완료·포인트 회수 동반) |
 | POST | `/focus-sessions` | `started_at`, `planned_seconds` | running session |
 | PATCH | `/focus-sessions/:id` | `status`, `ended_at`, `idempotency_key` | session, 완료 point_event |
 | GET | `/history?from=&to=` | 날짜 범위 | 날짜별 summary, event, **리캡**(목표 진척·이월 목록) |
@@ -167,7 +180,25 @@ ERD의 상세 컬럼과 제약은 상위 [erd.md](../erd.md)에 둔다.
 
 - 원본 완료는 `reverted_at`만 기록한다. 삭제하지 않는다.
 - 원본 `PointEvent`는 `reversed_at`을 갱신하고, 집계를 다시 계산한다.
+- `application_stage_event_id`로 연결된 완료(제출 단계가 자동으로 채운 것)는 `409 stage_backed_completion`으로 거부한다. 이 경우 단계 기록을 취소해야 한다.
 - 이후 전체 완료 조건이 사라져도 과거 보상 알림은 취소하지 않는다. 다만 점수·진행도 표시는 현재 상태로 내려가고, 배지는 지표가 기준 미달이 되면 `Badges::Evaluate`가 회수한다.
+
+### 단계 기록: `Applications::RecordStage`
+
+1. 기기 토큰과 `Idempotency-Key`를 검증하고, 활성 단계인지(`422 inactive_stage`)·종결된 지원 건이 아닌지(`422 application_closed`) 확인한다.
+2. SQLite 트랜잭션 안에서 `ApplicationStageEvent`를 만든다. 단계당 1회 제약(`reverted_at IS NULL` unique)과 제출·합격의 건당 1회 제약이 위반되면 `409 stage_already_recorded`로 응답한다.
+3. `PointEvent(event_type: application_milestone, application_stage_event_id)`를 만든다. 단계 유형별 고정 포인트(제출 25 / 면접 30 / 합격 100)를 사용한다.
+4. 제출 단계라면 오늘의 `TaskTemplate(kind: application)` 완료를 `application_stage_event_id`와 함께 자동 생성한다(`target_count` 상한 준수). 완료에는 원장 이벤트가 없으므로 포인트는 단계에서만 한 번 지급된다.
+5. 합격 단계라면 `Application#status`를 `accepted`로 전환한다(취소 시 active 복귀, 수동 종결은 유지).
+6. `DailySummary` 재계산 → `Rewards::Evaluate` → `Badges::Evaluate`를 같은 트랜잭션에서 실행한다.
+7. 커밋 뒤 `application.stage_completed` 방송과 함께 `dashboard.updated`를 보낸다.
+
+### 단계 취소: `Applications::RevertStage`
+
+- 원본 단계 기록은 `reverted_at`만 기록하고, 원본 `PointEvent`는 `reversed_at`으로 되돌린다(음수 행 없음).
+- 제출 단계였다면 자동 생성된 할 일 완료도 함께 취소한다(완료는 `reverted_at`, 원장 이벤트 없음).
+- 합격 단계였다면 `status`가 `active`로 복귀한다. 사용자가 직접 종결한 상태는 그대로 둔다.
+- 집계 재계산과 `Badges::Evaluate`를 실행하고, 커밋 뒤 `application.stage_reverted`를 방송한다.
 
 ### 배지 평가: `Badges::Evaluate`
 
@@ -179,7 +210,7 @@ ERD의 상세 컬럼과 제약은 상위 [erd.md](../erd.md)에 둔다.
 ## 7. 실시간 동기화
 
 - 인증된 기기는 `TrackerChannel`을 구독한다.
-- 변경이 커밋된 뒤 서버가 `dashboard.updated`, `task.completed`, `task.reverted`, `focus.completed`, `reward.achieved`, `settings.updated`를 방송한다.
+- 변경이 커밋된 뒤 서버가 `dashboard.updated`, `task.completed`, `task.reverted`, `focus.completed`, `reward.achieved`, `settings.updated`, `application.created`, `application.updated`, `application.stage_completed`, `application.stage_reverted`, `application_stage.updated`를 방송한다.
 - 이벤트는 `revision`을 포함한다. 클라이언트는 빠진 revision이나 재연결이 감지되면 `/dashboard`를 다시 조회한다.
 - WebSocket은 즉시성 용도다. 복구와 정확성은 REST API 재조회가 보장한다.
 
@@ -220,7 +251,8 @@ ERD의 상세 컬럼과 제약은 상위 [erd.md](../erd.md)에 둔다.
 8. Action Cable과 다중 기기 동기화. ✅
 9. Expo/Web Push와 13시 재촉 반복 작업. ✅
 10. 마일스톤·배지 API(규칙·달성·평가·발자국 응답). ✅
-11. HTTPS 배포, 영속 SQLite 백업, 실제 기기 알림 검증.
+11. 지원 현황 API(회사별 단계 기록·취소·종결, `point_events` 원장 재생성 마이그레이션). ✅
+12. HTTPS 배포, 영속 SQLite 백업, 실제 기기 알림 검증.
 
 ## 로컬 실행
 
