@@ -103,7 +103,7 @@ export default function TasksScreen() {
   const update = useMutation({
     mutationFn: (input: NewTask) =>
       updateTaskTemplate(token!, editingTask!.id, {
-        title: t(`tasks.category${input.kind.charAt(0).toUpperCase()}${input.kind.slice(1)}`),
+        title: input.title,
         target_count: input.targetCount,
         position: editingTask!.position,
         kind: input.kind,

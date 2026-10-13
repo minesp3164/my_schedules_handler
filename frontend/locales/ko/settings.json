@@ -40,5 +40,12 @@
   "permissionUndetermined": "아직 알림 권한을 선택하지 않았어요.",
   "permissionDenied": "기기 설정에서 알림을 허용해 주세요.",
   "permissionUnsupported": "이 브라우저에서는 알림을 지원하지 않아요.",
-  "allowNotifications": "알림 허용"
+  "allowNotifications": "알림 허용",
+  "sectionNotifications": "알림",
+  "sectionAppearance": "화면",
+  "sectionApp": "앱",
+  "permissionGrantedValue": "허용됨",
+  "permissionDeniedValue": "거부됨",
+  "permissionUnsupportedValue": "지원 안 됨",
+  "versionLabel": "버전 %{version}"
 }

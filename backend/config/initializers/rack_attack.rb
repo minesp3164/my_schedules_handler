@@ -1,4 +1,9 @@
 class Rack::Attack
+  # Windows에서는 FileStore가 lock_file로 캐시 파일을 연 채로 atomic rename을
+  # 시도하면 Errno::EACCES가 나 스로틀 검사 자체가 500을 냈다. 카운터는
+  # 메모리 캐시로 유지한다. (프로세스당 카운터이며 재시작 시 초기화된다)
+  self.cache.store = ActiveSupport::Cache::MemoryStore.new
+
   safelist_ip("127.0.0.1")
   safelist_ip("::1")
 

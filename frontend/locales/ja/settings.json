@@ -40,5 +40,12 @@
   "permissionUndetermined": "通知の許可はまだ選択されていません。",
   "permissionDenied": "端末の設定で通知を許可してください。",
   "permissionUnsupported": "このブラウザでは通知を利用できません。",
-  "allowNotifications": "通知を許可"
+  "allowNotifications": "通知を許可",
+  "sectionNotifications": "通知",
+  "sectionAppearance": "画面",
+  "sectionApp": "アプリ",
+  "permissionGrantedValue": "許可済み",
+  "permissionDeniedValue": "拒否",
+  "permissionUnsupportedValue": "非対応",
+  "versionLabel": "バージョン %{version}"
 }

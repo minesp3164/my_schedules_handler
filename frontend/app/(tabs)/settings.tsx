@@ -1,6 +1,7 @@
-import { useEffect, useState } from 'react';
+import { type ReactNode, useEffect, useState } from 'react';
 import { Animated, Modal, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import Constants from 'expo-constants';
 import { router } from 'expo-router';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import Svg, { Circle, Path } from 'react-native-svg';
@@ -75,19 +76,62 @@ function normalizeNudgeAt(raw: string) {
   return `${hours.padStart(2, '0')}:${minutes.padEnd(2, '0')}`;
 }
 
+const appVersion = Constants.expoConfig?.version ?? '1.0.0';
+
+function RowDivider() {
+  return <View className="h-px bg-line" style={{ marginLeft: 16 }} />;
+}
+
+type SettingRowProps = {
+  label: string;
+  value?: string;
+  chevron?: boolean;
+  muted?: boolean;
+  disabled?: boolean;
+  onPress?: () => void;
+  right?: ReactNode;
+};
+
+function SettingRow({ label, value, chevron, muted, disabled, onPress, right }: SettingRowProps) {
+  const body = (
+    <View className="flex-row items-center justify-between px-4 py-4">
+      <Text
+        className={
+          muted
+            ? 'text-[15px] font-semibold text-muted'
+            : 'text-[15px] font-semibold text-[#26332D]'
+        }>
+        {label}
+      </Text>
+      <View className="flex-row items-center gap-2">
+        {value ? <Text className="text-sm text-muted">{value}</Text> : null}
+        {right}
+        {chevron ? <Text className="text-lg text-muted">›</Text> : null}
+      </View>
+    </View>
+  );
+  if (!onPress) return body;
+  return (
+    <Pressable accessibilityRole="button" disabled={disabled} onPress={onPress}>
+      {body}
+    </Pressable>
+  );
+}
+
 export default function Settings() {
   const [token, setToken] = useState<string | null>();
   const [nudgeAtDraft, setNudgeAtDraft] = useState<string | null>(null);
   const [timeError, setTimeError] = useState<string | null>(null);
   const [permission, setPermission] = useState<NotificationPermission>('undetermined');
   const [themeEditorOpen, setThemeEditorOpen] = useState(false);
+  const [timeEditorOpen, setTimeEditorOpen] = useState(false);
   const [themeDraft, setThemeDraft] = useState<ThemeColors>({
     button: '#52786B',
     background: '#F7F7F2',
   });
   const [themeError, setThemeError] = useState<string | null>(null);
   const [paletteField, setPaletteField] = useState<keyof ThemeColors | null>('button');
-  const [applyInteraction, setApplyInteraction] = useState<'idle' | 'hovered' | 'pressed'>('idle');
+  const [applyPressed, setApplyPressed] = useState(false);
   const [isAdjustingPalette, setIsAdjustingPalette] = useState(false);
   const [nudgeKnobOffset] = useState(() => new Animated.Value(0));
   const queryClient = useQueryClient();
@@ -174,138 +218,176 @@ export default function Settings() {
     <SafeAreaView className="flex-1" style={{ backgroundColor: palette.screen }}>
       <ScrollView contentContainerClassName="px-5 pb-8 pt-8">
         <Text className="text-2xl font-bold text-[#26332D]">{t('settings.title')}</Text>
-        <Text className="mt-2 text-sm text-muted">{t('settings.description')}</Text>
-        <ThemeCard colors={colors} onPress={openThemeEditor} />
-        <View className="mt-4 rounded-2xl border border-line bg-surface p-4">
-          <View className="flex-row items-center justify-between">
-            <View>
-              <Text className="font-bold text-[#26332D]">{t('settings.nudge')}</Text>
-              <Text className="mt-1 text-sm text-muted">
-                {canManageNudge
-                  ? t('settings.nudgeDescription', { time: value?.nudge_at ?? '13:00' })
-                  : t('settings.nudgePermissionRequired')}
-              </Text>
-            </View>
-            <Pressable
-              accessibilityRole="switch"
-              accessibilityLabel={t('settings.nudge')}
-              accessibilityState={{ checked: nudgeEnabled }}
-              disabled={update.isPending || !canManageNudge}
-              onPress={() => {
-                if (token) update.mutate({ nudge_enabled: !nudgeEnabled });
-              }}
-              className="justify-center rounded-full p-1 disabled:opacity-50"
-              style={{
-                width: 52,
-                height: 30,
-                backgroundColor:
-                  nudgeEnabled && canManageNudge ? palette.accentSoft : palette.screen,
-                borderWidth: 1,
-                borderColor: nudgeEnabled && canManageNudge ? palette.accent : palette.line,
-              }}>
-              <Animated.View
-                style={{
-                  width: 22,
-                  height: 22,
-                  borderRadius: 11,
-                  backgroundColor: nudgeEnabled && canManageNudge ? colors.button : palette.line,
-                  transform: [{ translateX: nudgeKnobOffset }],
-                }}
-              />
-            </Pressable>
-          </View>
-        </View>
-        <View className="mt-4 rounded-2xl border border-line bg-surface p-4">
-          <Text className="font-bold text-[#26332D]">{t('settings.nudgeTime')}</Text>
-          <Text className="mt-1 text-sm text-muted">{t('settings.nudgeTimeHint')}</Text>
-          <View className="mt-3 flex-row gap-2">
-            <TextInput
-              value={nudgeAt}
-              onFocus={() => setNudgeAtDraft('')}
-              onBlur={() => setNudgeAtDraft((current) => (current === '' ? null : current))}
-              onChangeText={(next) => {
-                setNudgeAtDraft(formatNudgeTimeInput(next));
-                setTimeError(null);
-              }}
-              editable={Boolean(value) && !update.isPending}
-              inputMode="numeric"
-              maxLength={5}
-              placeholder="13:00"
-              placeholderTextColor="#829BB7"
-              className="flex-1 rounded-xl border border-line bg-screen px-3 py-3 font-semibold text-[#26332D]"
-            />
-            <Pressable
-              disabled={update.isPending}
-              onPress={saveNudgeTime}
-              style={{ backgroundColor: palette.accent }}
-              className="items-center justify-center rounded-xl bg-lavender px-4 transition duration-150 hover:-translate-y-px hover:opacity-90 disabled:opacity-50">
-              <Text className="font-bold text-white">{t('settings.saveTime')}</Text>
-            </Pressable>
-          </View>
-          <View className="mt-3 flex-row gap-2">
-            {['12:00', '13:00', '14:00'].map((time) => (
+
+        <Text className="mb-2 mt-6 text-[13px] font-bold text-muted">
+          {t('settings.sectionNotifications')}
+        </Text>
+        <View className="overflow-hidden rounded-2xl border border-line bg-surface">
+          <SettingRow
+            label={t('settings.nudge')}
+            muted={!canManageNudge}
+            right={
               <Pressable
-                key={time}
-                disabled={update.isPending}
+                accessibilityRole="switch"
+                accessibilityLabel={t('settings.nudge')}
+                accessibilityState={{ checked: nudgeEnabled }}
+                disabled={update.isPending || !canManageNudge}
                 onPress={() => {
-                  if (token) {
-                    setNudgeAtDraft(time);
-                    setTimeError(null);
-                  }
+                  if (token) update.mutate({ nudge_enabled: !nudgeEnabled });
                 }}
-                style={nudgeAt === time ? { backgroundColor: palette.accent } : undefined}
-                className={`rounded-lg px-3 py-2 transition duration-150 hover:-translate-y-px hover:opacity-90 ${nudgeAt === time ? 'bg-lavender' : 'bg-screen'}`}>
-                <Text className={`font-semibold ${nudgeAt === time ? 'text-white' : 'text-muted'}`}>
-                  {time}
-                </Text>
+                className="justify-center rounded-full p-1 disabled:opacity-50"
+                style={{
+                  width: 52,
+                  height: 30,
+                  backgroundColor:
+                    nudgeEnabled && canManageNudge ? palette.accentSoft : palette.screen,
+                  borderWidth: 1,
+                  borderColor: nudgeEnabled && canManageNudge ? palette.accent : palette.line,
+                }}>
+                <Animated.View
+                  style={{
+                    width: 22,
+                    height: 22,
+                    borderRadius: 11,
+                    backgroundColor: nudgeEnabled && canManageNudge ? colors.button : palette.line,
+                    transform: [{ translateX: nudgeKnobOffset }],
+                  }}
+                />
               </Pressable>
-            ))}
-          </View>
-          <Pressable
-            disabled={!token || testNudge.isPending}
-            onPress={() => testNudge.mutate()}
-            className="mt-3 items-center rounded-xl border border-line bg-screen py-3 transition duration-150 hover:-translate-y-px hover:opacity-90 disabled:opacity-50">
-            <Text className="font-semibold text-muted">
-              {testNudge.isPending ? t('settings.nudgeTestSending') : t('settings.nudgeTest')}
-            </Text>
-          </Pressable>
-          {testNudge.isSuccess ? (
-            <Text className="mt-2 text-xs" style={{ color: palette.accent }}>
-              {testNudge.data === 'preview'
-                ? t('settings.nudgeTestPreviewed')
-                : t('settings.nudgeTestSent')}
-            </Text>
+            }
+          />
+          <RowDivider />
+          <SettingRow
+            label={t('settings.nudgeTime')}
+            value={nudgeAt}
+            chevron
+            onPress={() => setTimeEditorOpen((open) => !open)}
+          />
+          {timeEditorOpen ? (
+            <View>
+              <View className="flex-row gap-2 px-4">
+                <TextInput
+                  value={nudgeAt}
+                  onFocus={() => setNudgeAtDraft('')}
+                  onBlur={() => setNudgeAtDraft((current) => (current === '' ? null : current))}
+                  onChangeText={(next) => {
+                    setNudgeAtDraft(formatNudgeTimeInput(next));
+                    setTimeError(null);
+                  }}
+                  editable={Boolean(value) && !update.isPending}
+                  inputMode="numeric"
+                  maxLength={5}
+                  placeholder="13:00"
+                  placeholderTextColor="#829BB7"
+                  className="flex-1 rounded-xl border border-line bg-screen px-3 py-3 font-semibold text-[#26332D]"
+                />
+                <Pressable
+                  disabled={update.isPending}
+                  onPress={saveNudgeTime}
+                  style={{ backgroundColor: palette.accent }}
+                  className="items-center justify-center rounded-xl px-4 disabled:opacity-50">
+                  <Text className="font-bold text-white">{t('settings.saveTime')}</Text>
+                </Pressable>
+              </View>
+              <View className="mt-3 flex-row gap-2 px-4">
+                {['12:00', '13:00', '14:00'].map((time) => (
+                  <Pressable
+                    key={time}
+                    disabled={update.isPending}
+                    onPress={() => {
+                      if (token) {
+                        setNudgeAtDraft(time);
+                        setTimeError(null);
+                      }
+                    }}
+                    style={nudgeAt === time ? { backgroundColor: palette.accent } : undefined}
+                    className={`rounded-lg px-3 py-2 ${nudgeAt === time ? 'bg-lavender' : 'bg-screen'}`}>
+                    <Text
+                      className={`font-semibold ${nudgeAt === time ? 'text-white' : 'text-muted'}`}>
+                      {time}
+                    </Text>
+                  </Pressable>
+                ))}
+              </View>
+              {timeError ? (
+                <Text className="mt-2 px-4 text-xs text-[#FF9BA6]">{timeError}</Text>
+              ) : null}
+              <View className="mt-3">
+                <RowDivider />
+                <SettingRow
+                  label={t('settings.nudgeTest')}
+                  value={testNudge.isPending ? t('settings.nudgeTestSending') : undefined}
+                  chevron
+                  disabled={!token || testNudge.isPending}
+                  onPress={() => testNudge.mutate()}
+                />
+                {testNudge.isSuccess ? (
+                  <Text className="px-4 pb-3 text-xs" style={{ color: palette.accent }}>
+                    {testNudge.data === 'preview'
+                      ? t('settings.nudgeTestPreviewed')
+                      : t('settings.nudgeTestSent')}
+                  </Text>
+                ) : null}
+                {testNudge.isError ? (
+                  <Text className="px-4 pb-3 text-xs text-[#FF9BA6]">
+                    {testNudge.error.message}
+                  </Text>
+                ) : null}
+              </View>
+            </View>
           ) : null}
-          {testNudge.isError ? (
-            <Text className="mt-2 text-xs text-[#FF9BA6]">{testNudge.error.message}</Text>
-          ) : null}
-          {timeError ? <Text className="mt-2 text-xs text-[#FF9BA6]">{timeError}</Text> : null}
+          <RowDivider />
+          <SettingRow
+            label={t('settings.notificationPermission')}
+            right={
+              permission === 'granted' ? (
+                <Text className="text-sm text-muted">{t('settings.permissionGrantedValue')}</Text>
+              ) : permission === 'undetermined' ? (
+                <Pressable
+                  accessibilityRole="button"
+                  onPress={async () => setPermission(await requestNotificationPermission())}
+                  style={{ backgroundColor: palette.accent }}
+                  className="rounded-lg px-3 py-2">
+                  <Text className="text-xs font-bold text-white">
+                    {t('settings.allowNotifications')}
+                  </Text>
+                </Pressable>
+              ) : (
+                <Text className="text-sm text-muted">
+                  {permission === 'denied'
+                    ? t('settings.permissionDeniedValue')
+                    : t('settings.permissionUnsupportedValue')}
+                </Text>
+              )
+            }
+          />
         </View>
-        <View className="mt-4 rounded-2xl border border-line bg-surface p-4">
-          <Text className="font-bold text-[#26332D]">{t('settings.notificationPermission')}</Text>
-          <Text className="mt-1 text-sm text-muted">
-            {t(`settings.permission${permission.charAt(0).toUpperCase()}${permission.slice(1)}`)}
-          </Text>
-          {permission === 'undetermined' ? (
-            <Pressable
-              onPress={async () => setPermission(await requestNotificationPermission())}
-              style={{ backgroundColor: palette.accent }}
-              className="mt-3 self-start rounded-xl bg-lavender px-4 py-3 transition duration-150 hover:-translate-y-px hover:opacity-90">
-              <Text className="font-bold text-white">{t('settings.allowNotifications')}</Text>
-            </Pressable>
-          ) : null}
+
+        <Text className="mb-2 mt-6 text-[13px] font-bold text-muted">
+          {t('settings.sectionAppearance')}
+        </Text>
+        <View className="overflow-hidden rounded-2xl border border-line bg-surface">
+          <ThemeCard colors={colors} onPress={openThemeEditor} />
         </View>
-        <Pressable
-          onPress={() => {
-            if (token) router.push('/tasks');
-          }}
-          className="mt-4 rounded-2xl border border-line bg-surface p-4 transition duration-150 hover:-translate-y-px">
-          <Text className="font-bold text-[#26332D]">{t('settings.manageTasks')}</Text>
-          <Text className="mt-1 text-sm text-muted">{t('settings.manageTasksDescription')}</Text>
-        </Pressable>
+
+        <Text className="mb-2 mt-6 text-[13px] font-bold text-muted">
+          {t('settings.sectionApp')}
+        </Text>
+        <View className="overflow-hidden rounded-2xl border border-line bg-surface">
+          <SettingRow
+            label={t('settings.manageTasks')}
+            chevron
+            onPress={() => {
+              if (token) router.push('/tasks');
+            }}
+          />
+        </View>
         {settings.isError ? (
           <Text className="mt-4 text-sm text-[#FF9BA6]">{settings.error.message}</Text>
         ) : null}
+        <Text className="mt-6 text-center text-xs text-muted">
+          {t('settings.versionLabel', { version: appVersion })}
+        </Text>
       </ScrollView>
       <Modal
         transparent
@@ -375,7 +457,7 @@ export default function Settings() {
                     accessibilityLabel={t('settings.themePalette')}
                     onPress={() => setPaletteField((current) => (current === field ? null : field))}
                     accessibilityState={{ selected: paletteField === field }}
-                    className="h-8 w-9 items-center justify-center transition duration-150 hover:-translate-y-px hover:opacity-90">
+                    className="h-8 w-9 items-center justify-center">
                     <Svg width={36} height={32} viewBox="0 0 36 32">
                       <Path
                         d="M18 2.5C9.8 2.5 3.2 7.8 3.2 15.2c0 7.5 6 13.3 13.5 13.3h2.7c1.8 0 2.9-1.8 2-3.3-.5-.8-.1-1.8.9-1.8H25c4.3 0 7.8-3.6 7.8-8.1C32.8 8 26.2 2.5 18 2.5Z"
@@ -422,18 +504,10 @@ export default function Settings() {
             {themeError ? <Text className="mt-3 text-sm text-[#FF5573]">{themeError}</Text> : null}
             <Pressable
               onPress={applyTheme}
-              onHoverIn={() => setApplyInteraction('hovered')}
-              onHoverOut={() => setApplyInteraction('idle')}
-              onPressIn={() => setApplyInteraction('pressed')}
-              onPressOut={() => setApplyInteraction('idle')}
-              className="mt-5 items-center rounded-xl py-4 transition duration-150"
-              style={{
-                backgroundColor: darkenColor(
-                  themeDraft.button,
-                  applyInteraction === 'pressed' ? 0.16 : applyInteraction === 'hovered' ? 0.08 : 0
-                ),
-                transform: [{ scale: applyInteraction === 'pressed' ? 0.98 : 1 }],
-              }}>
+              onPressIn={() => setApplyPressed(true)}
+              onPressOut={() => setApplyPressed(false)}
+              className="mt-5 items-center rounded-xl py-4"
+              style={{ backgroundColor: darkenColor(themeDraft.button, applyPressed ? 0.14 : 0) }}>
               <Text className="font-bold text-white">{t('settings.themeApply')}</Text>
             </Pressable>
           </ScrollView>

@@ -11,7 +11,13 @@ type TaskComposerSheetProps = {
   onClose: () => void;
   onSave: (input: { title: string; targetCount: number; kind: string; weekdays: number[] }) => void;
 };
-const categories = ['focus', 'algorithm', 'portfolio', 'application'];
+type CategoryOption = { key: string; kind: string; titleKey: string };
+const categories: CategoryOption[] = [
+  { key: 'focus', kind: 'focus', titleKey: 'tasks.categoryFocus' },
+  { key: 'algorithm', kind: 'algorithm', titleKey: 'tasks.categoryAlgorithm' },
+  { key: 'blog', kind: 'portfolio', titleKey: 'tasks.categoryBlog' },
+  { key: 'research', kind: 'application', titleKey: 'tasks.categoryResearch' },
+];
 const categoryPoints: Record<string, number> = {
   focus: 10,
   algorithm: 1,
@@ -20,6 +26,8 @@ const categoryPoints: Record<string, number> = {
 };
 const fixedPointCategories = new Set(['portfolio', 'application']);
 const weekdays = [1, 2, 3, 4, 5, 6, 0];
+const keyForKind = (kind: string) =>
+  categories.find((option) => option.kind === kind)?.key ?? 'focus';
 
 export function TaskComposerSheet({
   visible,
@@ -29,14 +37,16 @@ export function TaskComposerSheet({
   onSave,
 }: TaskComposerSheetProps) {
   const [targetCount, setTargetCount] = useState(task?.target_count ?? 1);
-  const [kind, setKind] = useState(task?.kind ?? 'focus');
+  const [categoryKey, setCategoryKey] = useState(keyForKind(task?.kind ?? 'focus'));
   const [selectedWeekdays, setSelectedWeekdays] = useState<number[]>(task?.weekdays ?? weekdays);
   const { palette } = useTheme();
+  const option = categories.find((item) => item.key === categoryKey) ?? categories[0];
   const autoPoints =
-    (categoryPoints[kind] ?? 0) * (fixedPointCategories.has(kind) ? 1 : targetCount);
+    (categoryPoints[option.kind] ?? 0) *
+    (fixedPointCategories.has(option.kind) ? 1 : targetCount);
   const close = () => {
     setTargetCount(1);
-    setKind('focus');
+    setCategoryKey('focus');
     setSelectedWeekdays(weekdays);
     onClose();
   };
@@ -88,20 +98,20 @@ export function TaskComposerSheet({
           <View className="mt-4 border-t border-line pt-4">
             <Text className="text-sm font-semibold text-[#26332D]">{t('tasks.category')}</Text>
             <View className="mt-3 flex-row flex-wrap gap-2">
-              {categories.map((option) => {
-                const selected = kind === option;
+              {categories.map((category) => {
+                const selected = categoryKey === category.key;
                 return (
                   <Pressable
-                    key={option}
+                    key={category.key}
                     accessibilityRole="button"
                     accessibilityState={{ selected }}
-                    onPress={() => setKind(option)}
+                    onPress={() => setCategoryKey(category.key)}
                     className="rounded-full px-3 py-2"
                     style={{ backgroundColor: selected ? palette.accent : palette.accentSoft }}>
                     <Text
                       className="text-xs font-bold"
                       style={{ color: selected ? '#FFFFFF' : palette.accent }}>
-                      {t(`tasks.category${option.charAt(0).toUpperCase()}${option.slice(1)}`)}
+                      {t(category.titleKey)}
                     </Text>
                   </Pressable>
                 );
@@ -146,9 +156,9 @@ export function TaskComposerSheet({
             disabled={selectedWeekdays.length === 0 || saving}
             onPress={() =>
               onSave({
-                title: t(`tasks.category${kind.charAt(0).toUpperCase()}${kind.slice(1)}`),
+                title: t(option.titleKey),
                 targetCount,
-                kind,
+                kind: option.kind,
                 weekdays: selectedWeekdays,
               })
             }

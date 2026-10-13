@@ -3,7 +3,12 @@ import { Pressable, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { useQuery } from '@tanstack/react-query';
-import { getDashboard, getRewardRedemptions, getRewardUnlocks, type RewardRedemption } from '@/services/api';
+import {
+  getDashboard,
+  getRewardRedemptions,
+  getRewardUnlocks,
+  type RewardRedemption,
+} from '@/services/api';
 import { getDeviceToken } from '@/services/device-token';
 import { formatShortDate } from '@/services/i18n';
 import { getUnlockRewards, rewardRequirement, type UnlockReward } from '@/services/reward-unlocks';
@@ -63,9 +68,7 @@ function RewardCard({ reward }: { reward: ReturnType<typeof getUnlockRewards>[nu
           </Text>
         </View>
       </View>
-      <Text
-        className="mt-4 text-[17px] font-bold tracking-tight"
-        style={{ color: reward.onColor }}>
+      <Text className="mt-4 text-[17px] font-bold tracking-tight" style={{ color: reward.onColor }}>
         {reward.title}
       </Text>
       <Text className="mt-1 text-[11px] leading-4" style={{ color: reward.onSoft }}>
@@ -117,14 +120,18 @@ function RedemptionRow({ redemption }: { redemption: RewardRedemption }) {
   const preview = redemptionPreview(redemption);
   const usedAt = redemption.redeemed_at ?? redemption.unlocked_at;
   return (
-    <View className="mb-2 rounded-2xl border p-4" style={{ borderColor: palette.line, backgroundColor: palette.surface }}>
+    <View
+      className="mb-2 rounded-2xl border p-4"
+      style={{ borderColor: palette.line, backgroundColor: palette.surface }}>
       <View className="flex-row items-center justify-between">
         <Text className="text-sm font-bold text-[#24232A]">
           {meta?.icon} {meta?.shortTitle ?? redemption.reward_kind}
         </Text>
         <View className="flex-row items-center gap-2">
           {redemption.cost_points ? (
-            <Text className="text-[10px] font-bold text-[#B25E50]">-{redemption.cost_points}점</Text>
+            <Text className="text-[10px] font-bold text-[#B25E50]">
+              -{redemption.cost_points}점
+            </Text>
           ) : (
             <Text className="text-[10px] font-bold" style={{ color: palette.accent }}>
               해금 보상
@@ -186,9 +193,7 @@ export default function RewardsScreen() {
               style={{ color: palette.accent }}>
               REWARDS
             </Text>
-            <Text className="mt-1 text-2xl font-bold tracking-tight text-[#24232A]">
-              보상
-            </Text>
+            <Text className="mt-1 text-2xl font-bold tracking-tight text-[#24232A]">보상</Text>
           </View>
           <Pressable
             onPress={() => router.push('/point-history')}
@@ -270,8 +275,7 @@ export default function RewardsScreen() {
             <Text
               className="mx-5 mt-3 text-center text-[11px] leading-5"
               style={{ color: palette.accentDeep }}>
-              해금 보상은 포인트를 차감하지 않아요. 주간 회고를 처음 저장할 때만 300점이
-              사용돼요.
+              해금 보상은 포인트를 차감하지 않아요. 주간 회고를 처음 저장할 때만 300점이 사용돼요.
             </Text>
             {usedRewards.length ? (
               <View className="mt-8">
@@ -280,7 +284,7 @@ export default function RewardsScreen() {
                   style={{ color: palette.accent }}>
                   USED REWARDS
                 </Text>
-                <Text className="mt-1 mb-3 text-lg font-bold text-[#24232A]">
+                <Text className="mb-3 mt-1 text-lg font-bold text-[#24232A]">
                   사용한 보상 {usedRewards.length}개
                 </Text>
                 {usedRewards.map((redemption) => (
