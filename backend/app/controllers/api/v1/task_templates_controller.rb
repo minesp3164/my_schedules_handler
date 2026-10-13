@@ -21,6 +21,7 @@ module Api
           task = current_user.task_templates.create!(
             attributes.merge(points: points_for(attributes[:kind], attributes[:target_count]))
           )
+          Badges::Evaluate.call(user: current_user)
           render json: { data: task_payload(task) }, status: :created
         end
       end
@@ -34,6 +35,8 @@ module Api
       def destroy
         result = Tasks::Deactivate.call(task_template_id: params[:id], user: current_user)
         if result.changed
+          # 할 일 삭제도 취소로 보고, 지표 기준 미달 배지를 회수한다.
+          Badges::Evaluate.call(user: current_user)
           Realtime::Publish.call(
             event: "task.deactivated",
             data: { task_template_id: result.task.id, reverted_completion_count: result.summaries.size }

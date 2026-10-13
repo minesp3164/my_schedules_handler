@@ -2,7 +2,7 @@
 
 이 폴더는 React Native/웹 클라이언트와 분리된 Rails API 서버의 루트다.
 
-> 현재 상태: Task MVP, 기기 인증, 집중 타이머, 대시보드·히스토리, 개인 설정, 리워드 엔진, 실시간 동기화, 푸시·13시 재촉 작업까지 구현되어 있다. 운영 배포는 다음 단계다.
+> 현재 상태: Task MVP, 기기 인증, 집중 타이머, 대시보드·히스토리, 개인 설정, 리워드 엔진, 실시간 동기화, 푸시·13시 재촉 작업, 마일스톤·배지 시스템(규칙·달성·축하·발자국)까지 구현되어 있다. 운영 배포는 다음 단계다.
 
 ## 1. 역할과 경계
 
@@ -44,6 +44,8 @@ backend/
 │   │   ├── focus_sessions_controller.rb
 │   │   ├── histories_controller.rb
 │   │   ├── settings_controller.rb
+│   │   ├── milestones_controller.rb
+│   │   ├── badges_controller.rb
 │   │   └── push_subscriptions_controller.rb
 │   ├── jobs/
 │   │   ├── send_push_notification_job.rb
@@ -58,6 +60,8 @@ backend/
 │   │   ├── reward_rule.rb
 │   │   ├── reward_achievement.rb
 │   │   ├── notification_delivery.rb
+│   │   ├── badge_rule.rb
+│   │   ├── badge_achievement.rb
 │   │   └── setting.rb
 │   └── services/
 │       ├── devices/activate.rb
@@ -66,6 +70,9 @@ backend/
 │       ├── focus_sessions/complete.rb
 │       ├── points/recalculate_daily_summary.rb
 │       ├── rewards/evaluate.rb
+│       ├── badges/sync_default_rules.rb
+│       ├── badges/evaluate.rb
+│       ├── milestones/progress.rb
 │       └── notifications/deliver.rb
 ├── config/
 │   ├── routes.rb
@@ -91,6 +98,8 @@ ERD의 상세 컬럼과 제약은 상위 [erd.md](../erd.md)에 둔다.
 | `DailySummary` | 홈 화면을 빠르게 조회하는 날짜별 집계 캐시 |
 | `RewardRule` | 일간/주간 보상 기준과 문구 |
 | `RewardAchievement` | 기간별 보상 달성의 단 한 번 기록 |
+| `BadgeRule` | 전역 배지 규칙(카테고리·지표·임계값·표시 문구, 코드 기본값 63종) |
+| `BadgeAchievement` | 사용자별 배지 달성 기록(지표가 기준 미달이 되면 회수) |
 | `NotificationDelivery` | 기기별 알림 발송·실패 이력과 중복 방지 |
 | `Setting` | 단일 사용자 설정(타이머·포인트·13시 알림·시간대) |
 
@@ -117,6 +126,8 @@ ERD의 상세 컬럼과 제약은 상위 [erd.md](../erd.md)에 둔다.
 | GET | `/reward-redemptions` | - | 보상 기록 목록(status: unlocked/redeemed/skipped) |
 | POST | `/reward-redemptions` | `reward_kind`, `payload`, `Idempotency-Key` | 해금형 보상 기록. 포인트 차감 없음(reflection만 300점 구매) |
 | PATCH | `/reward-redemptions/:id` | `status`(unlocked↔skipped) | 회복 패스 보유/나중에 하기 전이 |
+| GET | `/milestones` | - | 지표 8종(활동일·집중분·완료/생성 건수·앱/알고리즘/포트폴리오 완주·첫 활동일) |
+| GET | `/badges` | - | 배지 전체(획득 시각 포함)와 미달성 진행도. **조회 시점에 달성 평가** 수행 |
 
 ### 공통 응답 형식
 
@@ -141,12 +152,14 @@ ERD의 상세 컬럼과 제약은 상위 [erd.md](../erd.md)에 둔다.
 6. `DailySummary`를 원장에서 다시 계산한다.
 7. 전체 목표가 처음 충족되었다면 `PointEvent(event_type: daily_bonus)`를 추가한다.
 8. `Rewards::Evaluate`가 보상 달성 레코드를 unique 제약으로 생성한다.
-9. 커밋 뒤에 Action Cable 방송과 알림 작업을 큐에 넣는다.
+9. 같은 트랜잭션 뒤에서 `Badges::Evaluate`가 미달성 배지를 채운다.
+10. 커밋 뒤에 Action Cable 방송과 알림 작업을 큐에 넣는다.
 
 ### 타이머 완료: `FocusSessions::Complete`
 
 - `ended_at - started_at`이 최소 완료 기준(예: 계획 시간의 80%)을 만족할 때만 완료 포인트를 준다.
 - 완료 포인트는 `PointEvent(event_type: focus_completion)`로 한 번만 남긴다.
+- 트랜잭션 안에서 Rewards 뒤에 `Badges::Evaluate`를 호출한다.
 - 취소된 세션에는 점수를 주지 않는다.
 - 타이머 시작 시에는 `DailySummary.first_activity_at`만 기록하므로, 13시 재촉 알림은 막되 포인트는 생기지 않는다.
 
@@ -154,7 +167,14 @@ ERD의 상세 컬럼과 제약은 상위 [erd.md](../erd.md)에 둔다.
 
 - 원본 완료는 `reverted_at`만 기록한다. 삭제하지 않는다.
 - 원본 `PointEvent`는 `reversed_at`을 갱신하고, 집계를 다시 계산한다.
-- 이후 전체 완료 조건이 사라져도 과거 보상 알림을 취소하지 않는다. 다만 점수·진행도 표시는 현재 상태로 내려간다.
+- 이후 전체 완료 조건이 사라져도 과거 보상 알림은 취소하지 않는다. 다만 점수·진행도 표시는 현재 상태로 내려가고, 배지는 지표가 기준 미달이 되면 `Badges::Evaluate`가 회수한다.
+
+### 배지 평가: `Badges::Evaluate`
+
+- `badge_rules`(전역 규칙)과 `badge_achievements`(사용자별 달성)를 비교해 미달성 배지를 채우고, 기준 미달이 된 달성은 회수한다.
+- 진입점은 여섯 곳이다. 할 일 완료·타이머 완료 트랜잭션 안(Rewards 뒤), 할 일 만들기(`TaskTemplatesController#create`), 완료 취소(`CompletionsController#destroy`), 할 일 삭제(`TaskTemplatesController#destroy`), `GET /badges` 읽기 직전.
+- `(user_id, badge_rule_id)` unique 제약 위반(`RecordNotUnique`)과 검증 실패(`RecordInvalid`)를 이미 획득으로 간주해 흡수하므로 중복 호출에도 멱등이다.
+- 사용자가 TASK를 취소(완료 취소·삭제)해 지표가 기준 미달이 되면 달성 기록을 회수한다. 연속 기록이 끊겨서는 회수하지 않으며(누적 합계 기준), 규칙은 `Badges::SyncDefaultRules`가 코드 기본값(63종)으로 만들고 새 키만 추가하며 표시 순서만 기본값 배열에 맞춘다. 규칙 테이블과 달성 기록은 분리되어 있다.
 
 ## 7. 실시간 동기화
 
@@ -199,7 +219,8 @@ ERD의 상세 컬럼과 제약은 상위 [erd.md](../erd.md)에 둔다.
 7. 리워드 엔진(일일·주간 달성, 기간별 중복 방지). ✅
 8. Action Cable과 다중 기기 동기화. ✅
 9. Expo/Web Push와 13시 재촉 반복 작업. ✅
-10. HTTPS 배포, 영속 SQLite 백업, 실제 기기 알림 검증.
+10. 마일스톤·배지 API(규칙·달성·평가·발자국 응답). ✅
+11. HTTPS 배포, 영속 SQLite 백업, 실제 기기 알림 검증.
 
 ## 로컬 실행
 

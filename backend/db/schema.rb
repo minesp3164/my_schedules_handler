@@ -11,6 +11,35 @@
 # It's strongly recommended that you check this file into your version control system.
 
 ActiveRecord::Schema[8.1].define(version: 2026_09_23_000005) do
+  create_table "badge_achievements", id: :string, force: :cascade do |t|
+    t.datetime "achieved_at", null: false
+    t.string "badge_rule_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.string "user_id", null: false
+    t.index ["badge_rule_id"], name: "index_badge_achievements_on_badge_rule_id"
+    t.index ["user_id", "badge_rule_id"], name: "index_badge_achievements_on_user_and_rule", unique: true
+    t.index ["user_id"], name: "index_badge_achievements_on_user_id"
+  end
+
+  create_table "badge_rules", id: :string, force: :cascade do |t|
+    t.boolean "active", default: true, null: false
+    t.string "category", null: false
+    t.datetime "created_at", null: false
+    t.string "description", default: "", null: false
+    t.string "icon", default: "🏅", null: false
+    t.string "key", null: false
+    t.string "metric", null: false
+    t.integer "position", default: 0, null: false
+    t.integer "threshold", null: false
+    t.string "title", null: false
+    t.datetime "updated_at", null: false
+    t.index ["key"], name: "index_badge_rules_on_key", unique: true
+    t.check_constraint "category IN ('routine', 'steady', 'focus', 'apply', 'algorithm', 'portfolio')", name: "badge_rules_valid_category"
+    t.check_constraint "metric IN ('activity_days', 'focus_minutes', 'completed_tasks', 'created_tasks', 'application_completions', 'algorithm_completions', 'portfolio_completions')", name: "badge_rules_valid_metric"
+    t.check_constraint "threshold > 0", name: "badge_rules_threshold_positive"
+  end
+
   create_table "companies", id: :string, force: :cascade do |t|
     t.string "corp_code"
     t.datetime "created_at", null: false
@@ -249,6 +278,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_23_000005) do
     t.check_constraint "length(body) <= 500", name: "weekly_retros_body_length"
   end
 
+  add_foreign_key "badge_achievements", "badge_rules"
+  add_foreign_key "badge_achievements", "users"
   add_foreign_key "daily_task_completions", "devices", column: "source_device_id"
   add_foreign_key "daily_task_completions", "task_templates"
   add_foreign_key "devices", "users"
