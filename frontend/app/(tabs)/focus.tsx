@@ -108,7 +108,7 @@ export default function Focus() {
         return startFocus(token, breakSeconds, createIdempotencyKey(), 'break');
       return controlFocus(
         token,
-        session!.id,
+        session!,
         action,
         action === 'complete' ? createIdempotencyKey() : undefined
       );

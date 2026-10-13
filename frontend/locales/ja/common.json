@@ -8,5 +8,9 @@
   "notFoundTitle": "画面が見つかりません。",
   "goHome": "ホームに戻る",
   "offlineBanner": "オフラインです。最後に保存された画面を表示しています。",
-  "offlineWrite": "オフラインです。接続後に記録できます。"
+  "offlineWrite": "オフラインです。接続後に記録できます。",
+  "offlineQueued": "送信待ち%{count}件 · 接続後に自動送信",
+  "offlineQueuedOffline": "オフライン · 記録%{count}件が待機中",
+  "offlineQueueFailed": "送信できなかった記録%{count}件",
+  "dismiss": "閉じる"
 }
