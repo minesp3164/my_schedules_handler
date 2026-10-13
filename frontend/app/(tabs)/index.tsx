@@ -23,6 +23,7 @@ import { getDeviceToken } from '@/services/device-token';
 import { formatDate, t } from '@/services/i18n';
 import { useTheme } from '@/services/theme';
 import { RewardPaceCard } from '@/components/home/RewardPaceCard';
+import { AlgorithmCompleteSheet } from '@/components/home/AlgorithmCompleteSheet';
 import { isStalePausedFocus } from '@/services/focus-session';
 import { NextActionCard } from '@/components/home/NextActionCard';
 import { getTodayRecommendations } from '@/services/today-recommendation';
@@ -122,6 +123,19 @@ export default function Home() {
       queryClient.invalidateQueries({ queryKey: ['reward-unlocks'] });
     },
   });
+  // 알고리즘 완료만 확인창을 거친다(문제명+답변 확인 후 +1). 나머지는 기존대로 즉시 진행.
+  const [confirmTask, setConfirmTask] = useState<DashboardTask | null>(null);
+  const requestComplete = (task: DashboardTask) => {
+    if (!task.goal_completed && task.kind === 'algorithm') {
+      setConfirmTask(task);
+      return;
+    }
+    taskMutation.mutate(task);
+  };
+  const confirmAlgorithm = () => {
+    if (!confirmTask) return;
+    taskMutation.mutate(confirmTask, { onSuccess: () => setConfirmTask(null) });
+  };
 
   const tasks = dashboard.data?.tasks ?? [];
   const deferrals = dashboard.data?.deferrals ?? [];
@@ -385,7 +399,7 @@ export default function Home() {
                             router.push('/focus');
                             return;
                           }
-                          taskMutation.mutate(recommendation.task);
+                          requestComplete(recommendation.task);
                         }}
                         onNext={() => setRecommendationIndex((current) => current + 1)}
                       />
@@ -432,7 +446,7 @@ export default function Home() {
                               router.push('/focus');
                               return;
                             }
-                            taskMutation.mutate(task);
+                            requestComplete(task);
                           }}
                           accessibilityRole="button"
                           accessibilityLabel={t('home.taskAccessibility', {
@@ -535,6 +549,18 @@ export default function Home() {
 
         <RewardPaceCard points={points} remaining={remaining} />
       </ScrollView>
+
+      {confirmTask ? (
+        <AlgorithmCompleteSheet
+          taskTitle={confirmTask.title}
+          completedCount={confirmTask.completed_count}
+          targetCount={confirmTask.target_count}
+          saving={taskMutation.isPending}
+          error={taskMutation.error?.message ?? null}
+          onClose={() => setConfirmTask(null)}
+          onConfirm={confirmAlgorithm}
+        />
+      ) : null}
     </SafeAreaView>
   );
 }
