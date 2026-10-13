@@ -84,6 +84,7 @@ export function RealtimeSync() {
         queryClient.invalidateQueries({ queryKey: ['focus-session'] });
         queryClient.invalidateQueries({ queryKey: ['history'] });
         queryClient.invalidateQueries({ queryKey: ['milestones'] });
+        queryClient.invalidateQueries({ queryKey: ['badges'] });
         queryClient.invalidateQueries({ queryKey: ['settings'] });
         queryClient.invalidateQueries({ queryKey: ['task-templates'] });
         queryClient.invalidateQueries({ queryKey: ['retro-week'] });

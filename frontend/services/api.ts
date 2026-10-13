@@ -345,7 +345,44 @@ export type MilestoneProgress = {
   focus_minutes: number;
   completed_tasks: number;
   created_tasks: number;
+  application_completions: number;
+  algorithm_completions: number;
+  portfolio_completions: number;
+  first_activity_date: string | null;
 };
+
+export type BadgeCategory = 'routine' | 'steady' | 'focus' | 'apply' | 'algorithm' | 'portfolio';
+
+export type BadgeMetric =
+  | 'activity_days'
+  | 'focus_minutes'
+  | 'completed_tasks'
+  | 'created_tasks'
+  | 'application_completions'
+  | 'algorithm_completions'
+  | 'portfolio_completions';
+
+export type Badge = {
+  key: string;
+  category: BadgeCategory;
+  title: string;
+  description: string;
+  icon: string;
+  metric: BadgeMetric;
+  threshold: number;
+  position: number;
+  achieved_at: string | null;
+};
+
+export type BadgesResponse = {
+  badges: Badge[];
+  progress: MilestoneProgress;
+};
+
+// 응답을 받을 때 서버가 배지를 평가하므로, 읽기만으로 달성 상태가 갱신된다.
+export async function getBadges(token: string) {
+  return (await request<ApiResponse<BadgesResponse>>('/badges', token)).data;
+}
 
 export async function getMilestones(token: string) {
   return (await request<ApiResponse<MilestoneProgress>>('/milestones', token)).data;

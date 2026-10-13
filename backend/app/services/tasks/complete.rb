@@ -55,6 +55,7 @@ module Tasks
         events << bonus if bonus
 
         rewards = Rewards::Evaluate.call(date: date, achieved_at: @now, user: @source_device.user)
+        Badges::Evaluate.call(user: @source_device.user, now: @now)
         Result.new(completion, events, summary, rewards.achievements, false)
       end
     end

@@ -53,6 +53,7 @@ module FocusSessions
         focus_task_completion = record_focus_task_completion(date)
         summary = Points::RecalculateDailySummary.call(date: date, first_activity_at: @focus_session.started_at)
         rewards = Rewards::Evaluate.call(date: date, achieved_at: @ended_at, user: @focus_session.user)
+        Badges::Evaluate.call(user: @focus_session.user, now: @ended_at)
         Result.new(@focus_session, event, focus_task_completion, summary, rewards.achievements, false)
       end
     end

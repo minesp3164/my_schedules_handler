@@ -153,8 +153,7 @@ export default function Focus() {
         setNow(Date.now());
         await scheduleFocusCompletion(focus.id, focus.planned_seconds, focus.kind);
         const endAtMs =
-          Date.parse(focus.started_at) +
-          (focus.planned_seconds + focus.paused_seconds) * 1_000;
+          Date.parse(focus.started_at) + (focus.planned_seconds + focus.paused_seconds) * 1_000;
         const liveActivityResult = await startFocusLiveActivity(
           focus.planned_seconds,
           endAtMs,
@@ -212,6 +211,7 @@ export default function Focus() {
       if (action === 'complete') {
         await queryClient.invalidateQueries({ queryKey: ['history'] });
         await queryClient.invalidateQueries({ queryKey: ['milestones'] });
+        await queryClient.invalidateQueries({ queryKey: ['badges'] });
       }
     },
   });

@@ -57,6 +57,7 @@ export default function TasksScreen() {
     Promise.all([
       queryClient.invalidateQueries({ queryKey: ['task-templates'] }),
       queryClient.invalidateQueries({ queryKey: ['dashboard'] }),
+      queryClient.invalidateQueries({ queryKey: ['badges'] }),
     ]);
   const add = useMutation({
     mutationFn: (input: NewTask) =>

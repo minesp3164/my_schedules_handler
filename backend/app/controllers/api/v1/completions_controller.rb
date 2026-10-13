@@ -3,6 +3,8 @@ module Api
     class CompletionsController < BaseController
       def destroy
         completion, summary, changed = Tasks::Revert.call(completion_id: params[:id])
+        # 완료 취소로 지표가 내려가면 배지도 바로 회수한다.
+        Badges::Evaluate.call(user: current_user) if changed
         revision = if changed
           Realtime::Publish.call(event: "task.reverted", data: { completion_id: completion.id, task_template_id: completion.task_template_id }).revision
         end
