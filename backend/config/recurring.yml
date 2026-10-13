@@ -3,3 +3,7 @@ production:
     class: SendDailyNudgeJob
     queue: notifications
     schedule: every minute
+  companies_sync:
+    class: CompaniesSyncJob
+    queue: default
+    schedule: "every sunday at 04:00" # 서버 로컬 시간 기준

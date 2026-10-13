@@ -10,7 +10,19 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_09_23_000002) do
+ActiveRecord::Schema[8.1].define(version: 2026_09_23_000005) do
+  create_table "companies", id: :string, force: :cascade do |t|
+    t.string "corp_code"
+    t.datetime "created_at", null: false
+    t.string "name", null: false
+    t.string "normalized_name", null: false
+    t.string "source", default: "seed", null: false
+    t.string "stock_code"
+    t.datetime "updated_at", null: false
+    t.index ["name"], name: "index_companies_on_name"
+    t.index ["normalized_name"], name: "index_companies_on_normalized_name", unique: true
+  end
+
   create_table "daily_summaries", primary_key: "date", id: :date, force: :cascade do |t|
     t.datetime "all_goals_completed_at"
     t.datetime "created_at", null: false
