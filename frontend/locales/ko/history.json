@@ -16,7 +16,8 @@
     "focus_completion": "집중 완료",
     "daily_bonus": "하루 목표 보너스",
     "reward_redemption": "보상 사용",
-    "adjustment": "포인트 조정"
+    "adjustment": "포인트 조정",
+    "application_milestone": "지원 단계 기록"
   },
   "comparisonTitle": "이번 주와 지난주 비교",
   "comparisonDescription": "월요일부터 일요일까지의 주간 기록",

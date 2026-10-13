@@ -221,7 +221,12 @@ export default function Home() {
                   goal_completed: completed >= item.target_count,
                   completions: [
                     ...item.completions,
-                    { id: `optimistic-${Date.now()}`, note: null, note_verified: null, stage_backed: true },
+                    {
+                      id: `optimistic-${Date.now()}`,
+                      note: null,
+                      note_verified: null,
+                      stage_backed: true,
+                    },
                   ],
                 };
               }),
@@ -305,10 +310,7 @@ export default function Home() {
   // 지원한 회사명이 확인돼야 완료로 넘어간다(빈 값은 시트에서 막고, 회사 선택 여부는 서버가 재검증한다).
   const confirmApplication = (note: string, companyId: string | null) => {
     if (!applicationPrompt) return;
-    stageMutation.mutate(
-      { note, companyId },
-      { onSuccess: () => setApplicationPrompt(null) }
-    );
+    stageMutation.mutate({ note, companyId }, { onSuccess: () => setApplicationPrompt(null) });
   };
 
   const tasks = dashboard.data?.tasks ?? [];

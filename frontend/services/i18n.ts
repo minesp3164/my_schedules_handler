@@ -1,6 +1,7 @@
 import { I18n } from 'i18n-js';
 import { getLocales } from 'expo-localization';
 import jaCommon from '@/locales/ja/common.json';
+import jaApplications from '@/locales/ja/applications.json';
 import jaFocus from '@/locales/ja/focus.json';
 import jaHistory from '@/locales/ja/history.json';
 import jaHome from '@/locales/ja/home.json';
@@ -10,6 +11,7 @@ import jaSettings from '@/locales/ja/settings.json';
 import jaTabs from '@/locales/ja/tabs.json';
 import jaTasks from '@/locales/ja/tasks.json';
 import koCommon from '@/locales/ko/common.json';
+import koApplications from '@/locales/ko/applications.json';
 import koFocus from '@/locales/ko/focus.json';
 import koHistory from '@/locales/ko/history.json';
 import koHome from '@/locales/ko/home.json';
@@ -22,6 +24,7 @@ import koTasks from '@/locales/ko/tasks.json';
 const translations = {
   ko: {
     common: koCommon,
+    applications: koApplications,
     tabs: koTabs,
     home: koHome,
     landing: koLanding,
@@ -33,6 +36,7 @@ const translations = {
   },
   ja: {
     common: jaCommon,
+    applications: jaApplications,
     tabs: jaTabs,
     home: jaHome,
     landing: jaLanding,

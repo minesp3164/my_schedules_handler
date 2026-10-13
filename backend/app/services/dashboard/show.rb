@@ -1,6 +1,6 @@
 module Dashboard
   class Show
-    Result = Data.define(:date, :daily_summary, :total_points, :tasks, :focus_session, :rewards, :deferrals)
+    Result = Data.define(:date, :daily_summary, :total_points, :tasks, :focus_session, :rewards, :deferrals, :applications)
 
     def self.call(...)
       new(...).call
@@ -31,11 +31,21 @@ module Dashboard
         task_payloads,
         FocusSession.active.where(user: @user).order(created_at: :desc).first,
         Rewards::Progress.call(date: @date, user: @user),
-        deferral_payloads
+        deferral_payloads,
+        application_summary
       )
     end
 
     private
+
+    # 홈의 "진행 중인 지원" 카드용 한 줄 요약. 상세는 지원 현황 화면이 맡는다.
+    def application_summary
+      active = @user.applications.where(status: "active").order(created_at: :desc)
+      {
+        active_count: active.count,
+        recent: active.limit(2).map { |application| { id: application.id, company: application.company } }
+      }
+    end
 
     def task_payload(task, completions, deferred_in: false)
       {
@@ -50,7 +60,10 @@ module Dashboard
         remaining_count: [task.target_count - completions.size, 0].max,
         goal_completed: completions.size >= task.target_count,
         completions: completions.map do |completion|
-          completion.slice(:id, :sequence, :completed_at, :note, :note_verified)
+          completion.slice(:id, :sequence, :completed_at, :note, :note_verified).merge(
+            # 지원 단계 기록이 자동으로 채운 완료는 지원 현황에서만 되돌릴 수 있다.
+            stage_backed: completion.application_stage_event_id.present?
+          )
         end,
         read_only: false,
         deferred_in: deferred_in

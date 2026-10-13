@@ -1,0 +1,70 @@
+{
+  "card": {
+    "label": "지원 현황",
+    "active": "진행 중인 지원 %{count}건",
+    "recent": "최근: %{companies}",
+    "empty": "아직 기록된 지원이 없어요.",
+    "cta": "지원 기록하기",
+    "open": "지원 현황 열기"
+  },
+  "title": "지원 현황",
+  "stagesAction": "단계 관리",
+  "add": "지원 추가",
+  "addTitle": "지원 추가",
+  "companyLabel": "회사",
+  "companyPlaceholder": "회사 이름 (검색 또는 직접 입력)",
+  "titleLabel": "공고·직무 (선택)",
+  "memoLabel": "메모 (선택)",
+  "save": "저장",
+  "cancel": "취소",
+  "sectionActive": "진행 중",
+  "sectionClosed": "종결",
+  "nextStage": "%{name} 기록 (+%{points})",
+  "recorded": "%{name} 기록됨",
+  "revert": "기록 취소",
+  "revertAccessibility": "%{name} 단계 기록 취소",
+  "closeRejected": "불합격",
+  "closeWithdrawn": "포기",
+  "closedOn": "%{date} 종결",
+  "empty": "아직 기록된 지원이 없어요.",
+  "emptyCta": "첫 지원 기록하기",
+  "allRecorded": "모든 단계를 기록했어요.",
+  "status": {
+    "active": "진행 중",
+    "rejected": "불합격",
+    "withdrawn": "포기",
+    "accepted": "합격"
+  },
+  "stageBackedHint": "지원 기록으로 채워진 완료예요. 지원 현황에서 단계를 취소하면 함께 사라져요.",
+  "error": {
+    "stage_already_recorded": "이미 기록된 단계예요.",
+    "application_closed": "이미 종결된 지원 건이에요.",
+    "noSubmissionStage": "제출 단계가 없어요. 단계 관리에서 추가해 주세요."
+  },
+  "stages": {
+    "title": "단계 관리",
+    "subtitle": "이름은 자유롭게, 포인트는 유형별 고정이에요.",
+    "add": "단계 추가",
+    "addTitle": "단계 추가",
+    "nameLabel": "단계 이름",
+    "namePlaceholder": "예: 1차 면접",
+    "kindLabel": "유형 (포인트 고정)",
+    "points": "%{count}점",
+    "kinds": {
+      "submission": "제출",
+      "interview": "면접",
+      "pass": "합격"
+    },
+    "kindHints": {
+      "submission": "지원 건당 1회",
+      "interview": "단계별로 반복 가능",
+      "pass": "지원 건당 1회 · 합격 처리"
+    },
+    "rename": "이름 바꾸기",
+    "renameTitle": "단계 이름 바꾸기",
+    "deactivate": "비활성화",
+    "deactivated": "비활성",
+    "empty": "활성 단계가 없어요.",
+    "lastActive": "마지막 활성 단계는 비활성화할 수 없어요."
+  }
+}

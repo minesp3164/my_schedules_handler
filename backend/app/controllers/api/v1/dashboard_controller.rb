@@ -15,6 +15,7 @@ module Api
             tasks: result.tasks,
             deferrals: result.deferrals,
             focus_session: focus_session_payload(result.focus_session),
+            applications: result.applications,
             rewards: {
               daily: result.rewards.daily,
               weekly: result.rewards.weekly
