@@ -22,9 +22,6 @@ export const isOnline = () => online;
 
 export function useIsOnline() {
   const [value, setValue] = useState(online);
-  useEffect(
-    () => NetInfo.addEventListener((state) => setValue(state.isConnected !== false)),
-    []
-  );
+  useEffect(() => NetInfo.addEventListener((state) => setValue(state.isConnected !== false)), []);
   return value;
 }

@@ -51,5 +51,24 @@
   "reward": "今日の報酬への道",
   "remaining": "報酬まであと %{points}",
   "startFocus": "%{minutes}分集中を開始",
-  "openFocusTimer": "集中タイマーを開く"
+  "openFocusTimer": "集中タイマーを開く",
+  "goalsEyebrow": "今日の目標",
+  "goalsTotal": "全 %{count}件",
+  "stats": {
+    "completed": "完了したタスク",
+    "remaining": "残りのタスク",
+    "todayPoints": "今日獲得ポイント",
+    "totalPoints": "累計ポイント"
+  },
+  "applicationNote": {
+    "recorded": "%{note} への応募完了",
+    "unverified": "%{note} への応募完了 · 未確認の会社"
+  },
+  "deferrals": {
+    "title": "明日に送ったタスク",
+    "description": "回復パスで休んでいます。今日中に元に戻せます。",
+    "undo": "元に戻す",
+    "meetAgain": "%{month}月%{day}日にまた会いましょう",
+    "undoAccessibility": "%{title}を今日に戻す"
+  }
 }

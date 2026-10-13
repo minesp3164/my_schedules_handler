@@ -9,11 +9,13 @@
 
 # macOS Finder metadata
 .DS_Store
-
+/mockups/*.**
+.archify/
 # Local working notes
 agent.md
 design.md
 erd.md
-
+reward-tracker-feature-plan.md
+point-unlock-rewards.md
+/docs/*.md
 # Local design references
-/mockup/

@@ -43,19 +43,16 @@ export function FocusSessionPanel({
 
   return (
     <View className="flex-1 justify-center px-5">
-      <Text className="text-center text-2xl font-bold text-[#26332D]">{titleLabel ?? t('focus.title')}</Text>
+      <Text className="text-center text-2xl font-bold text-[#26332D]">
+        {titleLabel ?? t('focus.title')}
+      </Text>
       <Text className="mt-2 text-center text-sm text-muted">{t('focus.description')}</Text>
-      <View
-        className="my-10 self-center"
-        style={{ width: RING_SIZE, height: RING_SIZE }}>
+      <View className="my-10 self-center" style={{ width: RING_SIZE, height: RING_SIZE }}>
         <View className="h-full w-full items-center justify-center rounded-full bg-surface">
           <Text className="text-5xl font-bold text-[#26332D]">{remainingLabel}</Text>
           <Text className="mt-2 text-sm text-muted">{statusLabel}</Text>
         </View>
-        <Svg
-          width={RING_SIZE}
-          height={RING_SIZE}
-          style={{ position: 'absolute', top: 0, left: 0 }}>
+        <Svg width={RING_SIZE} height={RING_SIZE} style={{ position: 'absolute', top: 0, left: 0 }}>
           <Circle
             cx={RING_SIZE / 2}
             cy={RING_SIZE / 2}
@@ -74,8 +71,7 @@ export function FocusSessionPanel({
             strokeLinecap="round"
             strokeDasharray={RING_CIRCUMFERENCE}
             strokeDashoffset={RING_CIRCUMFERENCE * (1 - progress)}
-            rotation={-90}
-            origin={`${RING_SIZE / 2}, ${RING_SIZE / 2}`}
+            transform={`rotate(-90 ${RING_SIZE / 2} ${RING_SIZE / 2})`}
           />
         </Svg>
       </View>

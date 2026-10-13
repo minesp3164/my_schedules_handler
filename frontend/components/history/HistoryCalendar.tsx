@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { Pressable, Text, View } from 'react-native';
 import { getHistory, type HistoryDay } from '@/services/api';
 import { formatMonth, formatShortDate, locale, t } from '@/services/i18n';
@@ -46,8 +46,9 @@ export function HistoryCalendar({ month, days, selectedDate, onSelect, onMove }:
   const selectedPoints = points.get(selectedDate) ?? 0;
   const selectedDay = days.find((day) => day.date === selectedDate);
   const events = (selectedDay?.point_events ?? []).filter((event) => event.points !== 0);
-  const [visibleCount, setVisibleCount] = useState(EVENTS_PAGE_SIZE);
-  useEffect(() => setVisibleCount(EVENTS_PAGE_SIZE), [selectedDate]);
+  // 선택한 날짜가 바뀌면 페이지 수를 0부터 다시 센다. 상태 키에 날짜를 함께 두어 파생값으로만 계산한다.
+  const [page, setPage] = useState({ date: selectedDate, count: EVENTS_PAGE_SIZE });
+  const visibleCount = page.date === selectedDate ? page.count : EVENTS_PAGE_SIZE;
   const visibleEvents = events.slice(0, visibleCount);
   const hiddenCount = events.length - visibleEvents.length;
   return (
@@ -113,7 +114,9 @@ export function HistoryCalendar({ month, days, selectedDate, onSelect, onMove }:
             {hiddenCount > 0 ? (
               <Pressable
                 accessibilityRole="button"
-                onPress={() => setVisibleCount((count) => count + EVENTS_PAGE_SIZE)}
+                onPress={() =>
+                  setPage({ date: selectedDate, count: visibleCount + EVENTS_PAGE_SIZE })
+                }
                 className="items-center rounded-lg px-3 py-2.5"
                 style={{ backgroundColor: palette.accentSoft }}>
                 <Text className="text-xs font-bold" style={{ color: palette.accent }}>
@@ -130,7 +133,8 @@ export function HistoryCalendar({ month, days, selectedDate, onSelect, onMove }:
 
 function PointEventRow({ event }: { event: HistoryDay['point_events'][number] }) {
   const { palette } = useTheme();
-  const label = event.source_title || t(`history.event.${event.event_type}`);
+  const base = event.source_title || t(`history.event.${event.event_type}`);
+  const label = event.source_note ? `${base} · ${event.source_note}` : base;
   const positive = event.points > 0;
   return (
     <View className="flex-row items-center justify-between rounded-lg bg-white px-3 py-2.5">

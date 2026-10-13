@@ -51,5 +51,24 @@
   "reward": "오늘의 보상 궤도",
   "remaining": "보상까지 %{points} 남았어요",
   "startFocus": "%{minutes}분 집중 시작",
-  "openFocusTimer": "집중 타이머 열기"
+  "openFocusTimer": "집중 타이머 열기",
+  "goalsEyebrow": "오늘의 목표",
+  "goalsTotal": "전체 %{count}개",
+  "stats": {
+    "completed": "완료한 목표",
+    "remaining": "남은 목표",
+    "todayPoints": "오늘 획득 점수",
+    "totalPoints": "누적 포인트"
+  },
+  "applicationNote": {
+    "recorded": "%{note} 지원 완료",
+    "unverified": "%{note} 지원 완료 · 미확인 회사"
+  },
+  "deferrals": {
+    "title": "내일로 보낸 할 일",
+    "description": "회복 패스로 쉬어 가는 중이에요. 오늘 안에는 되돌릴 수 있어요.",
+    "undo": "되돌리기",
+    "meetAgain": "%{month}월 %{day}일에 다시 만나요",
+    "undoAccessibility": "%{title} 오늘로 되돌리기"
+  }
 }
