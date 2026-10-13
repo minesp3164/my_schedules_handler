@@ -20,7 +20,7 @@ module History
 
       summaries = DailySummary.where(date: @from..@to).index_by(&:date)
       events_by_date = @user.point_events.effective
-        .includes(daily_task_completion: :task_template)
+        .includes(:application_stage_event => { :application_stage => nil }, daily_task_completion: :task_template)
         .where(activity_date: @from..@to)
         .order(:occurred_at, :created_at)
         .group_by(&:activity_date)
@@ -85,9 +85,10 @@ module History
     end
 
     def event_payload(event)
+      milestone = event.application_stage_event
       event.slice(:id, :event_type, :points, :activity_date, :occurred_at, :reversed_at, :daily_task_completion_id, :focus_session_id).merge(
-        source_title: event.daily_task_completion&.task_template&.title,
-        source_kind: event.daily_task_completion&.task_template&.kind,
+        source_title: milestone ? "#{milestone.application.company} · #{milestone.application_stage.name}" : event.daily_task_completion&.task_template&.title,
+        source_kind: milestone ? milestone.stage_kind : event.daily_task_completion&.task_template&.kind,
         source_note: event.daily_task_completion&.note
       )
     end

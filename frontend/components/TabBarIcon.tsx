@@ -1,11 +1,13 @@
-import { ColorValue, Image, StyleSheet, Text, View } from 'react-native';
+import { ColorValue, Image, StyleSheet, View } from 'react-native';
+import FontAwesome from '@expo/vector-icons/FontAwesome';
 
 export const TabBarIcon = (props: {
   name: 'home' | 'focus' | 'history' | 'reward' | 'settings';
   color: ColorValue;
 }) => {
   if (props.name === 'reward') {
-    return <Text style={[styles.reward, { color: props.color }]}>✦</Text>;
+    // ✦ 스파클 대신 보상에 어울리는 선물 아이콘(스프라이트와 같은 굵은 채움 스타일).
+    return <FontAwesome name="gift" size={22} color={props.color as string} />;
   }
   const offset = iconOffsets[props.name];
 
@@ -42,5 +44,4 @@ export const styles = StyleSheet.create({
     width: 52,
     height: 52,
   },
-  reward: { fontSize: 22, lineHeight: 26, fontWeight: '700' },
 });

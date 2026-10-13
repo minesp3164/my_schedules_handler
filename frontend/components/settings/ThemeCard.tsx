@@ -5,29 +5,20 @@ import { useTheme, type ThemeColors } from '@/services/theme';
 export function ThemeCard({ colors, onPress }: { colors: ThemeColors; onPress: () => void }) {
   const { palette } = useTheme();
   return (
-    <View
-      className="mt-6 rounded-2xl p-4"
-      style={{ backgroundColor: palette.surface, borderColor: palette.line, borderWidth: 1 }}>
-      <Text className="font-bold text-[#26332D]">{t('settings.theme')}</Text>
-      <Text className="mt-1 text-sm text-muted">{t('settings.themeDescription')}</Text>
-      <Pressable
-        accessibilityRole="button"
-        accessibilityLabel={t('settings.themeCustomize')}
-        onPress={onPress}
-        className="mt-4 flex-row items-center justify-between rounded-xl px-3 py-3 transition duration-150 hover:-translate-y-px hover:opacity-90"
-        style={{ backgroundColor: palette.accentSoft }}>
-        <View className="flex-row items-center">
-          <View className="h-8 w-8 rounded-full" style={{ backgroundColor: colors.button }} />
-          <View
-            className="ml-2 h-8 w-8 rounded-full border"
-            style={{ backgroundColor: colors.background, borderColor: palette.line }}
-          />
-          <Text className="ml-3 text-sm font-bold text-[#26332D]">
-            {t('settings.themeCustomize')}
-          </Text>
-        </View>
-        <Text className="text-lg text-[#26332D]">›</Text>
-      </Pressable>
-    </View>
+    <Pressable
+      accessibilityRole="button"
+      accessibilityLabel={t('settings.themeCustomize')}
+      onPress={onPress}
+      className="flex-row items-center justify-between px-4 py-4">
+      <Text className="text-[15px] font-semibold text-[#26332D]">{t('settings.theme')}</Text>
+      <View className="flex-row items-center gap-2">
+        <View className="h-5 w-5 rounded-full" style={{ backgroundColor: colors.button }} />
+        <View
+          className="h-5 w-5 rounded-full border"
+          style={{ backgroundColor: colors.background, borderColor: palette.line }}
+        />
+        <Text className="text-lg text-muted">›</Text>
+      </View>
+    </Pressable>
   );
 }

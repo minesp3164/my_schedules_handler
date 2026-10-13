@@ -1,0 +1,70 @@
+{
+  "card": {
+    "label": "応募状況",
+    "active": "進行中の応募%{count}件",
+    "recent": "最近: %{companies}",
+    "empty": "まだ記録した応募はありません。",
+    "cta": "応募を記録",
+    "open": "応募状況を開く"
+  },
+  "title": "応募状況",
+  "stagesAction": "ステージ管理",
+  "add": "応募を追加",
+  "addTitle": "応募を追加",
+  "companyLabel": "会社",
+  "companyPlaceholder": "会社名（検索または直接入力）",
+  "titleLabel": "求人・職種（任意）",
+  "memoLabel": "メモ（任意）",
+  "save": "保存",
+  "cancel": "キャンセル",
+  "sectionActive": "進行中",
+  "sectionClosed": "終了",
+  "nextStage": "%{name}を記録 (+%{points})",
+  "recorded": "%{name} 記録済み",
+  "revert": "記録を取り消す",
+  "revertAccessibility": "%{name}ステージの記録を取り消す",
+  "closeRejected": "不合格",
+  "closeWithdrawn": "辞退",
+  "closedOn": "%{date}に終了",
+  "empty": "まだ記録した応募はありません。",
+  "emptyCta": "最初の応募を記録",
+  "allRecorded": "すべてのステージを記録しました。",
+  "status": {
+    "active": "進行中",
+    "rejected": "不合格",
+    "withdrawn": "辞退",
+    "accepted": "合格"
+  },
+  "stageBackedHint": "応募記録で埋まった完了です。応募状況でステージを取り消すと一緒に消えます。",
+  "error": {
+    "stage_already_recorded": "すでに記録済みのステージです。",
+    "application_closed": "すでに終了した応募です。",
+    "noSubmissionStage": "提出ステージがありません。ステージ管理で追加してください。"
+  },
+  "stages": {
+    "title": "ステージ管理",
+    "subtitle": "名前は自由に、ポイントは種類ごとに固定です。",
+    "add": "ステージを追加",
+    "addTitle": "ステージを追加",
+    "nameLabel": "ステージ名",
+    "namePlaceholder": "例: 1次面接",
+    "kindLabel": "種類（ポイント固定）",
+    "points": "%{count}点",
+    "kinds": {
+      "submission": "提出",
+      "interview": "面接",
+      "pass": "合格"
+    },
+    "kindHints": {
+      "submission": "応募ごとに1回",
+      "interview": "ステージごとに反復可",
+      "pass": "応募ごとに1回 · 合格処理"
+    },
+    "rename": "名前を変更",
+    "renameTitle": "ステージ名の変更",
+    "deactivate": "非アクティブ化",
+    "deactivated": "非アクティブ",
+    "empty": "アクティブなステージがありません。",
+    "lastActive": "最後のアクティブなステージは非アクティブ化できません。"
+  }
+}

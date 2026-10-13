@@ -28,6 +28,11 @@ Rails.application.routes.draw do
       resources :task_templates, only: %i[index create update destroy] do
         resources :completions, only: :create, module: :task_templates
       end
+      resources :applications, only: %i[index create update] do
+        resources :stage_events, only: :create, module: :applications, path: "stage-events"
+      end
+      resources :application_stages, path: "application-stages", only: %i[index create update destroy]
+      resources :stage_events, path: "stage-events", only: :destroy
       resources :completions, only: :destroy
       resources :task_deferrals, path: "task-deferrals", only: %i[create destroy]
       resources :reward_redemptions, path: 'reward-redemptions', only: %i[index create update]

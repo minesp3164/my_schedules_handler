@@ -10,6 +10,10 @@ module Api
       rescue_from Tasks::Complete::TargetAlreadyMet, with: :render_target_already_met
       rescue_from Tasks::Complete::InactiveTask, with: :render_inactive_task
       rescue_from Tasks::Complete::NoteRequired, with: :render_note_required
+      rescue_from Tasks::Revert::StageBackedCompletion, with: :render_stage_backed_completion
+      rescue_from ::Applications::RecordStage::StageAlreadyRecorded, with: :render_stage_already_recorded
+      rescue_from ::Applications::RecordStage::InactiveStage, with: :render_inactive_stage
+      rescue_from ::Applications::RecordStage::ApplicationClosed, with: :render_application_closed
 
       private
 
@@ -46,6 +50,24 @@ module Api
 
       def render_note_required
         render json: { error: { code: "note_required", message: "지원한 회사를 적어야 완료할 수 있어요." } }, status: :unprocessable_entity
+      end
+
+      def render_stage_backed_completion
+        render json: {
+          error: { code: "stage_backed_completion", message: "지원 기록으로 채워진 완료예요. 지원 현황에서 단계를 취소하면 함께 사라져요." }
+        }, status: :conflict
+      end
+
+      def render_stage_already_recorded
+        render json: { error: { code: "stage_already_recorded", message: "이미 기록된 단계예요. 갱신된 현황을 확인해 주세요." } }, status: :conflict
+      end
+
+      def render_inactive_stage
+        render json: { error: { code: "inactive_stage", message: "비활성화된 단계는 기록할 수 없어요." } }, status: :unprocessable_entity
+      end
+
+      def render_application_closed
+        render json: { error: { code: "application_closed", message: "이미 종결된 지원 건이에요." } }, status: :unprocessable_entity
       end
     end
   end

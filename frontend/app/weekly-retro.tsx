@@ -1,5 +1,13 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { KeyboardAvoidingView, Platform, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
+import {
+  KeyboardAvoidingView,
+  Platform,
+  Pressable,
+  ScrollView,
+  Text,
+  TextInput,
+  View,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { router } from 'expo-router';
@@ -99,7 +107,6 @@ function Delta({ value, unit }: { value: number; unit?: string }) {
 export default function WeeklyRetroScreen() {
   const [token, setToken] = useState<string | null>();
   const [weekStart, setWeekStart] = useState(() => mondayOf(new Date()));
-  const [draft, setDraft] = useState('');
   const [savedTick, setSavedTick] = useState(false);
   const { palette } = useTheme();
   const queryClient = useQueryClient();
@@ -162,9 +169,13 @@ export default function WeeklyRetroScreen() {
   const goalPercent = weeklyGoal ? Math.min(Math.round((stats.points / weeklyGoal) * 100), 100) : 0;
   const maxDaily = Math.max(...stats.dailyPoints, 1);
 
-  useEffect(() => {
-    setDraft(retro.data?.body ?? '');
-  }, [retro.data?.body, weekKey]);
+  // 원본은 서버 본문(주 키 포함)이다. 사용자가 고친 값은 원본 키와 비교해 파생값으로 보여준다.
+  // 원본이 바뀌면(주 변경·저장 후 재조회) 이펙트 없이 자연히 새 본문을 따라간다.
+  const sourceBody = retro.data?.body ?? '';
+  const sourceKey = `${weekKey}|${sourceBody}`;
+  const [draftEdit, setDraftEdit] = useState<{ source: string; value: string } | null>(null);
+  const draft = draftEdit && draftEdit.source === sourceKey ? draftEdit.value : sourceBody;
+  const setDraft = (value: string) => setDraftEdit({ source: sourceKey, value });
 
   const save = useMutation({
     mutationFn: () => saveWeeklyRetro(token!, weekKey, draft.trim()),
@@ -199,7 +210,9 @@ export default function WeeklyRetroScreen() {
             <Text className="text-xl text-muted">‹</Text>
           </Pressable>
           <Text className="text-base font-bold" style={{ color: palette.accentDeep }}>
-            {isCurrentWeek ? t('retro.title') : t('retro.pastTitle', { week: formatWeekRange(weekStart) })}
+            {isCurrentWeek
+              ? t('retro.title')
+              : t('retro.pastTitle', { week: formatWeekRange(weekStart) })}
           </Text>
           <View className="flex-row items-center gap-1">
             <Pressable
@@ -220,11 +233,10 @@ export default function WeeklyRetroScreen() {
         </View>
 
         <ScrollView className="flex-1" contentContainerClassName="px-5 pb-6 pt-4">
-          <View
-            className="rounded-3xl p-6"
-            style={{ backgroundColor: palette.accent }}>
+          <View className="rounded-3xl p-6" style={{ backgroundColor: palette.accent }}>
             <Text className="text-xs font-semibold text-white/80">
-              {isCurrentWeek ? t('retro.weeklyPoints') : t('retro.weeklyPointsPast')} · {formatWeekRange(weekStart)}
+              {isCurrentWeek ? t('retro.weeklyPoints') : t('retro.weeklyPointsPast')} ·{' '}
+              {formatWeekRange(weekStart)}
             </Text>
             <Text className="mt-1 text-5xl font-extrabold tracking-tight text-white">
               {stats.points}
@@ -236,7 +248,10 @@ export default function WeeklyRetroScreen() {
                   {t('retro.goalProgress', { goal: weeklyGoal, percent: goalPercent })}
                 </Text>
                 <View className="mt-3 h-2 overflow-hidden rounded-full bg-white/25">
-                  <View className="h-full rounded-full bg-white" style={{ width: `${goalPercent}%` }} />
+                  <View
+                    className="h-full rounded-full bg-white"
+                    style={{ width: `${goalPercent}%` }}
+                  />
                 </View>
               </>
             ) : null}
@@ -247,7 +262,9 @@ export default function WeeklyRetroScreen() {
               <Text className="text-lg font-extrabold text-[#26332D]">
                 {formatFocusSeconds(stats.focusSeconds)}
               </Text>
-              <Text className="mt-0.5 text-[11px] font-semibold text-muted">{t('retro.totalFocus')}</Text>
+              <Text className="mt-0.5 text-[11px] font-semibold text-muted">
+                {t('retro.totalFocus')}
+              </Text>
               <Delta value={stats.focusSeconds - prevStats.focusSeconds} />
             </View>
             <View className="flex-1 items-center rounded-2xl bg-white px-2 py-3.5">
@@ -261,7 +278,9 @@ export default function WeeklyRetroScreen() {
               <Text className="text-lg font-extrabold text-[#26332D]">
                 {t('common.day', { count: stats.goalDays })}
               </Text>
-              <Text className="mt-0.5 text-[11px] font-semibold text-muted">{t('retro.goalDays')}</Text>
+              <Text className="mt-0.5 text-[11px] font-semibold text-muted">
+                {t('retro.goalDays')}
+              </Text>
               <Delta value={stats.goalDays - prevStats.goalDays} />
             </View>
           </View>
@@ -274,7 +293,7 @@ export default function WeeklyRetroScreen() {
               {stats.dailyPoints.map((points, index) => (
                 <View key={index} className="flex-1 items-center gap-1.5">
                   <View
-                    className="w-[22px] rounded-t-lg rounded-b"
+                    className="w-[22px] rounded-b rounded-t-lg"
                     style={{
                       height: Math.max((points / maxDaily) * 88, 4),
                       backgroundColor: points > 0 ? palette.accent : '#DCE9E2',
@@ -289,7 +308,9 @@ export default function WeeklyRetroScreen() {
           </View>
 
           <View className="mt-4 rounded-2xl bg-white p-4">
-            <Text className="mb-1 text-[13px] font-extrabold text-[#26332D]">{t('retro.perTask')}</Text>
+            <Text className="mb-1 text-[13px] font-extrabold text-[#26332D]">
+              {t('retro.perTask')}
+            </Text>
             {stats.focusSessions > 0 || stats.taskCounts.length > 0 ? (
               <>
                 {stats.focusSessions > 0 ? (
@@ -382,7 +403,10 @@ function TaskRow({
       <View className="h-1.5 w-16 overflow-hidden rounded-full bg-[#EDF3F0]">
         <View
           className="h-full rounded-full"
-          style={{ width: `${Math.max((count / Math.max(max, 1)) * 100, 8)}%`, backgroundColor: color }}
+          style={{
+            width: `${Math.max((count / Math.max(max, 1)) * 100, 8)}%`,
+            backgroundColor: color,
+          }}
         />
       </View>
       <Text className="text-xs font-extrabold" style={{ color }}>

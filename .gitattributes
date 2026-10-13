@@ -1,0 +1,4 @@
+# 이 저장소는 전 파일을 LF로 통일한다(문자 깨짐 방지를 위한 autodetect은 유지).
+# Windows의 core.autocrlf=true가 CRLF 체크아웃을 강제하면 prettier(endOfLine: lf) 검사가
+# 모든 파일에서 실패하므로, 속성이 autocrlf보다 우선하도록 명시한다.
+* text=auto eol=lf

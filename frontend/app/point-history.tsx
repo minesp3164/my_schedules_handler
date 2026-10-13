@@ -14,6 +14,7 @@ const eventLabel: Record<HistoryDay['point_events'][number]['event_type'], strin
   daily_bonus: '하루 목표 보너스',
   reward_redemption: '보상 사용',
   adjustment: '포인트 조정',
+  application_milestone: '지원 단계 기록',
 };
 
 function localIsoDate(date: Date) {
