@@ -195,6 +195,18 @@ export function updateRewardStatus(token: string, id: string, status: 'unlocked'
   });
 }
 
+// DART 실존 회사 목록에서 자동완성 검색한다.
+export type Company = {
+  id: string;
+  name: string;
+  corp_code: string | null;
+  stock_code: string | null;
+};
+
+export function searchCompanies(token: string, query: string) {
+  return request<ApiResponse<Company[]>>(`/companies/search?q=${encodeURIComponent(query)}`, token);
+}
+
 export function completeTask(taskId: string, token: string, idempotencyKey: string) {
   return request(`/task_templates/${taskId}/completions`, token, {
     method: 'POST',

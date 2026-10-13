@@ -1,5 +1,8 @@
 require "digest"
 
+# 회사 자동완성용 실존 목록(시드) — DART 키가 있으면 이후 동기화로 보강된다.
+Companies::SeedDefaults.call
+
 Device.find_or_create_by!(installation_id: "development-device") do |device|
   device.name = "Local development device"
   device.platform = "web"

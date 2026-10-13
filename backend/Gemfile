@@ -5,6 +5,7 @@ gem "sqlite3", ">= 2.1"
 gem "puma", ">= 6.0"
 gem "rack-cors"
 gem "json", "~> 2.15"
+gem "nokogiri" # DART 회사 목록 XML 파싱 (Rails에도 포함되나 직접 선언해 버전을 명시한다)
 gem "solid_queue"
 gem "webpush"
 

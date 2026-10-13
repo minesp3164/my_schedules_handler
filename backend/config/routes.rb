@@ -7,6 +7,7 @@ Rails.application.routes.draw do
       delete "devices/current", to: "device_connections#destroy"
       get "dashboard", to: "dashboard#show"
       get "history", to: "histories#index"
+      get "companies/search", to: "companies#index"
       resource :weekly_retro, path: "weekly-retro", only: %i[show update]
       get "milestones", to: "milestones#show"
       resource :settings, only: %i[show update]
