@@ -9,6 +9,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { OfflineBanner } from '@/components/OfflineBanner';
 import { RealtimeSync } from '@/components/RealtimeSync';
+import { BadgeCelebrationHost } from '@/components/badges/BadgeCelebrationHost';
 import { initNetworkMonitor } from '@/services/network';
 import { ThemeProvider } from '@/services/theme';
 
@@ -52,6 +53,7 @@ const persister = createAsyncStoragePersister({
   storage: Platform.OS === 'web' ? webStorage : safeNativeStorage,
 });
 const PERSISTED_KEYS = new Set([
+  'badges',
   'dashboard',
   'history',
   'history-calendar',
@@ -80,19 +82,19 @@ export default function RootLayout() {
         maxAge: 1000 * 60 * 60 * 24 * 7,
         dehydrateOptions: {
           shouldDehydrateQuery: (query) =>
-            query.state.status === 'success' &&
-            PERSISTED_KEYS.has(String(query.queryKey[0])),
+            query.state.status === 'success' && PERSISTED_KEYS.has(String(query.queryKey[0])),
         },
       }}>
       <ThemeProvider>
         <SafeAreaProvider>
           <RealtimeSync />
           <OfflineBanner />
+          <BadgeCelebrationHost />
           <Stack screenOptions={{ animation: 'slide_from_right' }}>
             <Stack.Screen name="index" options={{ headerShown: false }} />
             <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
             <Stack.Screen name="tasks" options={{ headerShown: false }} />
-            <Stack.Screen name="milestones" options={{ headerShown: false }} />
+            <Stack.Screen name="footprint" options={{ headerShown: false }} />
             <Stack.Screen name="weekly-retro" options={{ headerShown: false }} />
             <Stack.Screen name="point-history" options={{ headerShown: false }} />
             <Stack.Screen name="rewards/[kind]" options={{ headerShown: false }} />

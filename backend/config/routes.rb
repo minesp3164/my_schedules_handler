@@ -10,6 +10,7 @@ Rails.application.routes.draw do
       get "companies/search", to: "companies#index"
       resource :weekly_retro, path: "weekly-retro", only: %i[show update]
       get "milestones", to: "milestones#show"
+      get "badges", to: "badges#index"
       resource :settings, only: %i[show update]
       resource :push_subscription, only: :create
       post "push-subscriptions", to: "push_subscriptions#create"

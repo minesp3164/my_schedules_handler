@@ -1,5 +1,7 @@
 require "digest"
 
+Badges::SyncDefaultRules.call
+
 # 회사 자동완성용 실존 목록(시드) — DART 키가 있으면 이후 동기화로 보강된다.
 Companies::SeedDefaults.call
 

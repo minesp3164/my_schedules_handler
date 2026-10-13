@@ -84,7 +84,7 @@ export default function History() {
         <Text className="text-2xl font-bold text-[#26332D]">{t('history.title')}</Text>
         <Text className="mt-2 text-sm text-muted">{t('history.description')}</Text>
         <Pressable
-          onPress={() => router.push('/milestones')}
+          onPress={() => router.push('/footprint')}
           className="mt-5 overflow-hidden rounded-3xl p-5"
           style={{ backgroundColor: palette.accentSoft }}>
           <View className="flex-row items-center justify-between">
@@ -92,17 +92,17 @@ export default function History() {
               <Text
                 className="text-[10px] font-bold tracking-[1.2px]"
                 style={{ color: palette.accent }}>
-                MILESTONE
+                FOOTPRINT
               </Text>
               <Text className="mt-1 text-lg font-bold" style={{ color: palette.accentDeep }}>
-                쌓인 노력을 돌아보기
+                나의 발자국
               </Text>
               <Text className="mt-1 text-xs" style={{ color: palette.accentDeep }}>
-                성장 등급과 랭크 확인하기
+                모은 배지와 성장 랭크 둘러보기
               </Text>
             </View>
             <Text className="text-2xl" style={{ color: palette.accent }}>
-              ✦
+              👣
             </Text>
           </View>
         </Pressable>

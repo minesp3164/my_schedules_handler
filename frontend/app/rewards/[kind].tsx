@@ -824,6 +824,7 @@ export default function RewardDetailScreen() {
     queryClient.invalidateQueries({ queryKey: ['reward-unlocks'] });
     queryClient.invalidateQueries({ queryKey: ['history'] });
     queryClient.invalidateQueries({ queryKey: ['history-calendar'] });
+    queryClient.invalidateQueries({ queryKey: ['badges'] });
   };
   // 웹에서는 Alert가 무음이므로 화면 상단 배너로 오류를 보여준다.
   const redeem = useMutation({
