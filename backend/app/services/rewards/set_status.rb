@@ -1,6 +1,6 @@
 module Rewards
   # 회복 패스 보유 기록의 '나중에 사용할게요' <-> '다시 보기' 전이만 허용한다.
-  # 실제 사용(status='redeemed')은 효과 구현(2단계)과 함께 열린다.
+  # 실제 사용(status='redeemed')은 할 일 이월(Tasks::Defer)이 성공할 때 거기서 발생한다.
   class SetStatus
     class InvalidTransition < StandardError; end
 

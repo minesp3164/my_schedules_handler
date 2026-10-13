@@ -1,5 +1,13 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Animated, Image, Pressable, ScrollView, Text, useWindowDimensions, View } from 'react-native';
+import {
+  Animated,
+  Image,
+  Pressable,
+  ScrollView,
+  Text,
+  useWindowDimensions,
+  View,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router, useFocusEffect } from 'expo-router';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
@@ -8,6 +16,7 @@ import {
   createIdempotencyKey,
   getDashboard,
   revertCompletion,
+  undoDefer,
   type Dashboard,
 } from '@/services/api';
 import { getDeviceToken } from '@/services/device-token';
@@ -96,10 +105,26 @@ export default function Home() {
           )
         : completeTask(task.id, token, createIdempotencyKey());
     },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['dashboard'] }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['dashboard'] });
+    },
+  });
+  // 회복 패스로 내일 보낸 할 일을 오늘 안에 되돌린다.
+  const undoMutation = useMutation({
+    mutationFn: (deferralId: string) => {
+      if (!token) throw new Error(t('common.connectFirst'));
+      return undoDefer(token, deferralId);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['dashboard'] });
+      queryClient.invalidateQueries({ queryKey: ['history'] });
+      queryClient.invalidateQueries({ queryKey: ['redemptions'] });
+      queryClient.invalidateQueries({ queryKey: ['reward-unlocks'] });
+    },
   });
 
   const tasks = dashboard.data?.tasks ?? [];
+  const deferrals = dashboard.data?.deferrals ?? [];
   const points = dashboard.data?.daily_summary.points_total ?? 0;
   const totalPoints = dashboard.data?.total_points ?? 0;
   const totalGoal = tasks.length;
@@ -254,6 +279,43 @@ export default function Home() {
           </Pressable>
         ) : null}
 
+        {deferrals.length ? (
+          <View className="mx-5 mt-4 rounded-2xl border border-line bg-surface px-4 py-3">
+            <Text className="text-xs font-bold text-[#26332D]">내일로 보낸 할 일</Text>
+            <Text className="mt-0.5 text-[11px] text-muted">
+              회복 패스로 쉬어 가는 중이에요. 오늘 안에는 되돌릴 수 있어요.
+            </Text>
+            {deferrals.map((item) => (
+              <View
+                key={item.deferral_id}
+                className="mt-2 flex-row items-center justify-between rounded-xl bg-[#F3F8EC] px-3 py-2">
+                <View className="flex-1 pr-2">
+                  <Text className="text-sm font-semibold text-[#37451C]" numberOfLines={1}>
+                    {item.title}
+                  </Text>
+                  <Text className="text-[10px] text-[#667247]">
+                    {Number(item.to_date.slice(5, 7))}월 {Number(item.to_date.slice(8))}일에 다시
+                    만나요
+                  </Text>
+                </View>
+                <Pressable
+                  disabled={undoMutation.isPending}
+                  onPress={() => undoMutation.mutate(item.deferral_id)}
+                  accessibilityRole="button"
+                  accessibilityLabel={`${item.title} 오늘로 되돌리기`}
+                  className="rounded-lg border border-[#9AC13C] px-3 py-2">
+                  <Text className="text-xs font-bold text-[#4E6B15]">되돌리기</Text>
+                </Pressable>
+              </View>
+            ))}
+            {undoMutation.isError ? (
+              <Text className="mt-2 text-[11px] text-[#C44B5D]">
+                {(undoMutation.error as Error).message}
+              </Text>
+            ) : null}
+          </View>
+        ) : null}
+
         <ScrollView
           ref={pagerRef}
           horizontal
@@ -391,9 +453,7 @@ export default function Home() {
                               <Text className="text-base font-bold leading-6 text-[#26332D]">
                                 {task.title}
                               </Text>
-                              <Text className="mt-1.5 text-xs text-muted">
-                                {statusLabel}
-                              </Text>
+                              <Text className="mt-1.5 text-xs text-muted">{statusLabel}</Text>
                             </View>
                             <View
                               className="h-7 min-w-7 items-center justify-center rounded-full px-1.5"

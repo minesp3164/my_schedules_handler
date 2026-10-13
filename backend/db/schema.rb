@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_09_23_000001) do
+ActiveRecord::Schema[8.1].define(version: 2026_09_23_000002) do
   create_table "daily_summaries", primary_key: "date", id: :date, force: :cascade do |t|
     t.datetime "all_goals_completed_at"
     t.datetime "created_at", null: false
@@ -191,6 +191,20 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_23_000001) do
     t.check_constraint "weekly_reward_points > 0", name: "settings_weekly_reward_points_positive"
   end
 
+  create_table "task_deferrals", id: :string, force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.date "from_date", null: false
+    t.string "reward_redemption_id"
+    t.string "task_template_id", null: false
+    t.date "to_date", null: false
+    t.datetime "updated_at", null: false
+    t.string "user_id", null: false
+    t.index ["task_template_id", "from_date"], name: "index_task_deferrals_on_task_and_from_date", unique: true
+    t.index ["user_id", "from_date"], name: "index_task_deferrals_on_user_id_and_from_date"
+    t.index ["user_id", "to_date"], name: "index_task_deferrals_on_user_id_and_to_date"
+    t.check_constraint "to_date > from_date", name: "task_deferrals_dates_ordered"
+  end
+
   create_table "task_templates", id: :string, force: :cascade do |t|
     t.boolean "active", default: true, null: false
     t.datetime "created_at", null: false
@@ -237,6 +251,9 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_23_000001) do
   add_foreign_key "reward_redemptions", "point_events"
   add_foreign_key "reward_redemptions", "users"
   add_foreign_key "reward_rules", "users"
+  add_foreign_key "task_deferrals", "reward_redemptions"
+  add_foreign_key "task_deferrals", "task_templates"
+  add_foreign_key "task_deferrals", "users"
   add_foreign_key "task_templates", "users"
   add_foreign_key "weekly_retros", "users"
 end

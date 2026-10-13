@@ -26,7 +26,8 @@ module Tasks
 
         task = @source_device.user.task_templates.lock.find(@task_template_id)
         date = @now.in_time_zone("Asia/Seoul").to_date
-        raise InactiveTask unless task.active? && task.scheduled_for?(date)
+        goals = Goals.tasks(user: @source_device.user, date: date)
+        raise InactiveTask unless task.active? && goals.any? { |goal| goal.id == task.id }
         completions_for_day = task.daily_task_completions.where(completed_on: date)
         completed_count = completions_for_day.active.count
         raise TargetAlreadyMet if completed_count >= task.target_count
@@ -50,19 +51,8 @@ module Tasks
 
         summary = Points::RecalculateDailySummary.call(date: date, first_activity_at: @now)
         events = [event]
-        if all_goals_completed?(date) && !summary.daily_bonus_awarded?
-          bonus = PointEvent.create!(
-            user: @source_device.user,
-            activity_date: date,
-            event_type: "daily_bonus",
-            points: Setting.instance.daily_bonus_points,
-            idempotency_key: "daily-bonus-#{date}",
-            occurred_at: @now
-          )
-          summary.update!(daily_bonus_awarded: true, all_goals_completed_at: @now)
-          summary = Points::RecalculateDailySummary.call(date: date, first_activity_at: @now)
-          events << bonus
-        end
+        bonus, summary = Points::DailyBonus.call(user: @source_device.user, date: date, now: @now)
+        events << bonus if bonus
 
         rewards = Rewards::Evaluate.call(date: date, achieved_at: @now, user: @source_device.user)
         Result.new(completion, events, summary, rewards.achievements, false)
@@ -75,12 +65,6 @@ module Tasks
       completion = event.daily_task_completion
       summary = DailySummary.find_by!(date: event.activity_date)
       Result.new(completion, [event], summary, [], true)
-    end
-
-    def all_goals_completed?(date)
-      @source_device.user.task_templates.active_in_order.select { |task| task.scheduled_for?(date) }.all? do |task|
-        task.daily_task_completions.active.where(completed_on: date).count >= task.target_count
-      end
     end
   end
 end
