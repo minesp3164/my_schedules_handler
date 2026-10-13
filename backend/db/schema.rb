@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_09_23_000005) do
+ActiveRecord::Schema[8.1].define(version: 2026_09_23_000006) do
   create_table "badge_achievements", id: :string, force: :cascade do |t|
     t.datetime "achieved_at", null: false
     t.string "badge_rule_id", null: false
@@ -65,6 +65,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_23_000005) do
     t.datetime "completed_at", null: false
     t.date "completed_on", null: false
     t.datetime "created_at", null: false
+    t.string "note"
+    t.boolean "note_verified"
     t.datetime "reverted_at"
     t.integer "sequence", null: false
     t.string "source_device_id", null: false

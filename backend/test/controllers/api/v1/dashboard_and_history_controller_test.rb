@@ -134,4 +134,17 @@ class Api::V1::DashboardAndHistoryControllerTest < ActionDispatch::IntegrationTe
     assert_equal "알고리즘", recap.fetch("deferred").first.fetch("title")
     assert_equal "2026-09-12", recap.fetch("deferred").first.fetch("to_date")
   end
+
+  test "history includes the note recorded with an application completion" do
+    completed_at = Time.zone.parse("2026-09-11 10:00:00")
+    application = TaskTemplate.create!(user: @user, title: "실제 지원", points: 25, target_count: 1, position: 2, kind: "application")
+    completion = DailyTaskCompletion.create!(task_template: application, source_device: @device, completed_on: @date, sequence: 1, completed_at: completed_at, note: "카카오")
+    PointEvent.create!(user: @user, daily_task_completion: completion, source_device: @device, activity_date: @date, event_type: "task_completion", points: 25, idempotency_key: "history-note-event", occurred_at: completed_at)
+
+    get "/api/v1/history?from=2026-09-11&to=2026-09-11", headers: @headers
+
+    assert_response :success
+    day = response.parsed_body.fetch("data").fetch("days").first
+    assert_equal "카카오", day.fetch("point_events").first.fetch("source_note")
+  end
 end

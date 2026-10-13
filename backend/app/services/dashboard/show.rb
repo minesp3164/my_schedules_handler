@@ -50,7 +50,7 @@ module Dashboard
         remaining_count: [task.target_count - completions.size, 0].max,
         goal_completed: completions.size >= task.target_count,
         completions: completions.map do |completion|
-          completion.slice(:id, :sequence, :completed_at)
+          completion.slice(:id, :sequence, :completed_at, :note, :note_verified)
         end,
         read_only: false,
         deferred_in: deferred_in

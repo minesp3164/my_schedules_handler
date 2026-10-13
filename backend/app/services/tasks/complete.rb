@@ -4,15 +4,19 @@ module Tasks
 
     class TargetAlreadyMet < StandardError; end
     class InactiveTask < StandardError; end
+    # 실제 지원 같은 할 일은 지원한 곳을 적지 않으면 완료로 인정하지 않는다.
+    class NoteRequired < StandardError; end
 
     def self.call(...)
       new(...).call
     end
 
-    def initialize(task_template_id:, source_device:, idempotency_key:, now: Time.current)
+    def initialize(task_template_id:, source_device:, idempotency_key:, note: nil, company_id: nil, now: Time.current)
       @task_template_id = task_template_id
       @source_device = source_device
       @idempotency_key = idempotency_key.presence || raise(ActiveRecord::RecordInvalid.new(PointEvent.new))
+      @note = note.to_s.strip.presence
+      @company_id = company_id.presence
       @now = now
     end
 
@@ -32,11 +36,22 @@ module Tasks
         completed_count = completions_for_day.active.count
         raise TargetAlreadyMet if completed_count >= task.target_count
 
+        # 목록에서 고른 회사로 받으면 이름은 정본을 쓰고 실존 확인으로 표시한다.
+        company = @company_id ? Company.find_by(id: @company_id) : nil
+        note_verified = false
+        if company && (@note.nil? || Company.normalize_name(company.name) == Company.normalize_name(@note))
+          @note = company.name
+          note_verified = true
+        end
+        raise NoteRequired if task.kind == "application" && @note.nil?
+
         completion = task.daily_task_completions.create!(
           source_device: @source_device,
           completed_on: date,
           sequence: completions_for_day.maximum(:sequence).to_i + 1,
-          completed_at: @now
+          completed_at: @now,
+          note: @note,
+          note_verified: note_verified
         )
         event = PointEvent.create!(
           user: @source_device.user,

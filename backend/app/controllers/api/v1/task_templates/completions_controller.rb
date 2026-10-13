@@ -6,7 +6,9 @@ module Api
           result = Tasks::Complete.call(
             task_template_id: params[:task_template_id],
             source_device: current_device,
-            idempotency_key: request.headers["Idempotency-Key"]
+            idempotency_key: request.headers["Idempotency-Key"],
+            note: params[:note],
+            company_id: params[:company_id]
           )
           revision = unless result.replayed
             Realtime::Publish.call(
@@ -30,7 +32,7 @@ module Api
         private
 
         def completion_payload(completion)
-          completion.slice(:id, :task_template_id, :completed_on, :sequence, :completed_at, :reverted_at)
+          completion.slice(:id, :task_template_id, :completed_on, :sequence, :completed_at, :reverted_at, :note, :note_verified)
         end
 
         def event_payload(event)

@@ -87,7 +87,8 @@ module History
     def event_payload(event)
       event.slice(:id, :event_type, :points, :activity_date, :occurred_at, :reversed_at, :daily_task_completion_id, :focus_session_id).merge(
         source_title: event.daily_task_completion&.task_template&.title,
-        source_kind: event.daily_task_completion&.task_template&.kind
+        source_kind: event.daily_task_completion&.task_template&.kind,
+        source_note: event.daily_task_completion&.note
       )
     end
   end
