@@ -1,0 +1,11 @@
+{
+  "backToRewards": "← 報酬",
+  "title": "ポイント履歴",
+  "description": "直近30日間にポイントが貯まったり使われた理由を確認できます。",
+  "revertedCaption": "取り消された記録 · 残高には反映されません",
+  "countedCaption": "保有ポイントに反映済み",
+  "pointUnit": "点",
+  "emptyTitle": "まだポイントの記録はありません",
+  "emptyDescription": "タスクを完了したり集中を終えると、ここに理由と一緒に表示されます。",
+  "loadError": "ポイント履歴を読み込めませんでした。"
+}

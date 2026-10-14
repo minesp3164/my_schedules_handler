@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Image, Modal, Pressable, Text, TextInput, View } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
+import { t } from '@/services/i18n';
 import { useTheme } from '@/services/theme';
 
 type AlgorithmCompleteSheetProps = {
@@ -33,16 +34,16 @@ export function AlgorithmCompleteSheet({
   const hasProblem = Boolean(problem.trim()) || Boolean(photo);
   const canConfirm = hasProblem && Boolean(answer.trim());
   const validationHint = !hasProblem
-    ? '문제명을 입력하거나 사진을 올려 주세요.'
+    ? t('home.algorithmSheet.hintEnterProblem')
     : !answer.trim()
-      ? '어떤 답변이 나왔는지 입력해 주세요.'
+      ? t('home.algorithmSheet.hintEnterAnswer')
       : null;
 
   const pickPhoto = async () => {
     setPickerError(null);
     const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (!permission.granted) {
-      setPickerError('사진을 올리려면 사진 접근 권한이 필요해요.');
+      setPickerError(t('home.algorithmSheet.photoPermissionNeeded'));
       return;
     }
     const result = await ImagePicker.launchImageLibraryAsync({
@@ -59,7 +60,7 @@ export function AlgorithmCompleteSheet({
       <View className="flex-1 justify-end" style={{ backgroundColor: 'rgba(23, 48, 82, 0.28)' }}>
         <Pressable
           accessibilityRole="button"
-          accessibilityLabel="확인창 닫기"
+          accessibilityLabel={t('home.confirmSheet.closeLabel')}
           onPress={() => {
             if (!saving) onClose();
           }}
@@ -78,46 +79,60 @@ export function AlgorithmCompleteSheet({
           }}>
           <View className="h-1.5 w-10 self-center rounded-full bg-[#C8DDCF]" />
           <View className="mt-5 flex-row items-center justify-between">
-            <Text className="text-xl font-bold text-[#26332D]">어떤 문제였나요?</Text>
+            <Text className="text-xl font-bold text-[#26332D]">
+              {t('home.algorithmSheet.title')}
+            </Text>
             <Pressable
               accessibilityRole="button"
-              accessibilityLabel="확인창 닫기"
+              accessibilityLabel={t('home.confirmSheet.closeLabel')}
               disabled={saving}
               onPress={onClose}
               className="min-h-11 min-w-11 items-center justify-center">
-              <Text className="text-sm font-semibold text-muted">닫기</Text>
+              <Text className="text-sm font-semibold text-muted">
+                {t('home.confirmSheet.close')}
+              </Text>
             </Pressable>
           </View>
 
           <View className="mt-2 flex-row items-center justify-between">
             <Text className="text-xs font-semibold text-muted" numberOfLines={1}>
-              {taskTitle} · {Math.min(completedCount + 1, targetCount)}/{targetCount}번째 문제
+              {t('home.confirmSheet.nthProblem', {
+                title: taskTitle,
+                current: Math.min(completedCount + 1, targetCount),
+                total: targetCount,
+              })}
             </Text>
-            <Text className="ml-3 shrink-0 text-[10px] text-meta">저장하지 않는 확인용이에요</Text>
+            <Text className="ml-3 shrink-0 text-[10px] text-meta">
+              {t('home.algorithmSheet.notSavedNote')}
+            </Text>
           </View>
 
           {/* 문제명 — 사진이 있으면 스킵 가능 */}
           <View className="mt-4 border-t border-line pt-4">
             <Text className="text-sm font-semibold text-[#26332D]">
-              문제명{' '}
-              <Text className="text-[11px] font-normal text-muted">(사진으로 대체 가능)</Text>
+              {t('home.algorithmSheet.problemLabel')}{' '}
+              <Text className="text-[11px] font-normal text-muted">
+                {t('home.algorithmSheet.problemHint')}
+              </Text>
             </Text>
             <TextInput
               value={problem}
               onChangeText={setProblem}
-              placeholder="예: BOJ 1085 — 삼각형의 변"
+              placeholder={t('home.algorithmSheet.problemPlaceholder')}
               placeholderTextColor="#A8AEA2"
               editable={!saving}
               className="mt-2 rounded-2xl border border-line bg-white px-4 py-3 text-base text-[#26332D]"></TextInput>
             <View className="mt-2 flex-row items-center gap-2">
               <Pressable
                 accessibilityRole="button"
-                accessibilityLabel="문제 사진 올리기"
+                accessibilityLabel={t('home.algorithmSheet.uploadPhotoAccessibility')}
                 disabled={saving}
                 onPress={pickPhoto}
                 className="rounded-full border border-[#9AC13C] px-3.5 py-2">
                 <Text className="text-xs font-bold text-[#4E6B15]">
-                  {photo ? '사진 바꾸기' : '사진 올리기'}
+                  {photo
+                    ? t('home.algorithmSheet.changePhoto')
+                    : t('home.algorithmSheet.uploadPhoto')}
                 </Text>
               </Pressable>
               {photo ? (
@@ -129,16 +144,18 @@ export function AlgorithmCompleteSheet({
                   />
                   <Pressable
                     accessibilityRole="button"
-                    accessibilityLabel="올린 사진 삭제"
+                    accessibilityLabel={t('home.algorithmSheet.deletePhotoAccessibility')}
                     disabled={saving}
                     onPress={() => setPhoto(null)}
                     className="rounded-full bg-[#EEF1E8] px-3 py-2">
-                    <Text className="text-xs font-semibold text-[#6E7563]">사진 삭제</Text>
+                    <Text className="text-xs font-semibold text-[#6E7563]">
+                      {t('home.algorithmSheet.deletePhoto')}
+                    </Text>
                   </Pressable>
                 </>
               ) : (
                 <Text className="flex-1 text-[11px] text-meta">
-                  사진을 올리면 문제명 입력은 건너뛸 수 있어요.
+                  {t('home.algorithmSheet.photoSkipHint')}
                 </Text>
               )}
             </View>
@@ -146,12 +163,14 @@ export function AlgorithmCompleteSheet({
 
           {/* 답변 */}
           <View className="mt-4 border-t border-line pt-4">
-            <Text className="text-sm font-semibold text-[#26332D]">어떤 답변이 나왔나요?</Text>
+            <Text className="text-sm font-semibold text-[#26332D]">
+              {t('home.algorithmSheet.answerTitle')}
+            </Text>
             <TextInput
               value={answer}
               onChangeText={setAnswer}
               multiline
-              placeholder="예: 정답(42) · 시간초과 → 이분탐색으로 통과"
+              placeholder={t('home.algorithmSheet.answerPlaceholder')}
               placeholderTextColor="#A8AEA2"
               editable={!saving}
               className="mt-2 min-h-20 rounded-2xl border border-line bg-white px-4 py-3 text-base leading-6 text-[#26332D]"
@@ -170,11 +189,11 @@ export function AlgorithmCompleteSheet({
             disabled={!canConfirm || saving}
             onPress={onConfirm}
             accessibilityRole="button"
-            accessibilityLabel="확인하고 완료 처리하기"
+            accessibilityLabel={t('home.algorithmSheet.confirmAccessibility')}
             className="mt-5 h-14 items-center justify-center rounded-2xl disabled:opacity-40"
             style={{ backgroundColor: palette.accent }}>
             <Text className="text-base font-bold text-white">
-              {saving ? '기록 중…' : '확인 완료'}
+              {saving ? t('home.confirmSheet.saving') : t('home.confirmSheet.confirm')}
             </Text>
           </Pressable>
         </View>

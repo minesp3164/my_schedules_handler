@@ -70,5 +70,43 @@
     "undo": "元に戻す",
     "meetAgain": "%{month}月%{day}日にまた会いましょう",
     "undoAccessibility": "%{title}を今日に戻す"
+  },
+  "confirmSheet": {
+    "closeLabel": "確認画面を閉じる",
+    "close": "閉じる",
+    "saving": "記録中…",
+    "confirm": "確認完了",
+    "nthProblem": "%{title} · %{current}/%{total}問目",
+    "nthApplication": "%{title} · %{current}/%{total}回目の応募"
+  },
+  "algorithmSheet": {
+    "title": "どんな問題でしたか？",
+    "hintEnterProblem": "問題名を入力するか、写真を追加してください。",
+    "hintEnterAnswer": "どのような回答だったか入力してください。",
+    "photoPermissionNeeded": "写真を追加するには、写真へのアクセス許可が必要です。",
+    "notSavedNote": "保存されない確認用です",
+    "problemLabel": "問題名",
+    "problemHint": "(写真で代替できます)",
+    "problemPlaceholder": "例: BOJ 1085 — 三角形の辺",
+    "uploadPhotoAccessibility": "問題写真をアップロード",
+    "uploadPhoto": "写真を追加",
+    "changePhoto": "写真を変更",
+    "deletePhotoAccessibility": "追加した写真を削除",
+    "deletePhoto": "写真を削除",
+    "photoSkipHint": "写真を追加すると、問題名の入力をスキップできます。",
+    "answerTitle": "どのような回答が出ましたか？",
+    "answerPlaceholder": "例: 正解(42) · タイムアウト → 二分探索で突破",
+    "confirmAccessibility": "確認して完了処理をする"
+  },
+  "applicationSheet": {
+    "title": "どこに応募しましたか？",
+    "recordNote": "応募先が記録されます",
+    "companyLabel": "応募した会社",
+    "companyPlaceholder": "例: NAVER · ソウル市青年就業センター",
+    "selectSuggestion": "%{name}を選択",
+    "verifiedNote": "✓ リストで確認された実在の会社として記録されます。",
+    "unverifiedNote": "未確認の会社として記録されます · リストから選ぶと確認されます。",
+    "requiredNote": "応募先を入力すると完了に進めます。",
+    "confirmAccessibility": "応募した会社を入力して完了処理をする"
   }
 }

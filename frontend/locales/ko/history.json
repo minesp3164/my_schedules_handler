@@ -28,5 +28,22 @@
   "samePoints": "지난주와 같은 페이스예요.",
   "pointDelta": "포인트 변화",
   "completedDayDelta": "완료 일수 변화",
-  "showMore": "%{count}개 더 보기"
+  "showMore": "%{count}개 더 보기",
+  "stat": {
+    "point": "포인트",
+    "focus": "집중",
+    "goal": "목표",
+    "minutes": "%{count}분"
+  },
+  "goalFilled": "✦ 오늘의 목표를 채웠어요",
+  "tasksRemaining": "아직 %{count}개가 남았어요.",
+  "deferredTitle": "내일로 보낸 할 일",
+  "deferredDate": "%{month}월 %{day}일",
+  "recoveryButtonLabel": "회복 패스로 할 일 내려놓기",
+  "recoveryButtonTitle": "회복 패스로 오늘 내려놓기",
+  "recoveryLocked": "누적 200점이 되면 회복 패스로 남은 할 일을 내일로 보낼 수 있어요.",
+  "recoveryUsed": "이번 누적 구간의 패스는 사용했어요. 다음 패스는 누적 400점에서 열려요.",
+  "recoveryDeferred": "회복 패스를 나중에 하기로 해뒀어요. 보관함에서 다시 가져오면 사용할 수 있어요.",
+  "footprintTitle": "나의 발자국",
+  "footprintDescription": "모은 배지와 성장 랭크 둘러보기"
 }

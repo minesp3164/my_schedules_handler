@@ -1,0 +1,101 @@
+{
+  "categories": {
+    "all": "전체",
+    "routine": "루틴",
+    "steady": "꾸준함",
+    "focus": "집중",
+    "apply": "지원",
+    "algorithm": "알고리즘",
+    "portfolio": "포트폴리오"
+  },
+  "metric": {
+    "hoursMinutes": "%{hours}시간 %{minutes}분",
+    "hours": "%{hours}시간",
+    "days": "%{count}일",
+    "applications": "%{count}건",
+    "problems": "%{count}문제",
+    "times": "%{count}회",
+    "count": "%{count}개",
+    "targetActivity": "활동 %{value}",
+    "targetAccumulated": "누적 %{value}",
+    "targetApplications": "지원 %{value}",
+    "targetTasks": "할 일 %{value}",
+    "targetCompleted": "완료 %{value}",
+    "remaining": "%{target} · %{value} 남음"
+  },
+  "reason": {
+    "activityDays": "하루 목표 %{threshold}일 달성 · 누적 %{current}일 활동",
+    "focusMinutes": "누적 집중 %{target} 달성 · 현재 %{current}",
+    "createdTasks": "할 일 %{threshold}개 설계 · 현재 %{current}개",
+    "applications": "지원 %{threshold}건 기록 · 현재 %{current}건",
+    "algorithms": "%{threshold}문제 완료 · 현재 %{current}문제",
+    "portfolio": "%{threshold}회 다듬기 · 현재 %{current}회",
+    "default": "%{threshold}개 완료 · 현재 %{current}개"
+  },
+  "tiers": {
+    "bronze": "브론즈",
+    "silver": "실버",
+    "gold": "골드",
+    "platinum": "플래티넘",
+    "diamond": "다이아"
+  },
+  "tracks": {
+    "activityDays": {
+      "title": "활동한 날",
+      "unit": "일"
+    },
+    "completedTasks": {
+      "title": "누적 할 일 완료",
+      "unit": "개"
+    },
+    "focusMinutes": {
+      "title": "누적 집중 시간",
+      "unit": "시간"
+    }
+  },
+  "builder": {
+    "system": {
+      "title": "나만의 시스템",
+      "description": "할 일 10개를 만들어 나만의 루틴을 구성했어요."
+    },
+    "designer": {
+      "title": "루틴 설계자",
+      "description": "할 일 3개를 만들어 하루의 흐름을 정했어요."
+    },
+    "first": {
+      "title": "첫 루틴",
+      "description": "첫 할 일을 만들고 시작을 준비했어요."
+    }
+  },
+  "screen": {
+    "title": "나의 발자국",
+    "subtitle": "지금까지 모은 배지 %{achieved}개 · 배지 종류 총 %{total}개",
+    "subtitleFirstRecord": " · 첫 기록 %{date}",
+    "subtitleRank": " · 성장 등급 %{name}",
+    "loading": "발자국을 불러오는 중이에요.",
+    "showLockedAccessibility": "미달성 배지 보이기",
+    "showLocked": "미달성 배지 보이기",
+    "lockedCount": "(%{count}개 잠김)",
+    "hiddenHint": "숨겨진 배지는 압박하지 않아요",
+    "loadError": "발자국을 불러오지 못했어요.",
+    "emptyCategory": "이 카테고리의 배지는 아직 없어요.",
+    "collecting": "배지를 모으는 중이에요.",
+    "rankTitle": "쌓인 노력",
+    "rankSubtitle": "분야별 랭크의 평균으로 성장 등급이 정해져요.",
+    "rankLoadError": "랭크를 불러오지 못했어요.",
+    "rankCalculating": "랭크를 계산하는 중",
+    "rankDescription": "%{from}에서 %{to}까지, 쌓인 노력이 등급이 돼요.",
+    "growthRankLabel": "성장 등급",
+    "untilTier": "%{tier}까지 %{value}",
+    "tierMax": "다이아 달성",
+    "footerNote": "공백이 있어도 괜찮아요. 이미 쌓인 노력과 배지는 내려가지 않아요."
+  },
+  "celebration": {
+    "reasonLabel": "달성 근거",
+    "addedNote": "\n새 배지가 발자국에 추가됐어요.",
+    "completed": "%{value} 완주",
+    "earned": "%{date} 획득",
+    "viewFootprint": "나의 발자국에 세우기",
+    "later": "나중에 볼게요"
+  }
+}

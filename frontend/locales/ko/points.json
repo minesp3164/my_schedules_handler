@@ -1,0 +1,11 @@
+{
+  "backToRewards": "← 보상",
+  "title": "포인트 내역",
+  "description": "최근 30일 동안 포인트가 쌓이거나 사용된 이유를 확인해요.",
+  "revertedCaption": "취소된 기록 · 잔액에 반영되지 않아요",
+  "countedCaption": "보유 포인트에 반영됨",
+  "pointUnit": "점",
+  "emptyTitle": "아직 포인트 기록이 없어요",
+  "emptyDescription": "할 일을 완료하거나 집중을 마치면 이곳에 이유와 함께 표시돼요.",
+  "loadError": "포인트 내역을 불러오지 못했어요."
+}

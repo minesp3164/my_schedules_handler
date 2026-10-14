@@ -70,5 +70,43 @@
     "undo": "되돌리기",
     "meetAgain": "%{month}월 %{day}일에 다시 만나요",
     "undoAccessibility": "%{title} 오늘로 되돌리기"
+  },
+  "confirmSheet": {
+    "closeLabel": "확인창 닫기",
+    "close": "닫기",
+    "saving": "기록 중…",
+    "confirm": "확인 완료",
+    "nthProblem": "%{title} · %{current}/%{total}번째 문제",
+    "nthApplication": "%{title} · %{current}/%{total}번째 지원"
+  },
+  "algorithmSheet": {
+    "title": "어떤 문제였나요?",
+    "hintEnterProblem": "문제명을 입력하거나 사진을 올려 주세요.",
+    "hintEnterAnswer": "어떤 답변이 나왔는지 입력해 주세요.",
+    "photoPermissionNeeded": "사진을 올리려면 사진 접근 권한이 필요해요.",
+    "notSavedNote": "저장하지 않는 확인용이에요",
+    "problemLabel": "문제명",
+    "problemHint": "(사진으로 대체 가능)",
+    "problemPlaceholder": "예: BOJ 1085 — 삼각형의 변",
+    "uploadPhotoAccessibility": "문제 사진 올리기",
+    "uploadPhoto": "사진 올리기",
+    "changePhoto": "사진 바꾸기",
+    "deletePhotoAccessibility": "올린 사진 삭제",
+    "deletePhoto": "사진 삭제",
+    "photoSkipHint": "사진을 올리면 문제명 입력은 건너뛸 수 있어요.",
+    "answerTitle": "어떤 답변이 나왔나요?",
+    "answerPlaceholder": "예: 정답(42) · 시간초과 → 이분탐색으로 통과",
+    "confirmAccessibility": "확인하고 완료 처리하기"
+  },
+  "applicationSheet": {
+    "title": "어디에 지원했어요?",
+    "recordNote": "지원한 곳이 기록돼요",
+    "companyLabel": "지원한 회사",
+    "companyPlaceholder": "예: 네이버 · 서울시 청년취업센터",
+    "selectSuggestion": "%{name} 선택",
+    "verifiedNote": "✓ 목록에서 확인된 실존 회사로 기록돼요.",
+    "unverifiedNote": "미확인 회사로 기록돼요 · 목록에서 고르면 확인돼요.",
+    "requiredNote": "지원한 곳을 적어야 완료로 넘어갈 수 있어요.",
+    "confirmAccessibility": "지원한 회사를 적고 완료 처리하기"
   }
 }

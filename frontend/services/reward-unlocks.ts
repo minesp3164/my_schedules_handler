@@ -1,4 +1,5 @@
 import type { RewardUnlockState } from '@/services/api';
+import { t } from '@/services/i18n';
 
 export type UnlockRewardKind = 'cheer' | 'recovery' | 'reflection' | 'future' | 'growth';
 
@@ -82,41 +83,41 @@ function rewardPalette(baseColor: string, index: number) {
 const REWARD_DEFS = [
   {
     kind: 'cheer',
-    title: '익명 응원 남기기',
-    shortTitle: '익명 응원',
-    description: '누군가의 오늘에 짧고 따뜻한 문장을 건네요.',
+    title: t('rewards.unlockKinds.cheer.title'),
+    shortTitle: t('rewards.unlockKinds.cheer.shortTitle'),
+    description: t('rewards.unlockKinds.cheer.description'),
     threshold: 100,
     icon: '✉',
   },
   {
     kind: 'recovery',
-    title: '회복 패스',
-    shortTitle: '회복 패스',
-    description: '오늘의 할 일 하나를 내일로 부드럽게 옮겨요.',
+    title: t('rewards.unlockKinds.recovery.title'),
+    shortTitle: t('rewards.unlockKinds.recovery.shortTitle'),
+    description: t('rewards.unlockKinds.recovery.description'),
     threshold: 200,
     icon: '⌁',
   },
   {
     kind: 'reflection',
-    title: '주간 회고 열기',
-    shortTitle: '주간 회고',
-    description: '이번 주의 행동을 한 장의 기록으로 남겨요.',
+    title: t('rewards.unlockKinds.reflection.title'),
+    shortTitle: t('rewards.unlockKinds.reflection.shortTitle'),
+    description: t('rewards.unlockKinds.reflection.description'),
     threshold: 300,
     icon: '◔',
   },
   {
     kind: 'future',
-    title: '미래의 나에게 응원 남기기',
-    shortTitle: '미래 편지',
-    description: '힘든 날의 나에게 미리 건네는 작은 편지예요.',
+    title: t('rewards.unlockKinds.future.title'),
+    shortTitle: t('rewards.unlockKinds.future.shortTitle'),
+    description: t('rewards.unlockKinds.future.description'),
     threshold: 400,
     icon: '♡',
   },
   {
     kind: 'growth',
-    title: '성장 기록 카드 저장',
-    shortTitle: '성장 기록',
-    description: '이번 달의 노력과 한 줄 회고를 오래 남겨요.',
+    title: t('rewards.unlockKinds.growth.title'),
+    shortTitle: t('rewards.unlockKinds.growth.shortTitle'),
+    description: t('rewards.unlockKinds.growth.description'),
     threshold: 500,
     icon: '✦',
   },
@@ -151,10 +152,16 @@ export function getUnlockRewards(
 
 export function rewardRequirement(reward: UnlockReward) {
   if (reward.unit === 'weekly') {
-    return `이번 주 ${reward.threshold}점 달성 · ${reward.progress}점 모음`;
+    return t('rewards.requirement.weekly', {
+      threshold: reward.threshold,
+      progress: reward.progress,
+    });
   }
   if (reward.unit === 'balance') {
-    return `보유 ${reward.threshold}점 필요 · 현재 ${reward.progress}점`;
+    return t('rewards.requirement.balance', {
+      threshold: reward.threshold,
+      progress: reward.progress,
+    });
   }
-  return `누적 ${reward.threshold}점 달성 · ${reward.progress}점 모음`;
+  return t('rewards.requirement.total', { threshold: reward.threshold, progress: reward.progress });
 }

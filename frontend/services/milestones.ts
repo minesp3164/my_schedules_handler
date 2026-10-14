@@ -1,11 +1,12 @@
 import type { MilestoneProgress } from '@/services/api';
+import { t } from '@/services/i18n';
 
 export const rankTiers = [
-  { name: '브론즈', shortName: 'B', color: '#A66A3F' },
-  { name: '실버', shortName: 'S', color: '#68758A' },
-  { name: '골드', shortName: 'G', color: '#A87522' },
-  { name: '플래티넘', shortName: 'P', color: '#438E98' },
-  { name: '다이아', shortName: 'D', color: '#5969C9' },
+  { name: t('footprint.tiers.bronze'), shortName: 'B', color: '#A66A3F' },
+  { name: t('footprint.tiers.silver'), shortName: 'S', color: '#68758A' },
+  { name: t('footprint.tiers.gold'), shortName: 'G', color: '#A87522' },
+  { name: t('footprint.tiers.platinum'), shortName: 'P', color: '#438E98' },
+  { name: t('footprint.tiers.diamond'), shortName: 'D', color: '#5969C9' },
 ] as const;
 
 export type RankTrack = {
@@ -19,23 +20,23 @@ export type RankTrack = {
 export const rankTracks: RankTrack[] = [
   {
     id: 'activity_days',
-    title: '활동한 날',
+    title: t('footprint.tracks.activityDays.title'),
     icon: '☀',
-    unit: '일',
+    unit: t('footprint.tracks.activityDays.unit'),
     thresholds: [3, 10, 30, 60, 100],
   },
   {
     id: 'completed_tasks',
-    title: '누적 할 일 완료',
+    title: t('footprint.tracks.completedTasks.title'),
     icon: '✓',
-    unit: '개',
+    unit: t('footprint.tracks.completedTasks.unit'),
     thresholds: [10, 50, 150, 300, 500],
   },
   {
     id: 'focus_minutes',
-    title: '누적 집중 시간',
+    title: t('footprint.tracks.focusMinutes.title'),
     icon: '⌛',
-    unit: '시간',
+    unit: t('footprint.tracks.focusMinutes.unit'),
     thresholds: [60, 600, 1800, 3600, 6000],
   },
 ];
@@ -57,7 +58,12 @@ export function currentRank(track: RankTrack, progress: MilestoneProgress) {
 }
 
 export function formatTrackValue(track: RankTrack, value: number) {
-  if (track.id === 'focus_minutes') return `${Math.floor(value / 60)}시간 ${value % 60}분`;
+  if (track.id === 'focus_minutes') {
+    return t('footprint.metric.hoursMinutes', {
+      hours: Math.floor(value / 60),
+      minutes: value % 60,
+    });
+  }
   return `${value}${track.unit}`;
 }
 
@@ -75,10 +81,19 @@ export function overallRank(progress: MilestoneProgress) {
 
 export function builderBadge(createdTasks: number) {
   if (createdTasks >= 10)
-    return { title: '나만의 시스템', description: '할 일 10개를 만들어 나만의 루틴을 구성했어요.' };
+    return {
+      title: t('footprint.builder.system.title'),
+      description: t('footprint.builder.system.description'),
+    };
   if (createdTasks >= 3)
-    return { title: '루틴 설계자', description: '할 일 3개를 만들어 하루의 흐름을 정했어요.' };
+    return {
+      title: t('footprint.builder.designer.title'),
+      description: t('footprint.builder.designer.description'),
+    };
   if (createdTasks >= 1)
-    return { title: '첫 루틴', description: '첫 할 일을 만들고 시작을 준비했어요.' };
+    return {
+      title: t('footprint.builder.first.title'),
+      description: t('footprint.builder.first.description'),
+    };
   return null;
 }

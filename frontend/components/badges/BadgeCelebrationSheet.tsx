@@ -1,6 +1,7 @@
 import { Modal, Pressable, Text, View } from 'react-native';
 import type { Badge, MilestoneProgress } from '@/services/api';
 import { achievementReason, formatBadgeDate, formatMetric } from '@/services/badges';
+import { t } from '@/services/i18n';
 import { useTheme } from '@/services/theme';
 
 type BadgeCelebrationSheetProps = {
@@ -32,7 +33,7 @@ export function BadgeCelebrationSheet({
       onRequestClose={onDismiss}>
       <View className="flex-1 justify-end" style={{ backgroundColor: 'rgba(20, 30, 26, 0.52)' }}>
         <Pressable
-          accessibilityLabel="나중에 볼게요"
+          accessibilityLabel={t('footprint.celebration.later')}
           onPress={onDismiss}
           style={{ position: 'absolute', inset: 0 }}
         />
@@ -74,7 +75,7 @@ export function BadgeCelebrationSheet({
           </Text>
           <Text className="mt-2.5 text-center text-[13.5px] leading-[21px] text-[#778078]">
             {badge.description}
-            {'\n'}새 배지가 발자국에 추가됐어요.
+            {t('footprint.celebration.addedNote')}
           </Text>
 
           {progress ? (
@@ -87,7 +88,7 @@ export function BadgeCelebrationSheet({
                 paddingVertical: 16,
               }}>
               <Text className="text-[11px] font-bold tracking-[0.6px]" style={{ color: '#879087' }}>
-                달성 근거
+                {t('footprint.celebration.reasonLabel')}
               </Text>
               <Text className="mt-1.5 text-[15px] font-extrabold" style={{ color: '#2D423B' }}>
                 {achievementReason(badge, progress)}
@@ -102,10 +103,14 @@ export function BadgeCelebrationSheet({
               </View>
               <View className="mt-2 flex-row justify-between">
                 <Text className="text-[11px]" style={{ color: '#98A199' }}>
-                  {formatMetric(badge.metric, badge.threshold)} 완주
+                  {t('footprint.celebration.completed', {
+                    value: formatMetric(badge.metric, badge.threshold),
+                  })}
                 </Text>
                 <Text className="text-[11px]" style={{ color: '#98A199' }}>
-                  {formatBadgeDate(badge.achieved_at)} 획득
+                  {t('footprint.celebration.earned', {
+                    date: formatBadgeDate(badge.achieved_at),
+                  })}
                 </Text>
               </View>
             </View>
@@ -116,11 +121,13 @@ export function BadgeCelebrationSheet({
             onPress={onOpenFootprint}
             className="mt-[22px] items-center rounded-full py-[17px]"
             style={{ backgroundColor: palette.accent }}>
-            <Text className="text-[15.5px] font-bold text-white">나의 발자국에 세우기</Text>
+            <Text className="text-[15.5px] font-bold text-white">
+              {t('footprint.celebration.viewFootprint')}
+            </Text>
           </Pressable>
           <Pressable accessibilityRole="button" onPress={onDismiss} className="items-center py-3.5">
             <Text className="text-[13.5px]" style={{ color: '#98A199' }}>
-              나중에 볼게요
+              {t('footprint.celebration.later')}
             </Text>
           </Pressable>
         </View>

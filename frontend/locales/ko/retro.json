@@ -26,5 +26,6 @@
   "focusHours": "%{hours}시간 %{minutes}분",
   "focusMinutes": "%{minutes}분",
   "emptyBodyDeleteHint": "비우고 저장하면 회고가 삭제돼요",
+  "pointUnit": "점",
   "costHint": "이 주의 회고를 처음 저장할 때 300점을 사용해요"
 }

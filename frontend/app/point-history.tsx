@@ -5,17 +5,11 @@ import { router } from 'expo-router';
 import { useQuery } from '@tanstack/react-query';
 import { getHistory, type HistoryDay } from '@/services/api';
 import { getDeviceToken } from '@/services/device-token';
-import { formatShortDate } from '@/services/i18n';
+import { formatShortDate, t } from '@/services/i18n';
 import { useTheme } from '@/services/theme';
 
-const eventLabel: Record<HistoryDay['point_events'][number]['event_type'], string> = {
-  task_completion: '할 일 완료',
-  focus_completion: '집중 완료',
-  daily_bonus: '하루 목표 보너스',
-  reward_redemption: '보상 사용',
-  adjustment: '포인트 조정',
-  application_milestone: '지원 단계 기록',
-};
+const eventLabel = (eventType: HistoryDay['point_events'][number]['event_type']) =>
+  t(`history.event.${eventType}`);
 
 function localIsoDate(date: Date) {
   const offset = date.getTimezoneOffset() * 60_000;
@@ -52,16 +46,16 @@ export default function PointHistoryScreen() {
         <Pressable
           onPress={() => router.back()}
           accessibilityRole="button"
-          accessibilityLabel="뒤로 가기"
+          accessibilityLabel={t('common.back')}
           className="min-h-11 justify-center self-start py-2">
           <Text className="text-sm font-bold" style={{ color: palette.accent }}>
-            ← 보상
+            {t('points.backToRewards')}
           </Text>
         </Pressable>
-        <Text className="mt-4 text-2xl font-bold tracking-tight text-[#24232A]">포인트 내역</Text>
-        <Text className="mt-2 text-sm leading-5 text-[#6B6571]">
-          최근 30일 동안 포인트가 쌓이거나 사용된 이유를 확인해요.
+        <Text className="mt-4 text-2xl font-bold tracking-tight text-[#24232A]">
+          {t('points.title')}
         </Text>
+        <Text className="mt-2 text-sm leading-5 text-[#6B6571]">{t('points.description')}</Text>
 
         <View className="mt-6 gap-5">
           {days.map((day) => (
@@ -85,12 +79,10 @@ export default function PointHistoryScreen() {
                       <View className="flex-1 pr-3">
                         <Text
                           className={`text-sm font-bold ${reverted ? 'text-[#98929E]' : 'text-[#37323F]'}`}>
-                          {eventLabel[event.event_type]}
+                          {eventLabel(event.event_type)}
                         </Text>
                         <Text className="mt-1 text-[11px] text-[#817A87]">
-                          {reverted
-                            ? '취소된 기록 · 잔액에 반영되지 않아요'
-                            : '보유 포인트에 반영됨'}
+                          {reverted ? t('points.revertedCaption') : t('points.countedCaption')}
                         </Text>
                       </View>
                       <Text
@@ -99,7 +91,8 @@ export default function PointHistoryScreen() {
                           !reverted ? { color: positive ? palette.accent : '#E85E4A' } : undefined
                         }>
                         {positive ? '+' : ''}
-                        {event.points.toLocaleString()}점
+                        {event.points.toLocaleString()}
+                        {t('points.pointUnit')}
                       </Text>
                     </View>
                   );
@@ -111,14 +104,14 @@ export default function PointHistoryScreen() {
             <View
               className="items-center rounded-2xl border border-dashed px-5 py-12"
               style={{ borderColor: palette.line }}>
-              <Text className="text-base font-bold text-[#37323F]">아직 포인트 기록이 없어요</Text>
+              <Text className="text-base font-bold text-[#37323F]">{t('points.emptyTitle')}</Text>
               <Text className="mt-2 text-center text-xs leading-5 text-[#817A87]">
-                할 일을 완료하거나 집중을 마치면 이곳에 이유와 함께 표시돼요.
+                {t('points.emptyDescription')}
               </Text>
             </View>
           ) : null}
           {history.isError ? (
-            <Text className="text-sm text-[#E85E4A]">포인트 내역을 불러오지 못했어요.</Text>
+            <Text className="text-sm text-[#E85E4A]">{t('points.loadError')}</Text>
           ) : null}
         </View>
       </ScrollView>

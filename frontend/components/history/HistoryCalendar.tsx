@@ -141,7 +141,7 @@ function PointEventRow({ event }: { event: HistoryDay['point_events'][number] })
       <Text className="flex-1 pr-3 text-xs font-semibold text-[#26332D]">{label}</Text>
       <Text className="text-sm font-bold" style={{ color: positive ? palette.accent : '#D65050' }}>
         {positive ? '+' : ''}
-        {event.points}점
+        {t('common.point', { count: event.points })}
       </Text>
     </View>
   );
