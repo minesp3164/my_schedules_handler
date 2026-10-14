@@ -16,12 +16,15 @@ const categories: CategoryOption[] = [
   { key: 'focus', kind: 'focus', titleKey: 'tasks.categoryFocus' },
   { key: 'algorithm', kind: 'algorithm', titleKey: 'tasks.categoryAlgorithm' },
   { key: 'blog', kind: 'portfolio', titleKey: 'tasks.categoryBlog' },
-  { key: 'research', kind: 'application', titleKey: 'tasks.categoryResearch' },
+  // 기업 리서치는 조사만 한 활동이라 별도 종류를 쓴다. 실제 지원(kind: application)과 섞이지 않는다.
+  { key: 'research', kind: 'research', titleKey: 'tasks.categoryResearch' },
+  { key: 'apply', kind: 'application', titleKey: 'tasks.categoryApplication' },
 ];
 const categoryPoints: Record<string, number> = {
   focus: 10,
   algorithm: 1,
   portfolio: 20,
+  research: 10,
   application: 25,
 };
 const fixedPointCategories = new Set(['portfolio', 'application']);
@@ -42,8 +45,7 @@ export function TaskComposerSheet({
   const { palette } = useTheme();
   const option = categories.find((item) => item.key === categoryKey) ?? categories[0];
   const autoPoints =
-    (categoryPoints[option.kind] ?? 0) *
-    (fixedPointCategories.has(option.kind) ? 1 : targetCount);
+    (categoryPoints[option.kind] ?? 0) * (fixedPointCategories.has(option.kind) ? 1 : targetCount);
   const close = () => {
     setTargetCount(1);
     setCategoryKey('focus');

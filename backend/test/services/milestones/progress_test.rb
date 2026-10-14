@@ -31,17 +31,20 @@ class Milestones::ProgressTest < ActiveSupport::TestCase
   test "counts completions per task kind" do
     application = TaskTemplate.create!(user: @user, title: "실제 지원 1건", points: 25, target_count: 5, position: 1, kind: "application")
     algorithm = TaskTemplate.create!(user: @user, title: "알고리즘 1문제", points: 1, target_count: 3, position: 2, kind: "algorithm")
+    research = TaskTemplate.create!(user: @user, title: "기업 리서치", points: 10, target_count: 3, position: 3, kind: "research")
     DailyTaskCompletion.create!(task_template: application, source_device: @device, completed_on: Date.new(2026, 9, 10), completed_at: Time.zone.parse("2026-09-10 10:00"), sequence: 1)
     DailyTaskCompletion.create!(task_template: application, source_device: @device, completed_on: Date.new(2026, 9, 11), completed_at: Time.zone.parse("2026-09-11 10:00"), sequence: 1)
     DailyTaskCompletion.create!(task_template: algorithm, source_device: @device, completed_on: Date.new(2026, 9, 10), completed_at: Time.zone.parse("2026-09-10 12:00"), sequence: 1)
+    DailyTaskCompletion.create!(task_template: research, source_device: @device, completed_on: Date.new(2026, 9, 10), completed_at: Time.zone.parse("2026-09-10 13:00"), sequence: 1)
 
     result = Milestones::Progress.call(user: @user)
 
-    assert_equal 3, result.completed_tasks
+    # 리서치 완료는 전체 완료에는 들지만 지원 배지 지표(application_completions)에는 섞이지 않는다.
+    assert_equal 4, result.completed_tasks
     assert_equal 2, result.application_completions
     assert_equal 1, result.algorithm_completions
     assert_equal 0, result.portfolio_completions
-    assert_equal 3, result.created_tasks
+    assert_equal 4, result.created_tasks
     assert_nil result.first_activity_date
   end
 end
