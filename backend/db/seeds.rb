@@ -19,7 +19,7 @@ end
   ["집중 세션 25분", 10, 2, "focus"],
   ["알고리즘 1문제", 1, 1, "algorithm"],
   ["기술 블로그/회고 글 1건", 20, 1, "portfolio"],
-  ["기업 리서치 1곳", 25, 1, "application"]
+  ["기업 리서치 1곳", 10, 1, "research"]
 ].each_with_index do |(title, points, target_count, kind), position|
   TaskTemplate.find_or_create_by!(title: title) do |task|
     task.user = user

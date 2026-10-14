@@ -11,6 +11,15 @@ module Rewards
     class Locked < StandardError; end
     class LimitReached < StandardError; end
 
+    # 보상 종류별 처리 방법 조회표(kind 순회 if-체인 대신).
+    HANDLERS = {
+      "cheer" => :claim_cheer,
+      "recovery" => :claim_recovery,
+      "future" => :claim_future,
+      "growth" => :claim_growth,
+      "reflection" => :purchase_reflection
+    }.freeze
+
     def self.call(...)
       new(...).call
     end
@@ -30,15 +39,10 @@ module Rewards
         return Result.new(replay, balance, true)
       end
 
-      case @reward_kind
-      when "cheer" then claim_cheer
-      when "recovery" then claim_recovery
-      when "future" then claim_future
-      when "growth" then claim_growth
-      when "reflection" then purchase_reflection
-      else
-        raise Rewards::Redeem::UnknownReward
-      end
+      handler = HANDLERS[@reward_kind]
+      raise Rewards::Redeem::UnknownReward unless handler
+
+      send(handler)
     end
 
     private
@@ -130,32 +134,11 @@ module Rewards
     end
 
     def message_payload
-      message = @payload["message"].to_s.strip
-      raise ActiveRecord::RecordInvalid, message_record(message) if message.blank? || message.length > 100
-
-      { "message" => message }
+      Rewards::ClaimPayload.build(@payload, user: @user, field: "message")
     end
 
     def letter_payload
-      letter = @payload["letter"].to_s.strip
-      raise ActiveRecord::RecordInvalid, letter_record(letter) if letter.blank? || letter.length > 500
-
-      { "letter" => letter }
-    end
-
-    # payload 검증 실패도 컨트롤러의 validation_failed로 렌더링되게 한다.
-    def message_record(text)
-      RewardRedemption.new(user: @user, reward_kind: "cheer").tap do |record|
-        record.errors.add(:payload, :blank) if text.blank?
-        record.errors.add(:payload, :too_long) if text.length > 100
-      end
-    end
-
-    def letter_record(text)
-      RewardRedemption.new(user: @user, reward_kind: "future").tap do |record|
-        record.errors.add(:payload, :blank) if text.blank?
-        record.errors.add(:payload, :too_long) if text.length > 500
-      end
+      Rewards::ClaimPayload.build(@payload, user: @user, field: "letter")
     end
   end
 end
