@@ -26,5 +26,6 @@
   "focusHours": "%{hours}時間%{minutes}分",
   "focusMinutes": "%{minutes}分",
   "emptyBodyDeleteHint": "空欄で保存すると振り返りが削除されます",
+  "pointUnit": "点",
   "costHint": "この週の振り返りを初めて保存するときに300点を使用します"
 }

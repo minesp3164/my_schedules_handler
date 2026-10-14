@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Modal, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import { useTheme } from '@/services/theme';
+import { t } from '@/services/i18n';
 import type { Company } from '@/services/api';
 
 type ApplicationCompleteSheetProps = {
@@ -74,7 +75,7 @@ export function ApplicationCompleteSheet({
       <View className="flex-1 justify-end" style={{ backgroundColor: 'rgba(23, 48, 82, 0.28)' }}>
         <Pressable
           accessibilityRole="button"
-          accessibilityLabel="확인창 닫기"
+          accessibilityLabel={t('home.confirmSheet.closeLabel')}
           onPress={() => {
             if (!saving) onClose();
           }}
@@ -93,31 +94,43 @@ export function ApplicationCompleteSheet({
           }}>
           <View className="h-1.5 w-10 self-center rounded-full bg-[#C8DDCF]" />
           <View className="mt-5 flex-row items-center justify-between">
-            <Text className="text-xl font-bold text-[#26332D]">어디에 지원했어요?</Text>
+            <Text className="text-xl font-bold text-[#26332D]">
+              {t('home.applicationSheet.title')}
+            </Text>
             <Pressable
               accessibilityRole="button"
-              accessibilityLabel="확인창 닫기"
+              accessibilityLabel={t('home.confirmSheet.closeLabel')}
               disabled={saving}
               onPress={onClose}
               className="min-h-11 min-w-11 items-center justify-center">
-              <Text className="text-sm font-semibold text-muted">닫기</Text>
+              <Text className="text-sm font-semibold text-muted">
+                {t('home.confirmSheet.close')}
+              </Text>
             </Pressable>
           </View>
 
           <View className="mt-2 flex-row items-center justify-between">
             <Text className="text-xs font-semibold text-muted" numberOfLines={1}>
-              {taskTitle} · {Math.min(completedCount + 1, targetCount)}/{targetCount}번째 지원
+              {t('home.confirmSheet.nthApplication', {
+                title: taskTitle,
+                current: Math.min(completedCount + 1, targetCount),
+                total: targetCount,
+              })}
             </Text>
-            <Text className="ml-3 shrink-0 text-[10px] text-meta">지원한 곳이 기록돼요</Text>
+            <Text className="ml-3 shrink-0 text-[10px] text-meta">
+              {t('home.applicationSheet.recordNote')}
+            </Text>
           </View>
 
           {/* 회사명 */}
           <View className="mt-4 border-t border-line pt-4">
-            <Text className="text-sm font-semibold text-[#26332D]">지원한 회사</Text>
+            <Text className="text-sm font-semibold text-[#26332D]">
+              {t('home.applicationSheet.companyLabel')}
+            </Text>
             <TextInput
               value={company}
               onChangeText={handleChange}
-              placeholder="예: 네이버 · 서울시 청년취업센터"
+              placeholder={t('home.applicationSheet.companyPlaceholder')}
               placeholderTextColor="#A8AEA2"
               editable={!saving}
               maxLength={100}
@@ -138,7 +151,9 @@ export function ApplicationCompleteSheet({
                   <Pressable
                     key={item.id}
                     accessibilityRole="button"
-                    accessibilityLabel={`${item.name} 선택`}
+                    accessibilityLabel={t('home.applicationSheet.selectSuggestion', {
+                      name: item.name,
+                    })}
                     disabled={saving}
                     onPress={() => handlePick(item)}
                     className="border-b border-line px-4 py-2.5 last:border-b-0">
@@ -152,15 +167,15 @@ export function ApplicationCompleteSheet({
 
             {companyId ? (
               <Text className="mt-2 text-[11px] font-semibold text-[#3E8E68]">
-                ✓ 목록에서 확인된 실존 회사로 기록돼요.
+                {t('home.applicationSheet.verifiedNote')}
               </Text>
             ) : trimmed ? (
               <Text className="mt-2 text-[11px] text-meta">
-                미확인 회사로 기록돼요 · 목록에서 고르면 확인돼요.
+                {t('home.applicationSheet.unverifiedNote')}
               </Text>
             ) : (
               <Text className="mt-2 text-[11px] text-meta">
-                지원한 곳을 적어야 완료로 넘어갈 수 있어요.
+                {t('home.applicationSheet.requiredNote')}
               </Text>
             )}
           </View>
@@ -173,11 +188,11 @@ export function ApplicationCompleteSheet({
             disabled={!canConfirm || saving}
             onPress={() => onConfirm(trimmed, companyId)}
             accessibilityRole="button"
-            accessibilityLabel="지원한 회사를 적고 완료 처리하기"
+            accessibilityLabel={t('home.applicationSheet.confirmAccessibility')}
             className="mt-5 h-14 items-center justify-center rounded-2xl disabled:opacity-40"
             style={{ backgroundColor: palette.accent }}>
             <Text className="text-base font-bold text-white">
-              {saving ? '기록 중…' : '확인 완료'}
+              {saving ? t('home.confirmSheet.saving') : t('home.confirmSheet.confirm')}
             </Text>
           </Pressable>
         </View>

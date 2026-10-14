@@ -95,10 +95,10 @@ export default function History() {
                 FOOTPRINT
               </Text>
               <Text className="mt-1 text-lg font-bold" style={{ color: palette.accentDeep }}>
-                나의 발자국
+                {t('history.footprintTitle')}
               </Text>
               <Text className="mt-1 text-xs" style={{ color: palette.accentDeep }}>
-                모은 배지와 성장 랭크 둘러보기
+                {t('history.footprintDescription')}
               </Text>
             </View>
             <Text className="text-2xl" style={{ color: palette.accent }}>

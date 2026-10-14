@@ -21,5 +21,11 @@
   "notificationBody": "お疲れさまでした。+10ポイントを記録しました。",
   "notificationChannel": "集中完了のお知らせ",
   "preview": "通知を確認",
-  "previewUnavailable": "通知を許可すると確認できます。"
+  "previewUnavailable": "通知を許可すると確認できます。",
+  "liveActivity": {
+    "permissionRequired": "iPhone の設定でこのアプリのライブアクティビティを許可してください。",
+    "reinstallRequired": "最新版のアプリを再インストールしてから、集中を開始してください。",
+    "unsupported": "ライブアクティビティは iOS 16.2 以上でご利用いただけます。",
+    "startFailed": "ライブアクティビティを開始できませんでした。アプリを再インストールしてもう一度お試しください。"
+  }
 }

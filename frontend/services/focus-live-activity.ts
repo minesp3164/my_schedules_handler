@@ -1,5 +1,6 @@
 import * as SecureStore from 'expo-secure-store';
 import { NativeModules, Platform } from 'react-native';
+import { t } from '@/services/i18n';
 
 type FocusLiveActivityModule = {
   status: () => Promise<'enabled' | 'disabled' | 'unsupported'>;
@@ -32,7 +33,7 @@ async function readActivityId() {
 export async function startFocusLiveActivity(
   plannedSeconds: number,
   endAtMs: number,
-  title = '집중 시간'
+  title = t('focus.title')
 ): Promise<FocusLiveActivityStartResult> {
   if (Platform.OS !== 'ios') return 'unsupported';
   if (!isAvailable()) return 'native-module-missing';

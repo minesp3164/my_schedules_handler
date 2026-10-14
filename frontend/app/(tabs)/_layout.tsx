@@ -45,7 +45,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="rewards"
         options={{
-          title: '보상',
+          title: t('tabs.rewards'),
           tabBarIcon: ({ color }) => <TabBarIcon name="reward" color={color} />,
         }}
       />

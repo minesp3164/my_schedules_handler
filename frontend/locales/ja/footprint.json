@@ -1,0 +1,101 @@
+{
+  "categories": {
+    "all": "全体",
+    "routine": "ルーティン",
+    "steady": "継続",
+    "focus": "集中",
+    "apply": "応募",
+    "algorithm": "アルゴリズム",
+    "portfolio": "ポートフォリオ"
+  },
+  "metric": {
+    "hoursMinutes": "%{hours}時間 %{minutes}分",
+    "hours": "%{hours}時間",
+    "days": "%{count}日",
+    "applications": "%{count}件",
+    "problems": "%{count}問",
+    "times": "%{count}回",
+    "count": "%{count}個",
+    "targetActivity": "活動 %{value}",
+    "targetAccumulated": "累計 %{value}",
+    "targetApplications": "応募 %{value}",
+    "targetTasks": "タスク %{value}",
+    "targetCompleted": "完了 %{value}",
+    "remaining": "%{target} · 残り%{value}"
+  },
+  "reason": {
+    "activityDays": "1日の目標を%{threshold}日達成 · 累計%{current}日活動",
+    "focusMinutes": "累計集中 %{target} 達成 · 現在 %{current}",
+    "createdTasks": "タスク%{threshold}個を設計 · 現在%{current}個",
+    "applications": "応募%{threshold}件を記録 · 現在%{current}件",
+    "algorithms": "%{threshold}問完了 · 現在%{current}問",
+    "portfolio": "%{threshold}回磨き込み · 現在%{current}回",
+    "default": "%{threshold}個完了 · 現在%{current}個"
+  },
+  "tiers": {
+    "bronze": "ブロンズ",
+    "silver": "シルバー",
+    "gold": "ゴールド",
+    "platinum": "プラチナ",
+    "diamond": "ダイヤ"
+  },
+  "tracks": {
+    "activityDays": {
+      "title": "活動した日",
+      "unit": "日"
+    },
+    "completedTasks": {
+      "title": "累計タスク完了",
+      "unit": "個"
+    },
+    "focusMinutes": {
+      "title": "累計集中時間",
+      "unit": "時間"
+    }
+  },
+  "builder": {
+    "system": {
+      "title": "自分だけのシステム",
+      "description": "タスクを10個作り、自分だけのルーティンを組み立てました。"
+    },
+    "designer": {
+      "title": "ルーティン設計者",
+      "description": "タスクを3個作り、1日の流れを決めました。"
+    },
+    "first": {
+      "title": "最初のルーティン",
+      "description": "最初のタスクを作り、スタートの準備ができました。"
+    }
+  },
+  "screen": {
+    "title": "自分の足跡",
+    "subtitle": "今まで集めたバッジ%{achieved}個 · バッジの種類は全%{total}個",
+    "subtitleFirstRecord": " · 初めての記録 %{date}",
+    "subtitleRank": " · 成長ランク %{name}",
+    "loading": "足跡を読み込んでいます。",
+    "showLockedAccessibility": "未達成のバッジを表示",
+    "showLocked": "未達成のバッジを表示",
+    "lockedCount": "(%{count}個ロック中)",
+    "hiddenHint": "隠れたバッジはプレッシャーにしません",
+    "loadError": "足跡を読み込めませんでした。",
+    "emptyCategory": "このカテゴリーのバッジはまだありません。",
+    "collecting": "バッジを集めています。",
+    "rankTitle": "積み上げた努力",
+    "rankSubtitle": "カテゴリー別ランクの平均で成長ランクが決まります。",
+    "rankLoadError": "ランクを読み込めませんでした。",
+    "rankCalculating": "ランクを計算中",
+    "rankDescription": "%{from}から%{to}まで、積み上げた努力がランクになります。",
+    "growthRankLabel": "成長ランク",
+    "untilTier": "%{tier}まで %{value}",
+    "tierMax": "ダイヤ達成",
+    "footerNote": "空白の日があっても大丈夫です。積み上げた努力とバッジは減りません。"
+  },
+  "celebration": {
+    "reasonLabel": "達成の理由",
+    "addedNote": "\n新しいバッジが足跡に追加されました。",
+    "completed": "%{value}完走",
+    "earned": "%{date}に獲得",
+    "viewFootprint": "自分の足跡に飾る",
+    "later": "またあとで見ます"
+  }
+}

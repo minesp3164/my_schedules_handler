@@ -4,6 +4,7 @@
   "day": "%{count}日",
   "connectFirst": "先にデバイスを接続してください。",
   "requestFailed": "リクエストを処理できませんでした。",
+  "back": "戻る",
   "connectFailed": "デバイスを接続できませんでした。",
   "notFoundTitle": "画面が見つかりません。",
   "goHome": "ホームに戻る",

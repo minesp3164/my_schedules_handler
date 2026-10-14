@@ -28,5 +28,22 @@
   "samePoints": "先週と同じペースです。",
   "pointDelta": "ポイントの変化",
   "completedDayDelta": "完了日数の変化",
-  "showMore": "残り%{count}件を見る"
+  "showMore": "残り%{count}件を見る",
+  "stat": {
+    "point": "ポイント",
+    "focus": "集中",
+    "goal": "目標",
+    "minutes": "%{count}分"
+  },
+  "goalFilled": "✦ 今日の目標を達成しました",
+  "tasksRemaining": "まだ%{count}件残っています。",
+  "deferredTitle": "明日に送ったタスク",
+  "deferredDate": "%{month}月%{day}日",
+  "recoveryButtonLabel": "回復パスでタスクを手放す",
+  "recoveryButtonTitle": "今日は回復パスで手放す",
+  "recoveryLocked": "累計200ポイントになると、回復パスで残りのタスクを明日に送れます。",
+  "recoveryUsed": "今回の累計区間のパスは使用済みです。次のパスは累計400ポイントで解放されます。",
+  "recoveryDeferred": "回復パスは後回しにしました。報酬アーカイブから取り出せば使用できます。",
+  "footprintTitle": "私の足あと",
+  "footprintDescription": "集めたバッジと成長ランクを見る"
 }

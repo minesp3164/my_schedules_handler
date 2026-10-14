@@ -1,0 +1,178 @@
+{
+  "title": "報酬",
+  "backToBox": "ボックスに戻る",
+  "loadFailed": "解放情報を読み込めませんでした。しばらくしてからもう一度お試しください。",
+  "pointsAccessibility": "保有ポイント%{count}点、ポイント履歴を見る",
+  "pointsHint": "ポイントが貯まったり使われた記録を確認できます。",
+  "tabUnlocks": "解放報酬",
+  "tabCheerBox": "応援ボックス",
+  "heroHeadline": "積み上げた努力で\n小さな扉を開きます。",
+  "heroBody": "タスクを完了してポイントを集めると報酬が解放されます。ポイントは消費されません。",
+  "openedCount": "解放した報酬%{count}個",
+  "totalCount": "全5個",
+  "usedCount": "使った報酬%{count}個",
+  "pointsNotice": "解放報酬はポイントを消費しません。週次振り返りを初めて保存するときにだけ300点を使用します。",
+  "card": {
+    "open": "開いてみる",
+    "accessibility": "%{title}、%{badge}"
+  },
+  "status": {
+    "pointsLeft": "あと%{count}点",
+    "claimReward": "報酬を受け取る",
+    "usable": "使用可能",
+    "held": "保有中",
+    "weekDone": "今週完了",
+    "monthDone": "今月完了",
+    "soon": "もうすぐ解放"
+  },
+  "used": {
+    "costPoints": "-%{count}点",
+    "freeReward": "解放報酬"
+  },
+  "cheerBox": {
+    "body": "返信や反応はありません。必要なときにだけ静かに読み返せます。",
+    "notice": "いいね・返信・プロフィールはありません。隠した応援はボックスからすぐに消え、通報は審査対象に移ります。"
+  },
+  "cheer": {
+    "inbox": {
+      "newDate": "たった今",
+      "newMessage": "今日一度始めただけで十分です。",
+      "reread": "もう一度読む",
+      "yesterdayDate": "昨日",
+      "savedMessage": "小さく積み重ねた一日も、確かにあなたの味方です。",
+      "itemAccessibility": "%{label}の応援、%{message}",
+      "anonymous": "どなたか",
+      "open": "開いてみる →"
+    },
+    "savedDetail": "昨日の小さな一歩を忘れてほしくありません。",
+    "arrivalTitle": "どなたかの応援が届きました",
+    "fromAnonymous": "FROM. どなたか",
+    "arrivalDetail": "いまの一歩も、確かに前に進んでいるのです。",
+    "arrivalPreview": "応援の到着をプレビュー",
+    "hide": "隠す",
+    "hideAccessibility": "応援を隠す",
+    "report": "通報",
+    "reportAccessibility": "応援を通報する",
+    "previewNotice": "実際の受信機能では、隠したメッセージは再表示されず、通報されたメッセージはすぐに審査対象に移ります。",
+    "suggestions": {
+      "first": "今日の小さな一歩が明日を変えます！",
+      "second": "この一歩、本当に素晴らしいです！",
+      "third": "最後まで応援しています。ファイト！"
+    },
+    "saved": "応援を残しました。",
+    "savedWeekly": "今週の応援を残しました。",
+    "savedBody": "来週にまた解放されます。残した文章はボックスの報酬記録でいつでも見返せます。",
+    "headline": "今日の誰かに\n応援を届けます。",
+    "body": "名前も返信もない短い一文です。負担なく通り過ぎて大丈夫です。",
+    "messageLabel": "応援メッセージ",
+    "privacyNotice": "連絡先・リンク・個人情報は自動的に伏せられ、すべての応援は審査後に届きます。",
+    "submit": "応援を残す"
+  },
+  "recovery": {
+    "headline": "今日できなかったことを\n明日に送ります。",
+    "body": "これは先延ばしではなく、回復を選ぶ方法です。受け取ったパス1つで、今日のタスクを1つ明日に送れます。",
+    "deferredTitle": "明日に送ったタスク",
+    "deferredItem": "%{title} → %{month}月%{day}日",
+    "undoAccessibility": "%{title}を今日に戻す",
+    "undo": "取り消す",
+    "sentTitle": "%{title}を明日に送りました。",
+    "sentBody": "今日の分はここまで。明日のスケジュールに再び表示されます。今日中なら下から取り消せます。",
+    "waitingTitle": "次のパスを待っています",
+    "waitingBody": "今回の累計区間のパスは使い終えました。累計%{next}点になると新しいパスが解放されます。（現在%{progress}点）",
+    "claimTitle": "回復パスの報酬",
+    "claimBody": "累計200点ごとに1つ受け取れます。ポイントは消費されず、最大1つまで保管できます。",
+    "claimHint": "受け取るとすぐに下からタスクを明日に送れます。",
+    "heldTitle": "回復パスを保有中",
+    "deferredBadge": "後回しに設定",
+    "newReward": "新しい報酬",
+    "heldDeferred": "後回しにすることにしました。回復パスはボックスにそのまま残っています。",
+    "heldReady": "受け取った回復パスです。タスクを1つ明日に送るのに使ってください。",
+    "unlockedOn": "解放日 %{date}",
+    "pickTitle": "何を明日に送りますか？",
+    "pickBody": "パス1つでタスクを1つ送ります。完了した記録はそのまま残り、明日のスケジュールに再び表示されます。",
+    "loading": "今日のタスクを読み込んでいます…",
+    "sendAccessibility": "%{title}を明日に送る",
+    "taskProgress": "%{completed}/%{target}完了 · 明日に送る",
+    "noTasks": "今日残っているタスクはありません。",
+    "restore": "報酬に戻す",
+    "later": "後で使います"
+  },
+  "retro": {
+    "headline": "今週、あなたが\n成し遂げたこと。",
+    "body": "一週間のポイント・集中・完了の記録をまとめて、一言の振り返りを残します。",
+    "totalPoints": "累計ポイント",
+    "completedGoals": "達成した目標",
+    "open": "週次振り返りを開く",
+    "costHint": "今週の振り返りを初めて保存するときに300点を使用します。閲覧は自由です。"
+  },
+  "future": {
+    "headline": "未来の私に\n先に声をかけます。",
+    "body": "解放すればいつでも使えます。残した手紙は下のボックスでいつでも読み返せます。",
+    "savedTitle": "未来の私に残しました。",
+    "savedBody": "疲れた日、面接の前、待ち時間が長くなった日に、静かにもう一度お見せします。",
+    "again": "もう一度残す",
+    "to": "TO. 未来の私",
+    "placeholder": "今日一度始めただけで十分だ。もう一度、ゆっくりやろう。",
+    "tag": "# 疲れた日",
+    "submit": "未来の私に残す",
+    "savedCount": "残した手紙%{count}通",
+    "savedMeta": "%{date} · TO. 未来の私"
+  },
+  "growth": {
+    "headline": "小さな記録を\n長く残します。",
+    "monthLabel": "%{year}年%{month}月",
+    "focusZero": "0分",
+    "focusHours": "%{count}時間",
+    "focusMinutes": "%{count}分",
+    "monthRecord": "%{month}の記録",
+    "focusStat": "集中 %{focus}",
+    "applications": "実際の応募",
+    "goalDays": "全目標達成",
+    "activeDays": "活動した日",
+    "monthPoints": "今月%{count}点を積み上げました",
+    "savedToast": "%{month}の成長カードをボックスに保存しました。",
+    "thisMonthSaved": "今月のカード · 保存済み",
+    "thisMonthSavedBody": "今月のカードは保存しました。来月にまた作成できます。",
+    "save": "カードを保存",
+    "pastCount": "過去の成長カード%{count}枚",
+    "pastSummary": "集中 %{focus} · 応募%{applications}件 · 目標%{days}日"
+  },
+  "locked": {
+    "title": "まだ解放されていません",
+    "weekly": "今週%{threshold}点の目標に対して%{progress}点を集めました。今週中に集めると解放されます。ポイントは消費されません。",
+    "balance": "保有ポイントが%{needed}点足りません。週次振り返りを初めて保存するときに300点を使用します。",
+    "total": "%{needed}点多く集めると、この体験を解放できます。ポイントは消費されません。"
+  },
+  "unlockKinds": {
+    "cheer": {
+      "title": "匿名の応援を残す",
+      "shortTitle": "匿名の応援",
+      "description": "誰かの今日に、短くて温かい一言を届けます。"
+    },
+    "recovery": {
+      "title": "回復パス",
+      "shortTitle": "回復パス",
+      "description": "今日のタスクを1つ、やさしく明日に送ります。"
+    },
+    "reflection": {
+      "title": "週次振り返りを開く",
+      "shortTitle": "週次振り返り",
+      "description": "今週の行動を1枚の記録に残します。"
+    },
+    "future": {
+      "title": "未来の私に応援を残す",
+      "shortTitle": "未来への手紙",
+      "description": "大変な日の自分に、先に手渡す小さな手紙です。"
+    },
+    "growth": {
+      "title": "成長記録カードを保存",
+      "shortTitle": "成長記録",
+      "description": "今月の努力と一言の振り返りを長く残します。"
+    }
+  },
+  "requirement": {
+    "weekly": "今週%{threshold}点達成 · %{progress}点を獲得",
+    "balance": "保有%{threshold}点が必要 · 現在%{progress}点",
+    "total": "累計%{threshold}点達成 · %{progress}点を獲得"
+  }
+}
