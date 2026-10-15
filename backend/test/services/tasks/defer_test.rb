@@ -122,6 +122,24 @@ class Tasks::DeferTest < ActiveSupport::TestCase
     assert_includes Tasks::Goals.tasks(user: @user, date: @date).map(&:id), @task.id
   end
 
+  test "undoing the deferral revokes the daily bonus it unlocked" do
+    # 원장 이벤트까지 갖춘 정상 완료로 목표 중 하나를 채운다.
+    Tasks::Complete.call(
+      task_template_id: @other.id, source_device: @device, idempotency_key: "undo-bonus-other", now: @now
+    )
+    grant_pass!
+
+    result = Tasks::Defer.call(user: @user, task_template_id: @task.id, date: @date, now: @now)
+    assert_not_nil result.bonus_event, "이월이 목표를 채우며 보너스를 준다"
+
+    undo = Tasks::UndoDefer.call(user: @user, id: result.deferral.id, date: @date, now: @now + 300)
+
+    assert_not undo.daily_summary.daily_bonus_awarded, "이월을 되돌리면 목표가 살아나 보너스도 회수된다"
+    assert_nil undo.daily_summary.all_goals_completed_at
+    assert_not PointEvent.effective.where(event_type: "daily_bonus", activity_date: @date).exists?
+    assert_equal 20, undo.daily_summary.points_total
+  end
+
   test "undo is rejected once the deferral day has passed" do
     past = TaskDeferral.create!(
       user: @user, task_template: @task, from_date: @date - 1, to_date: @date

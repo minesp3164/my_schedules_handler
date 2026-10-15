@@ -99,8 +99,14 @@ export function deferTask(token: string, taskTemplateId: string, idempotencyKey:
 }
 
 // 오늘 이월을 되돌리고 회복 패스를 되찾는다.
+// daily_summary는 이월이 지급시킨 일일 보너스가 회수되면서 달라질 수 있다.
 export function undoDefer(token: string, deferralId: string) {
-  return request<{ data: { deferral: TaskDeferral } }>(`/task-deferrals/${deferralId}`, token, {
+  return request<{
+    data: {
+      deferral: TaskDeferral;
+      daily_summary: { points_total: number; daily_bonus_awarded: boolean } | null;
+    };
+  }>(`/task-deferrals/${deferralId}`, token, {
     method: 'DELETE',
   });
 }

@@ -2,7 +2,7 @@ module Tasks
   # 이월을 되돌린다. 효과가 사라지므로 사용한 회복 패스도 되돌려 준다.
   # 시작일(=되돌아올 날)이 오늘인 이월만 허용한다. 날짜가 지난 것은 되돌릴 수 없다.
   class UndoDefer
-    Result = Data.define(:deferral, :redemption)
+    Result = Data.define(:deferral, :redemption, :daily_summary)
 
     class NotUndoable < StandardError; end
 
@@ -26,7 +26,9 @@ module Tasks
       redemption = deferral.reward_redemption
       restore_pass!(deferral, redemption) if usable_pass?(deferral, redemption)
       deferral.destroy!
-      Result.new(deferral, redemption)
+      # 목표가 다시 살아나 미완료가 생기면, 이월이 대신 채워 줘서 받은 보너스도 회수한다.
+      _event, summary = Points::RevokeDailyBonus.call(user: @user, date: @date, now: @now)
+      Result.new(deferral, redemption, summary)
     end
 
     private
