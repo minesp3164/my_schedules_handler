@@ -56,7 +56,7 @@ export function useFocusControl(
     : 1;
   const stalePaused = isStalePausedFocus(session, now);
   const mutation = useMutation({
-    mutationFn: createFocusMutationFn(token, session, focusSeconds),
+    mutationFn: createFocusMutationFn(token, session),
     onMutate: createFocusOnMutate(queryClient, setNow),
     onSuccess: createFocusOnSuccess({
       queryClient,
