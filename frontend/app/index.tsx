@@ -1,9 +1,53 @@
-import { Pressable, ScrollView, Text, View } from 'react-native';
+import { useEffect, useState } from 'react';
+import { Platform, Pressable, ScrollView, Text, View } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { t } from '@/services/i18n';
 
+// 랜딩은 첫 안내용이다. 한 번 보면 다음 실행부터는 홈으로 바로 들어간다.
+const LANDING_SEEN_KEY = 'landing.seen.v1';
+
+const readSeen = async () => {
+  try {
+    // 웹은 localStorage, 앱은 AsyncStorage. _layout의 저장소 감싸기와 같은 방식.
+    if (Platform.OS === 'web') return window.localStorage.getItem(LANDING_SEEN_KEY);
+    return await AsyncStorage.getItem(LANDING_SEEN_KEY);
+  } catch {
+    return null; // 저장소를 읽지 못하면 랜딩을 한 번 더 보여주는 편이 낫다.
+  }
+};
+
+const markSeen = async () => {
+  try {
+    if (Platform.OS === 'web') window.localStorage.setItem(LANDING_SEEN_KEY, '1');
+    else await AsyncStorage.setItem(LANDING_SEEN_KEY, '1');
+  } catch {
+    // 기록 실패는 무시한다. 다음 실행에 한 번 더 보여줄 뿐이다.
+  }
+};
+
 export default function LandingScreen() {
+  const [checked, setChecked] = useState(false);
+
+  useEffect(() => {
+    let mounted = true;
+    void readSeen().then((seen) => {
+      if (!mounted) return;
+      if (seen === '1') {
+        router.replace('/(tabs)');
+        return;
+      }
+      setChecked(true);
+    });
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  // 확인 전에는 화면이 깜빡이지 않도록 배경색만 보여준다.
+  if (!checked) return <SafeAreaView className="flex-1 bg-[#F7F4EF]" />;
+
   return (
     <SafeAreaView className="flex-1 bg-[#F7F4EF]">
       <ScrollView contentContainerClassName="flex-grow px-5 pb-8 pt-4">
@@ -52,7 +96,10 @@ export default function LandingScreen() {
         </View>
 
         <Pressable
-          onPress={() => router.replace('/(tabs)')}
+          onPress={() => {
+            void markSeen().then(() => router.replace('/(tabs)'));
+          }}
+          accessibilityRole="button"
           className="mt-8 min-h-14 items-center justify-center rounded-2xl bg-[#1F2A2E] px-5 py-4 transition duration-150 hover:-translate-y-px hover:opacity-90">
           <Text className="text-base font-bold text-white">{t('landing.start')}</Text>
         </Pressable>
