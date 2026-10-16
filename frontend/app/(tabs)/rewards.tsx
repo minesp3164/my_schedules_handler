@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Pressable, ScrollView, Text, View } from 'react-native';
+import { Pressable, RefreshControl, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { useQuery } from '@tanstack/react-query';
@@ -8,6 +8,7 @@ import { getDeviceToken } from '@/services/device-token';
 import { t } from '@/services/i18n';
 import { getUnlockRewards } from '@/services/reward-unlocks';
 import { useTheme } from '@/services/theme';
+import { ErrorRetry, LoadingBlock } from '@/components/LoadState';
 import { CheerBoxSection } from '@/components/rewards/CheerBoxSection';
 import { SectionTabs, type RewardSection } from '@/components/rewards/SectionTabs';
 import { UnlocksSection } from '@/components/rewards/UnlocksSection';
@@ -15,6 +16,7 @@ import { UnlocksSection } from '@/components/rewards/UnlocksSection';
 export default function RewardsScreen() {
   const [section, setSection] = useState<RewardSection>('rewards');
   const [token, setToken] = useState<string | null | undefined>();
+  const [refreshing, setRefreshing] = useState(false);
   const { palette, colors } = useTheme();
   useEffect(() => {
     getDeviceToken().then(setToken);
@@ -34,6 +36,29 @@ export default function RewardsScreen() {
     queryFn: () => getRewardUnlocks(token!),
     enabled: Boolean(token),
   });
+  // 셋 중 하나라도 실패하면 "0점·전부 잠김"처럼 정상으로 보이지 않도록 콘텐츠 대신 재시도를 보여준다.
+  const loadError = dashboard.isError
+    ? dashboard.error
+    : redemptions.isError
+      ? redemptions.error
+      : unlocks.isError
+        ? unlocks.error
+        : null;
+  // 토큰 준비 중이든 첫 조회든 "아직 데이터가 없다"를 하나의 상태로 보여준다.
+  const initialLoading =
+    (dashboard.isPending && !dashboard.isError) ||
+    (unlocks.isPending && !unlocks.isError) ||
+    (redemptions.isPending && !redemptions.isError);
+
+  const onRefresh = async () => {
+    setRefreshing(true);
+    try {
+      await Promise.all([dashboard.refetch(), redemptions.refetch(), unlocks.refetch()]);
+    } finally {
+      setRefreshing(false);
+    }
+  };
+
   const totalPoints = dashboard.data?.total_points ?? 0;
   const rewards = getUnlockRewards(
     totalPoints,
@@ -48,7 +73,16 @@ export default function RewardsScreen() {
 
   return (
     <SafeAreaView className="flex-1" style={{ backgroundColor: palette.screen }}>
-      <ScrollView contentContainerClassName="px-5 pb-8">
+      <ScrollView
+        contentContainerClassName="px-5 pb-8"
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            tintColor="#6F7D75"
+            colors={['#52786B']}
+          />
+        }>
         <View className="mt-5 flex-row items-center justify-between">
           <View>
             <Text
@@ -73,15 +107,27 @@ export default function RewardsScreen() {
             </Text>
           </Pressable>
         </View>
-        <SectionTabs section={section} onChange={setSection} />
-        {section === 'rewards' ? (
-          <UnlocksSection
-            rewards={rewards}
-            unlockedCount={unlockedCount}
-            usedRewards={usedRewards}
+        {loadError ? (
+          <ErrorRetry
+            style={{ marginTop: 20 }}
+            message={loadError.message}
+            onRetry={() => void onRefresh()}
           />
+        ) : initialLoading ? (
+          <LoadingBlock style={{ marginTop: 20 }} />
         ) : (
-          <CheerBoxSection />
+          <>
+            <SectionTabs section={section} onChange={setSection} />
+            {section === 'rewards' ? (
+              <UnlocksSection
+                rewards={rewards}
+                unlockedCount={unlockedCount}
+                usedRewards={usedRewards}
+              />
+            ) : (
+              <CheerBoxSection />
+            )}
+          </>
         )}
       </ScrollView>
     </SafeAreaView>

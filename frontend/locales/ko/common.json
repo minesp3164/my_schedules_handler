@@ -13,5 +13,9 @@
   "offlineQueued": "대기 중 %{count}건 · 연결되면 자동 전송",
   "offlineQueuedOffline": "오프라인 · 기록 %{count}건 대기 중",
   "offlineQueueFailed": "전송하지 못한 기록 %{count}건",
-  "dismiss": "닫기"
+  "dismiss": "닫기",
+  "loading": "불러오는 중이에요.",
+  "retry": "다시 시도",
+  "errorTitle": "화면을 표시하지 못했어요.",
+  "errorBody": "잠시 후 다시 시도해 주세요. 계속되면 앱을 완전히 닫았다가 다시 열어 주세요."
 }

@@ -52,5 +52,8 @@
   "disable": "끄기",
   "duplicate": "복제",
   "copyTitle": "%{title} 복사본",
-  "saveFailed": "저장하지 못했어요. 다시 시도해주세요."
+  "saveFailed": "저장하지 못했어요. 다시 시도해주세요.",
+  "emptyTitle": "등록된 할 일이 없어요.",
+  "emptyHint": "새 할 일 추가로 오늘의 목표를 만들어요.",
+  "fetchFailed": "할 일을 불러오지 못했어요."
 }

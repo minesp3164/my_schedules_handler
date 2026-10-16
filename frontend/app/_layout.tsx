@@ -9,6 +9,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { OfflineBanner } from '@/components/OfflineBanner';
 import { RealtimeSync } from '@/components/RealtimeSync';
+import { AppErrorBoundary } from '@/components/AppErrorBoundary';
 import { BadgeCelebrationHost } from '@/components/badges/BadgeCelebrationHost';
 import { initNetworkMonitor } from '@/services/network';
 import { ThemeProvider } from '@/services/theme';
@@ -69,7 +70,7 @@ const PERSISTED_KEYS = new Set([
 initNetworkMonitor(queryClient);
 
 export const unstable_settings = {
-  // Ensure that reloading on `/modal` keeps a back button present.
+  // 뒤로가기 앵커. 홈에서 뒤로 눌러도 탭이 사라지지 않도록 고정한다.
   initialRouteName: '(tabs)',
 };
 
@@ -90,17 +91,19 @@ export default function RootLayout() {
           <RealtimeSync />
           <OfflineBanner />
           <BadgeCelebrationHost />
-          <Stack screenOptions={{ animation: 'slide_from_right' }}>
-            <Stack.Screen name="index" options={{ headerShown: false }} />
-            <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-            <Stack.Screen name="tasks" options={{ headerShown: false }} />
-            <Stack.Screen name="applications" options={{ headerShown: false }} />
-            <Stack.Screen name="application-stages" options={{ headerShown: false }} />
-            <Stack.Screen name="footprint" options={{ headerShown: false }} />
-            <Stack.Screen name="weekly-retro" options={{ headerShown: false }} />
-            <Stack.Screen name="point-history" options={{ headerShown: false }} />
-            <Stack.Screen name="rewards/[kind]" options={{ headerShown: false }} />
-          </Stack>
+          <AppErrorBoundary>
+            <Stack screenOptions={{ animation: 'slide_from_right' }}>
+              <Stack.Screen name="index" options={{ headerShown: false }} />
+              <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+              <Stack.Screen name="tasks" options={{ headerShown: false }} />
+              <Stack.Screen name="applications" options={{ headerShown: false }} />
+              <Stack.Screen name="application-stages" options={{ headerShown: false }} />
+              <Stack.Screen name="footprint" options={{ headerShown: false }} />
+              <Stack.Screen name="weekly-retro" options={{ headerShown: false }} />
+              <Stack.Screen name="point-history" options={{ headerShown: false }} />
+              <Stack.Screen name="rewards/[kind]" options={{ headerShown: false }} />
+            </Stack>
+          </AppErrorBoundary>
         </SafeAreaProvider>
       </ThemeProvider>
     </PersistQueryClientProvider>

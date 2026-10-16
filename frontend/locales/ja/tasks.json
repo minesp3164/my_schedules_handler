@@ -52,5 +52,8 @@
   "disable": "オフにする",
   "duplicate": "複製",
   "copyTitle": "%{title} のコピー",
-  "saveFailed": "保存できませんでした。もう一度お試しください。"
+  "saveFailed": "保存できませんでした。もう一度お試しください。",
+  "emptyTitle": "登録されたタスクがありません。",
+  "emptyHint": "新しいタスクを追加して、今日の目標を作りましょう。",
+  "fetchFailed": "タスクを読み込めませんでした。"
 }

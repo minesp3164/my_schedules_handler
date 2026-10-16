@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { Pressable, ScrollView, Text, View } from 'react-native';
+import { Pressable, RefreshControl, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router, useFocusEffect } from 'expo-router';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -9,6 +9,7 @@ import { formatDate, t } from '@/services/i18n';
 import { useTheme } from '@/services/theme';
 import { isStalePausedFocus } from '@/services/focus-session';
 import { getTodayRecommendations } from '@/services/today-recommendation';
+import { ErrorRetry } from '@/components/LoadState';
 import { RewardPaceCard } from '@/components/home/RewardPaceCard';
 import { ApplicationsCard } from '@/components/home/ApplicationsCard';
 import { AlgorithmCompleteSheet } from '@/components/home/AlgorithmCompleteSheet';
@@ -27,6 +28,7 @@ export default function Home() {
   const [token, setToken] = useState<string | null | undefined>();
   const [activePage, setActivePage] = useState(0);
   const [recommendationIndex, setRecommendationIndex] = useState(0);
+  const [refreshing, setRefreshing] = useState(false);
   const queryClient = useQueryClient();
   const { palette } = useTheme();
 
@@ -44,6 +46,16 @@ export default function Home() {
       queryClient.invalidateQueries({ queryKey: ['dashboard'] });
     }, [queryClient])
   );
+
+  // 당겨서 새로고침: 홈에 오면 최소 한 번은 서버 기준으로 다시 맞춘다.
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    try {
+      await queryClient.invalidateQueries({ queryKey: ['dashboard'] });
+    } finally {
+      setRefreshing(false);
+    }
+  }, [queryClient]);
 
   const { taskMutation, confirmTask, setConfirmTask, confirmAlgorithm } = useTaskCompletion(token);
   const {
@@ -91,7 +103,17 @@ export default function Home() {
 
   return (
     <SafeAreaView className="flex-1 bg-white" edges={['top', 'left', 'right']}>
-      <ScrollView className="flex-1" contentContainerClassName="pb-8">
+      <ScrollView
+        className="flex-1"
+        contentContainerClassName="pb-8"
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            tintColor="#6F7D75"
+            colors={['#52786B']}
+          />
+        }>
         {/* 상단 바: 가운데 제목 + 날짜 */}
         <View className="items-center px-5 pt-5">
           <Text className="text-[17px] font-bold text-ink">{t('home.title')}</Text>
@@ -99,9 +121,11 @@ export default function Home() {
         </View>
 
         {dashboard.isError ? (
-          <View className="mx-5 mt-6 rounded-3xl border border-hairline bg-white px-5 py-4">
-            <Text className="text-[13px] leading-5 text-[#C44B5D]">{dashboard.error.message}</Text>
-          </View>
+          <ErrorRetry
+            style={{ marginHorizontal: 20, marginTop: 24 }}
+            message={dashboard.error.message}
+            onRetry={() => void dashboard.refetch()}
+          />
         ) : null}
 
         {stalePausedFocus ? (
@@ -136,7 +160,7 @@ export default function Home() {
         <BoardSegmentControl columns={board} activePage={activePage} onChange={setActivePage} />
 
         <BoardTaskList
-          loading={dashboard.isLoading}
+          loading={dashboard.isPending && !dashboard.isError}
           column={activeColumn}
           allTasksCount={tasks.length}
           recommendation={recommendation}
