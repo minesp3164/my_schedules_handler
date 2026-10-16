@@ -8,7 +8,11 @@ import {
   updateFocusLiveActivity,
   type FocusLiveActivityStartResult,
 } from '@/services/focus-live-activity';
-import { getRemainingSecondsPrecise } from '@/services/focus-session';
+import {
+  breakSeconds,
+  focusSeconds,
+  getRemainingSecondsPrecise,
+} from '@/services/focus-session';
 import { syncTodayPointsWidget } from '@/services/today-points-widget';
 
 export type FocusAction = 'start' | 'start-break' | 'pause' | 'resume' | 'cancel' | 'complete';
@@ -23,16 +27,12 @@ const LIVE_ACTIVITY_NOTICES: Partial<Record<FocusLiveActivityStartResult, string
 
 export function createFocusMutationFn(
   token: string | null | undefined,
-  session: FocusSession | null | undefined,
-  focusSeconds: number
+  session: FocusSession | null | undefined
 ) {
   return async (action: FocusAction): Promise<unknown> => {
     if (!token) throw new Error(t('common.connectFirst'));
     if (action === 'start') return startFocus(token, focusSeconds, createIdempotencyKey());
-    if (action === 'start-break') {
-      const breakSeconds = 10; // 테스트용 — 실제로는 settings.break_minutes * 60 사용
-      return startFocus(token, breakSeconds, createIdempotencyKey(), 'break');
-    }
+    if (action === 'start-break') return startFocus(token, breakSeconds, createIdempotencyKey(), 'break');
     return controlFocus(
       token,
       session!,

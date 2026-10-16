@@ -2,8 +2,9 @@ import type { FocusSession } from '@/services/api';
 
 export const STALE_PAUSED_SESSION_MS = 30 * 60 * 1_000;
 
-// 기본 집중 시각(초). 현재는 테스트용으로 짧게 둔다.
-export const focusSeconds = 10;
+// 집중·휴식 시각(초). 집중 25분, 휴식 5분(백엔드 settings 기본값과 같다).
+export const focusSeconds = 25 * 60;
+export const breakSeconds = 5 * 60;
 
 export function isStalePausedFocus(session: FocusSession | null | undefined, now = Date.now()) {
   if (session?.status !== 'paused' || !session.paused_at) return false;
