@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Pressable, ScrollView, Text, View } from 'react-native';
+import { Pressable, RefreshControl, ScrollView, Text, View } from 'react-native';
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
@@ -14,6 +14,7 @@ import {
 import { getDeviceToken } from '@/services/device-token';
 import { t } from '@/services/i18n';
 import { useTheme } from '@/services/theme';
+import { ErrorRetry, LoadingBlock } from '@/components/LoadState';
 import { TaskComposerSheet } from '@/components/tasks/TaskComposerSheet';
 
 type NewTask = {
@@ -43,6 +44,7 @@ export default function TasksScreen() {
   const [composerVisible, setComposerVisible] = useState(false);
   const [composerKey, setComposerKey] = useState(0);
   const [editingTask, setEditingTask] = useState<TaskTemplate | null>(null);
+  const [refreshing, setRefreshing] = useState(false);
   const queryClient = useQueryClient();
   const { palette } = useTheme();
   useEffect(() => {
@@ -59,6 +61,14 @@ export default function TasksScreen() {
       queryClient.invalidateQueries({ queryKey: ['dashboard'] }),
       queryClient.invalidateQueries({ queryKey: ['badges'] }),
     ]);
+  const onRefresh = async () => {
+    setRefreshing(true);
+    try {
+      await tasks.refetch();
+    } finally {
+      setRefreshing(false);
+    }
+  };
   const add = useMutation({
     mutationFn: (input: NewTask) =>
       createTaskTemplate(token!, {
@@ -117,7 +127,16 @@ export default function TasksScreen() {
   });
   return (
     <SafeAreaView className="flex-1" style={{ backgroundColor: palette.screen }}>
-      <ScrollView contentContainerClassName="px-5 pb-8 pt-6">
+      <ScrollView
+        contentContainerClassName="px-5 pb-8 pt-6"
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            tintColor="#6F7D75"
+            colors={['#52786B']}
+          />
+        }>
         <Pressable onPress={() => router.back()} className="min-h-11 justify-center">
           <Text className="text-sm" style={{ color: palette.accent }}>
             {t('tasks.back')}
@@ -135,29 +154,40 @@ export default function TasksScreen() {
           <Text className="font-bold text-white">{t('tasks.openAddSheet')}</Text>
         </Pressable>
         <View className="mt-4 gap-3">
-          {tasks.data?.map((task) => (
-            <Pressable
-              key={task.id}
-              onPress={() => {
-                setEditingTask(task);
-                setComposerVisible(true);
-              }}
-              className="min-h-16 flex-row items-center rounded-2xl border border-line bg-surface p-4">
-              <View className="flex-1">
-                <Text className="font-bold text-[#26332D]">{task.title}</Text>
-                <Text className="mt-1 text-sm text-muted">
-                  {t('tasks.taskMeta', { points: task.points, count: task.target_count })}
-                </Text>
-                <Text className="mt-1 text-xs text-muted">{scheduleLabel(task.weekdays)}</Text>
-              </View>
+          {tasks.isPending && !tasks.isError ? (
+            <LoadingBlock />
+          ) : tasks.isError ? (
+            <ErrorRetry message={t('tasks.fetchFailed')} onRetry={() => void tasks.refetch()} />
+          ) : (tasks.data ?? []).length === 0 ? (
+            <View className="rounded-2xl border border-line bg-surface px-4 py-6">
+              <Text className="text-[15px] font-bold text-[#26332D]">{t('tasks.emptyTitle')}</Text>
+              <Text className="mt-1 text-[13px] leading-5 text-muted">{t('tasks.emptyHint')}</Text>
+            </View>
+          ) : (
+            tasks.data?.map((task) => (
               <Pressable
-                disabled={remove.isPending}
-                onPress={() => token && remove.mutate(task.id)}
-                className="min-h-11 min-w-11 items-center justify-center">
-                <Text className="text-sm text-[#FF9BA6]">{t('tasks.disable')}</Text>
+                key={task.id}
+                onPress={() => {
+                  setEditingTask(task);
+                  setComposerVisible(true);
+                }}
+                className="min-h-16 flex-row items-center rounded-2xl border border-line bg-surface p-4">
+                <View className="flex-1">
+                  <Text className="font-bold text-[#26332D]">{task.title}</Text>
+                  <Text className="mt-1 text-sm text-muted">
+                    {t('tasks.taskMeta', { points: task.points, count: task.target_count })}
+                  </Text>
+                  <Text className="mt-1 text-xs text-muted">{scheduleLabel(task.weekdays)}</Text>
+                </View>
+                <Pressable
+                  disabled={remove.isPending}
+                  onPress={() => token && remove.mutate(task.id)}
+                  className="min-h-11 min-w-11 items-center justify-center">
+                  <Text className="text-sm text-[#FF9BA6]">{t('tasks.disable')}</Text>
+                </Pressable>
               </Pressable>
-            </Pressable>
-          ))}
+            ))
+          )}
         </View>
         {add.isError || update.isError || remove.isError ? (
           <Text className="mt-4 text-sm text-[#FF9BA6]">{t('tasks.saveFailed')}</Text>
