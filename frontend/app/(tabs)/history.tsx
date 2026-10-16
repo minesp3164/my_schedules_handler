@@ -1,12 +1,13 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Pressable, ScrollView, Text, View } from 'react-native';
+import { Pressable, RefreshControl, ScrollView, Text, View } from 'react-native';
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { getHistory, getRewardUnlocks } from '@/services/api';
 import { getDeviceToken } from '@/services/device-token';
 import { t } from '@/services/i18n';
 import { useTheme } from '@/services/theme';
+import { ErrorRetry, LoadingBlock } from '@/components/LoadState';
 import { DayRecap } from '@/components/history/DayRecap';
 import { HistoryCalendar } from '@/components/history/HistoryCalendar';
 import { HistorySummary } from '@/components/history/HistorySummary';
@@ -34,7 +35,9 @@ export default function History() {
     () => new Date(new Date().getFullYear(), new Date().getMonth(), 1)
   );
   const [selectedDate, setSelectedDate] = useState(() => iso(new Date()));
+  const [refreshing, setRefreshing] = useState(false);
   const { palette } = useTheme();
+  const queryClient = useQueryClient();
   useEffect(() => {
     getDeviceToken().then(setToken);
   }, []);
@@ -59,6 +62,18 @@ export default function History() {
     queryFn: () => getRewardUnlocks(token!),
     enabled: Boolean(token),
   });
+  // 주간 요약·캘린더·보상 잠금을 한 번에 다시 맞춘다.
+  const onRefresh = async () => {
+    setRefreshing(true);
+    try {
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ['history'] }),
+        queryClient.invalidateQueries({ queryKey: ['reward-unlocks'] }),
+      ]);
+    } finally {
+      setRefreshing(false);
+    }
+  };
   const days = history.data ?? [];
   const currentWeek = days.filter((day) => day.date >= iso(range.thisMonday));
   const previousWeek = days.filter((day) => day.date < iso(range.thisMonday));
@@ -80,9 +95,19 @@ export default function History() {
           : t('history.samePoints');
   return (
     <SafeAreaView className="flex-1" style={{ backgroundColor: palette.screen }}>
-      <ScrollView contentContainerClassName="px-5 pb-8 pt-8">
+      <ScrollView
+        contentContainerClassName="px-5 pb-8 pt-8"
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            tintColor="#6F7D75"
+            colors={['#52786B']}
+          />
+        }>
         <Text className="text-2xl font-bold text-[#26332D]">{t('history.title')}</Text>
         <Text className="mt-2 text-sm text-muted">{t('history.description')}</Text>
+        {history.isPending && !history.isError ? <LoadingBlock style={{ marginTop: 16 }} /> : null}
         <Pressable
           onPress={() => router.push('/footprint')}
           className="mt-5 overflow-hidden rounded-3xl p-5"
@@ -159,7 +184,11 @@ export default function History() {
           );
         })()}
         {history.isError ? (
-          <Text className="mt-4 text-sm text-[#FF9BA6]">{history.error.message}</Text>
+          <ErrorRetry
+            style={{ marginTop: 16 }}
+            message={history.error.message}
+            onRetry={() => void history.refetch()}
+          />
         ) : null}
       </ScrollView>
     </SafeAreaView>
