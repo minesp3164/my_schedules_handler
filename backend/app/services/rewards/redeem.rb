@@ -32,6 +32,8 @@ module Rewards
           event_type: "reward_redemption", points: -cost, idempotency_key: @idempotency_key, occurred_at: @now
         )
         redemption = RewardRedemption.create!(user: @user, point_event: event, reward_kind: @reward_kind, cost_points: cost, unlocked_at: @now, redeemed_at: @now, payload: @payload)
+        # 사용 즉시 오늘의 점수 합계에 차감을 반영한다(대시보드와 원장 정합성).
+        Points::RecalculateDailySummary.call(date: event.activity_date)
         Result.new(redemption, balance, false)
       end
     end

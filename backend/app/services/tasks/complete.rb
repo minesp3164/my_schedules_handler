@@ -4,8 +4,8 @@ module Tasks
 
     class TargetAlreadyMet < StandardError; end
     class InactiveTask < StandardError; end
-    # 실제 지원 같은 할 일은 지원한 곳을 적지 않으면 완료로 인정하지 않는다.
-    class NoteRequired < StandardError; end
+    # 실제 지원은 지원 현황의 단계 기록으로만 완료한다(지원 포인트의 유일한 경로).
+    class StageRequired < StandardError; end
 
     def self.call(...)
       new(...).call
@@ -32,6 +32,7 @@ module Tasks
         date = @now.in_time_zone("Asia/Seoul").to_date
         goals = Goals.tasks(user: @source_device.user, date: date)
         raise InactiveTask unless task.active? && goals.any? { |goal| goal.id == task.id }
+        raise StageRequired if task.kind == "application"
         completions_for_day = task.daily_task_completions.where(completed_on: date)
         completed_count = completions_for_day.active.count
         raise TargetAlreadyMet if completed_count >= task.target_count
@@ -43,7 +44,6 @@ module Tasks
           @note = company.name
           note_verified = true
         end
-        raise NoteRequired if task.kind == "application" && @note.nil?
 
         completion = task.daily_task_completions.create!(
           source_device: @source_device,

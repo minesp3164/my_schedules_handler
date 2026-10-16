@@ -6,8 +6,8 @@ export const TabBarIcon = (props: {
   color: ColorValue;
 }) => {
   if (props.name === 'reward') {
-    // ✦ 스파클 대신 보상에 어울리는 선물 아이콘(스프라이트와 같은 굵은 채움 스타일).
-    return <FontAwesome name="gift" size={22} color={props.color as string} />;
+    // 보상 탭은 채워진 별 아이콘(스프라이트와 같은 굵은 채움 스타일).
+    return <FontAwesome name="star" size={22} color={props.color as string} />;
   }
   const offset = iconOffsets[props.name];
 

@@ -9,7 +9,7 @@ module Api
       rescue_from ActiveRecord::RecordNotFound, with: :render_not_found
       rescue_from Tasks::Complete::TargetAlreadyMet, with: :render_target_already_met
       rescue_from Tasks::Complete::InactiveTask, with: :render_inactive_task
-      rescue_from Tasks::Complete::NoteRequired, with: :render_note_required
+      rescue_from Tasks::Complete::StageRequired, with: :render_stage_required
       rescue_from Tasks::Revert::StageBackedCompletion, with: :render_stage_backed_completion
       rescue_from ::Applications::RecordStage::StageAlreadyRecorded, with: :render_stage_already_recorded
       rescue_from ::Applications::RecordStage::InactiveStage, with: :render_inactive_stage
@@ -48,8 +48,10 @@ module Api
         render json: { error: { code: "inactive_task", message: "비활성화된 할 일은 완료할 수 없어요." } }, status: :unprocessable_entity
       end
 
-      def render_note_required
-        render json: { error: { code: "note_required", message: "지원한 회사를 적어야 완료할 수 있어요." } }, status: :unprocessable_entity
+      def render_stage_required
+        render json: {
+          error: { code: "stage_required", message: "실제 지원은 지원 현황에서 단계를 기록하면 완료돼요." }
+        }, status: :unprocessable_entity
       end
 
       def render_stage_backed_completion

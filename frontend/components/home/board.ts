@@ -16,6 +16,22 @@ const boardColumns: { id: BoardStatus; labelKey: string; captionKey: string }[] 
   { id: 'done', labelKey: 'home.board.done.label', captionKey: 'home.board.done.caption' },
 ];
 
+// 오늘 리서치 완료에 남은 회사명(중복 제거). 홈 보드와 리서치 시트가 같은 값을 보게 한다.
+export function researchNotes(task: DashboardTask): string[] {
+  if (task.kind !== 'research') return [];
+  const notes = task.completions
+    .map((completion) => completion.note?.trim())
+    .filter((note): note is string => Boolean(note));
+  return [...new Set(notes)];
+}
+
+// 목록에서 고르지 않고 직접 적은 회사가 하나라도 있으면 미확인으로 표시한다.
+export function hasUnverifiedNote(task: DashboardTask): boolean {
+  return task.completions.some(
+    (completion) => Boolean(completion.note) && completion.note_verified === false
+  );
+}
+
 export function getTaskStatus(task: DashboardTask): BoardStatus {
   if (task.goal_completed) return 'done';
   if (task.completed_count > 0) return 'doing';

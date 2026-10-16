@@ -38,6 +38,10 @@
   "categoryApplication": "이력서 지원",
   "categoryCustom": "기타",
   "customCategoryPlaceholder": "직접 입력",
+  "customTitleLabel": "할 일 제목",
+  "customTitleHint": "정확한 정보가 필요한 할 일을 직접 적어요. 제목에 날짜·수치 같은 기준을 남기면 좋아요.",
+  "todayOnly": "오늘 한 번",
+  "todayOnlyHint": "반복하지 않고 추가한 오늘 하루에만 나타나요.",
   "decreasePoints": "점수 줄이기",
   "increasePoints": "점수 늘리기",
   "add": "추가",
@@ -52,5 +56,8 @@
   "disable": "끄기",
   "duplicate": "복제",
   "copyTitle": "%{title} 복사본",
-  "saveFailed": "저장하지 못했어요. 다시 시도해주세요."
+  "saveFailed": "저장하지 못했어요. 다시 시도해주세요.",
+  "emptyTitle": "등록된 할 일이 없어요.",
+  "emptyHint": "새 할 일 추가로 오늘의 목표를 만들어요.",
+  "fetchFailed": "할 일을 불러오지 못했어요."
 }

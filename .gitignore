@@ -18,4 +18,6 @@ erd.md
 reward-tracker-feature-plan.md
 point-unlock-rewards.md
 /docs/*.md
+# Agent working outputs
+.agents/
 # Local design references

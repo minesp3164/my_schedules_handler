@@ -59,34 +59,28 @@ class Tasks::CompleteTest < ActiveSupport::TestCase
     assert_equal 0, summary.points_total
   end
 
-  test "an application task is rejected without a note" do
+  test "an application task can only be completed through stage recording" do
     application = TaskTemplate.create!(user: @user, title: "실제 지원", points: 25, target_count: 1, position: 2, kind: "application")
 
-    assert_raises(Tasks::Complete::NoteRequired) do
+    # 회사명을 적어도 안 적어도 수동 완료는 받지 않는다(지원 포인트는 단계 기록에서만).
+    assert_raises(Tasks::Complete::StageRequired) do
       Tasks::Complete.call(task_template_id: application.id, source_device: @device, idempotency_key: "complete-app-blank", now: @now)
+    end
+    assert_raises(Tasks::Complete::StageRequired) do
+      Tasks::Complete.call(task_template_id: application.id, source_device: @device, idempotency_key: "complete-app-ok", note: "  네이버  ", now: @now)
     end
 
     assert_equal 0, DailyTaskCompletion.count
     assert_equal 0, PointEvent.effective.sum(:points)
   end
 
-  test "a blank note counts as missing for an application task" do
-    application = TaskTemplate.create!(user: @user, title: "실제 지원", points: 25, target_count: 1, position: 2, kind: "application")
+  test "a research completion stores the trimmed note" do
+    research = TaskTemplate.create!(user: @user, title: "기업 리서치", points: 10, target_count: 1, position: 3, kind: "research")
 
-    assert_raises(Tasks::Complete::NoteRequired) do
-      Tasks::Complete.call(task_template_id: application.id, source_device: @device, idempotency_key: "complete-app-space", note: "   ", now: @now)
-    end
-
-    assert_equal 0, DailyTaskCompletion.count
-  end
-
-  test "stores the trimmed note on an application completion" do
-    application = TaskTemplate.create!(user: @user, title: "실제 지원", points: 25, target_count: 1, position: 2, kind: "application")
-
-    result = Tasks::Complete.call(task_template_id: application.id, source_device: @device, idempotency_key: "complete-app-ok", note: "  네이버  ", now: @now)
+    result = Tasks::Complete.call(task_template_id: research.id, source_device: @device, idempotency_key: "complete-research-trim", note: "  네이버  ", now: @now)
 
     assert_equal "네이버", result.completion.note
-    assert_equal 25, PointEvent.effective.sum(:points)
+    assert_equal 10, PointEvent.effective.sum(:points)
   end
 
   test "a non-application task still completes without a note" do
@@ -105,14 +99,31 @@ class Tasks::CompleteTest < ActiveSupport::TestCase
     assert_equal 10, PointEvent.effective.sum(:points)
   end
 
+  test "a research task stores the company it researched" do
+    research = TaskTemplate.create!(user: @user, title: "기업 리서치", points: 10, target_count: 2, position: 3, kind: "research")
+    company = Company.create!(name: "카카오", source: "seed")
+
+    result = Tasks::Complete.call(
+      task_template_id: research.id,
+      source_device: @device,
+      idempotency_key: "complete-research-company",
+      note: "  카카오(주)  ",
+      company_id: company.id,
+      now: @now
+    )
+
+    assert_equal "카카오", result.completion.note
+    assert result.completion.note_verified
+  end
+
   test "a company picked from the registry marks the note verified with the canonical name" do
-    application = TaskTemplate.create!(user: @user, title: "실제 지원", points: 25, target_count: 1, position: 2, kind: "application")
+    research = TaskTemplate.create!(user: @user, title: "기업 리서치", points: 10, target_count: 1, position: 3, kind: "research")
     company = Company.create!(name: "네이버", source: "seed")
 
     result = Tasks::Complete.call(
-      task_template_id: application.id,
+      task_template_id: research.id,
       source_device: @device,
-      idempotency_key: "complete-app-company",
+      idempotency_key: "complete-research-company",
       note: "네이버(주)",
       company_id: company.id,
       now: @now
@@ -123,12 +134,12 @@ class Tasks::CompleteTest < ActiveSupport::TestCase
   end
 
   test "an unknown company id leaves the note unverified" do
-    application = TaskTemplate.create!(user: @user, title: "실제 지원", points: 25, target_count: 1, position: 2, kind: "application")
+    research = TaskTemplate.create!(user: @user, title: "기업 리서치", points: 10, target_count: 1, position: 3, kind: "research")
 
     result = Tasks::Complete.call(
-      task_template_id: application.id,
+      task_template_id: research.id,
       source_device: @device,
-      idempotency_key: "complete-app-bad-company",
+      idempotency_key: "complete-research-bad-company",
       note: "가상회사",
       company_id: "no-such-company",
       now: @now
@@ -139,12 +150,12 @@ class Tasks::CompleteTest < ActiveSupport::TestCase
   end
 
   test "a free-typed note is stored unverified" do
-    application = TaskTemplate.create!(user: @user, title: "실제 지원", points: 25, target_count: 1, position: 2, kind: "application")
+    research = TaskTemplate.create!(user: @user, title: "기업 리서치", points: 10, target_count: 1, position: 3, kind: "research")
 
     result = Tasks::Complete.call(
-      task_template_id: application.id,
+      task_template_id: research.id,
       source_device: @device,
-      idempotency_key: "complete-app-free",
+      idempotency_key: "complete-research-free",
       note: "동네사진관",
       now: @now
     )
