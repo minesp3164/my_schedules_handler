@@ -168,7 +168,7 @@ ERD의 상세 컬럼과 제약은 상위 [erd.md](../erd.md)에 둔다.
 9. 같은 트랜잭션 뒤에서 `Badges::Evaluate`가 미달성 배지를 채운다.
 10. 커밋 뒤에 Action Cable 방송과 알림 작업을 큐에 넣는다.
 
-- `kind: application`(이력서 지원)은 회사명 `note`가 없으면 `422 note_required`로 거절한다. `kind: research`(기업 리서치)는 조사 활동이라 회사명 없이 완료된다.
+- `kind: application`(이력서 지원)은 회사명 `note`가 없으면 `422 note_required`로 거절한다. `kind: research`(기업 리서치)는 회사명 없이도 완료되지만, 조사한 기업을 `note`(선택 시 `company_id` 실존 확인)로 받으면 함께 저장한다 — 홈 탭 보드가 그 회사명을 다시 보여준다.
 
 ### 타이머 완료: `FocusSessions::Complete`
 

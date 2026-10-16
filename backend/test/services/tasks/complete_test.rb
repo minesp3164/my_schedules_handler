@@ -105,6 +105,23 @@ class Tasks::CompleteTest < ActiveSupport::TestCase
     assert_equal 10, PointEvent.effective.sum(:points)
   end
 
+  test "a research task stores the company it researched" do
+    research = TaskTemplate.create!(user: @user, title: "기업 리서치", points: 10, target_count: 2, position: 3, kind: "research")
+    company = Company.create!(name: "카카오", source: "seed")
+
+    result = Tasks::Complete.call(
+      task_template_id: research.id,
+      source_device: @device,
+      idempotency_key: "complete-research-company",
+      note: "  카카오(주)  ",
+      company_id: company.id,
+      now: @now
+    )
+
+    assert_equal "카카오", result.completion.note
+    assert result.completion.note_verified
+  end
+
   test "a company picked from the registry marks the note verified with the canonical name" do
     application = TaskTemplate.create!(user: @user, title: "실제 지원", points: 25, target_count: 1, position: 2, kind: "application")
     company = Company.create!(name: "네이버", source: "seed")

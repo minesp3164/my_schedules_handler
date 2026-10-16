@@ -1,11 +1,19 @@
-import { Pressable, Text, View } from 'react-native';
+import { Linking, Pressable, Text, View } from 'react-native';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { t } from '@/services/i18n';
 import { useTheme } from '@/services/theme';
 import type { TodayRecommendation } from '@/services/today-recommendation';
 import { NextActionCard } from './NextActionCard';
-import { INK, RING, TRACK, type BoardColumn, type DashboardTask } from './board';
+import {
+  INK,
+  RING,
+  TRACK,
+  hasUnverifiedNote,
+  researchNotes,
+  type BoardColumn,
+  type DashboardTask,
+} from './board';
 
 // 상태별 스택 리스트
 export function BoardTaskList({
@@ -101,6 +109,12 @@ export function BoardTaskList({
           const recordedNote =
             task.kind === 'application' && lastCompletion?.note ? lastCompletion.note : null;
           const noteUnverified = lastCompletion?.note_verified === false;
+          // 기업 리서치는 오늘 조사한 기업을 그대로 적어둔다(여러 곳이면 이어 붙인다).
+          const researchedCompanies = researchNotes(task).join(' · ');
+          const researchUnverified = hasUnverifiedNote(task);
+          // 기술 블로그/회고는 마지막 완료에 남긴 글 주소를 보여 주고, 누르면 글을 연다.
+          const portfolioUrl =
+            task.kind === 'portfolio' ? lastCompletion?.note?.trim() || null : null;
           return (
             <View key={task.id}>
               {index > 0 ? <View className="mx-5 h-px bg-hairline" /> : null}
@@ -157,6 +171,33 @@ export function BoardTaskList({
                           ? t('home.applicationNote.unverified', { note: recordedNote })
                           : t('home.applicationNote.recorded', { note: recordedNote })}
                       </Text>
+                    ) : null}
+                    {researchedCompanies ? (
+                      <Text
+                        className={`mt-0.5 text-[11px] font-semibold leading-4 ${
+                          researchUnverified ? 'text-[#C44B5D]' : 'text-meta'
+                        }`}>
+                        {researchUnverified
+                          ? t('home.researchNote.unverified', { note: researchedCompanies })
+                          : t('home.researchNote.recorded', { note: researchedCompanies })}
+                      </Text>
+                    ) : null}
+                    {portfolioUrl ? (
+                      <Pressable
+                        accessibilityRole="link"
+                        accessibilityLabel={t('home.portfolioNote.openAccessibility', {
+                          url: portfolioUrl,
+                        })}
+                        disabled={busy}
+                        onPress={() => void Linking.openURL(portfolioUrl)}
+                        className="mt-0.5 self-start">
+                        <Text
+                          className="text-[11px] font-semibold leading-4 underline"
+                          style={{ color: palette.accent }}
+                          numberOfLines={1}>
+                          {t('home.portfolioNote.recorded', { url: portfolioUrl })}
+                        </Text>
+                      </Pressable>
                     ) : null}
                   </View>
 

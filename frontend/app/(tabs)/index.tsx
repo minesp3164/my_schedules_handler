@@ -13,12 +13,14 @@ import { RewardPaceCard } from '@/components/home/RewardPaceCard';
 import { ApplicationsCard } from '@/components/home/ApplicationsCard';
 import { AlgorithmCompleteSheet } from '@/components/home/AlgorithmCompleteSheet';
 import { ApplicationCompleteSheet } from '@/components/home/ApplicationCompleteSheet';
+import { PortfolioCompleteSheet } from '@/components/home/PortfolioCompleteSheet';
+import { ResearchCompleteSheet } from '@/components/home/ResearchCompleteSheet';
 import { HomeGoalsCard } from '@/components/home/HomeGoalsCard';
 import { HomeStatsGrid } from '@/components/home/HomeStatsGrid';
 import { BoardSegmentControl } from '@/components/home/BoardSegmentControl';
 import { BoardTaskList } from '@/components/home/BoardTaskList';
 import { DeferralsCard } from '@/components/home/DeferralsCard';
-import { buildBoard, type DashboardTask } from '@/components/home/board';
+import { buildBoard, researchNotes, type DashboardTask } from '@/components/home/board';
 import { useTaskCompletion } from '@/components/home/useTaskCompletion';
 import { useApplicationStage } from '@/components/home/useApplicationStage';
 import { useDeferralUndo } from '@/components/home/useDeferralUndo';
@@ -45,7 +47,19 @@ export default function Home() {
     }, [queryClient])
   );
 
-  const { taskMutation, confirmTask, setConfirmTask, confirmAlgorithm } = useTaskCompletion(token);
+  const {
+    taskMutation,
+    confirmTask,
+    setConfirmTask,
+    confirmAlgorithm,
+    researchPrompt,
+    setResearchPrompt,
+    confirmResearch,
+    skipResearchNote,
+    portfolioPrompt,
+    setPortfolioPrompt,
+    confirmPortfolio,
+  } = useTaskCompletion(token);
   const {
     stageMutation,
     applicationPrompt,
@@ -55,15 +69,27 @@ export default function Home() {
   } = useApplicationStage(token);
   const { undoMutation } = useDeferralUndo(token);
 
-  // 알고리즘 완료만 확인창을 거친다(문제명+답변 확인 후 +1). 실제 지원은 회사명이 있어야 +1.
+  // 확인창을 거치는 종류: 알고리즘은 문제명+답변, 기업 리서치는 조사한 기업, 실제 지원은 회사명, 기술 블로그/회고는 글 주소.
   const requestComplete = (task: DashboardTask) => {
     if (!task.goal_completed && task.kind === 'algorithm') {
       setConfirmTask(task);
       return;
     }
+    if (!task.goal_completed && task.kind === 'research') {
+      // 지난 확인창 오류가 그대로 보이지 않도록 상태를 비우고 새로 연다.
+      taskMutation.reset();
+      setResearchPrompt(task);
+      return;
+    }
     if (!task.goal_completed && task.kind === 'application') {
       stageMutation.reset();
       setApplicationPrompt(task);
+      return;
+    }
+    if (!task.goal_completed && task.kind === 'portfolio') {
+      // 지난 확인창 오류가 그대로 보이지 않도록 상태를 비우고 새로 연다.
+      taskMutation.reset();
+      setPortfolioPrompt(task);
       return;
     }
     // 지원 기록으로 채워진 완료는 지원 현황에서 단계를 취소할 때만 되돌아간다.
@@ -185,6 +211,33 @@ export default function Home() {
           onClose={() => setApplicationPrompt(null)}
           onSearch={searchCompanyList}
           onConfirm={confirmApplication}
+        />
+      ) : null}
+
+      {researchPrompt ? (
+        <ResearchCompleteSheet
+          taskTitle={researchPrompt.title}
+          completedCount={researchPrompt.completed_count}
+          targetCount={researchPrompt.target_count}
+          recordedNotes={researchNotes(researchPrompt)}
+          saving={taskMutation.isPending}
+          error={taskMutation.error?.message ?? null}
+          onClose={() => setResearchPrompt(null)}
+          onSearch={searchCompanyList}
+          onConfirm={confirmResearch}
+          onSkip={skipResearchNote}
+        />
+      ) : null}
+
+      {portfolioPrompt ? (
+        <PortfolioCompleteSheet
+          taskTitle={portfolioPrompt.title}
+          completedCount={portfolioPrompt.completed_count}
+          targetCount={portfolioPrompt.target_count}
+          saving={taskMutation.isPending}
+          error={taskMutation.error?.message ?? null}
+          onClose={() => setPortfolioPrompt(null)}
+          onConfirm={confirmPortfolio}
         />
       ) : null}
     </SafeAreaView>

@@ -40,6 +40,29 @@ class Api::V1::DashboardAndHistoryControllerTest < ActionDispatch::IntegrationTe
     assert_equal 15, data.dig("rewards", "daily", "current_points")
   end
 
+  # 홈 탭이 "어떤 기업을 리서치했는지" 보여주려면 완료에 남은 회사명이 그대로 와야 한다.
+  test "dashboard exposes the company recorded on a research completion" do
+    research = TaskTemplate.create!(user: @user, title: "기업 리서치", points: 10, target_count: 2, position: 2, kind: "research")
+    completed_at = Time.zone.parse("2026-09-11 10:00:00")
+    DailyTaskCompletion.create!(
+      task_template: research,
+      source_device: @device,
+      completed_on: @date,
+      sequence: 1,
+      completed_at: completed_at,
+      note: "네이버",
+      note_verified: true
+    )
+
+    get "/api/v1/dashboard?date=2026-09-11", headers: @headers
+
+    assert_response :success
+    task = response.parsed_body.dig("data", "tasks").find { |item| item.fetch("id") == research.id }
+    completion = task.fetch("completions").first
+    assert_equal "네이버", completion.fetch("note")
+    assert completion.fetch("note_verified")
+  end
+
   test "dashboard returns zero values for a date without activity" do
     get "/api/v1/dashboard?date=2026-09-10", headers: @headers
 

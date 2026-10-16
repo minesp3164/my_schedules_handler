@@ -64,6 +64,10 @@
     "recorded": "%{note} 지원 완료",
     "unverified": "%{note} 지원 완료 · 미확인 회사"
   },
+  "researchNote": {
+    "recorded": "%{note} 리서치 완료",
+    "unverified": "%{note} 리서치 완료 · 미확인 회사"
+  },
   "deferrals": {
     "title": "내일로 보낸 할 일",
     "description": "회복 패스로 쉬어 가는 중이에요. 오늘 안에는 되돌릴 수 있어요.",
@@ -77,7 +81,8 @@
     "saving": "기록 중…",
     "confirm": "확인 완료",
     "nthProblem": "%{title} · %{current}/%{total}번째 문제",
-    "nthApplication": "%{title} · %{current}/%{total}번째 지원"
+    "nthApplication": "%{title} · %{current}/%{total}번째 지원",
+    "nthResearch": "%{title} · %{current}/%{total}번째 리서치"
   },
   "algorithmSheet": {
     "title": "어떤 문제였나요?",
@@ -108,5 +113,33 @@
     "unverifiedNote": "미확인 회사로 기록돼요 · 목록에서 고르면 확인돼요.",
     "requiredNote": "지원한 곳을 적어야 완료로 넘어갈 수 있어요.",
     "confirmAccessibility": "지원한 회사를 적고 완료 처리하기"
+  },
+  "researchSheet": {
+    "title": "어떤 기업을 리서치했어요?",
+    "recordNote": "리서치한 기업이 기록돼요",
+    "companyLabel": "리서치한 회사",
+    "companyPlaceholder": "예: 네이버 · 당근마켓",
+    "selectSuggestion": "%{name} 선택",
+    "verifiedNote": "✓ 목록에서 확인된 실존 회사로 기록돼요.",
+    "unverifiedNote": "미확인 회사로 기록돼요 · 목록에서 고르면 확인돼요.",
+    "requiredNote": "리서치한 회사를 적으면 완료로 넘어가요.",
+    "confirmAccessibility": "리서치한 회사를 적고 완료 처리하기",
+    "recordedTitle": "오늘 리서치한 기업",
+    "skip": "회사 없이 완료하기"
+  },
+  "portfolioSheet": {
+    "title": "어느 글을 발행했어요?",
+    "nthPost": "%{title} · %{current}/%{total}번째 글",
+    "recordNote": "글 주소가 기록돼요",
+    "urlLabel": "발행한 글 주소",
+    "urlPlaceholder": "예: https://velog.io/@me/posts/react-hooks",
+    "requiredNote": "글 주소를 적어야 완료로 넘어갈 수 있어요.",
+    "invalidUrl": "주소 형식이 아닌 것 같아요. http:// 또는 https:// 로 시작하는 주소를 적어 주세요.",
+    "readyNote": "이 주소로 기록돼요: %{url}",
+    "confirmAccessibility": "글 주소를 적고 완료 처리하기"
+  },
+  "portfolioNote": {
+    "recorded": "🔗 %{url}",
+    "openAccessibility": "기록된 글 주소 %{url} 열기"
   }
 }

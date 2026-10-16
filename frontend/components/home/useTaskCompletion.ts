@@ -33,9 +33,10 @@ export function useTaskCompletion(token: string | null | undefined) {
         : completeTask(task.id, token, createIdempotencyKey(), note, companyId);
     },
     // 오프라인 큐 적재 시에도 보드의 +1이 즉시 보이도록 캐시를 미리 갱신한다.
-    onMutate: async ({ task }) => {
+    onMutate: async ({ task, note, companyId }) => {
       await queryClient.cancelQueries({ queryKey: ['dashboard'] });
       const previous = queryClient.getQueryData<Dashboard>(['dashboard']);
+      const trimmedNote = note?.trim() || null;
       queryClient.setQueryData<Dashboard>(['dashboard'], (current) =>
         current
           ? {
@@ -59,7 +60,12 @@ export function useTaskCompletion(token: string | null | undefined) {
                   goal_completed: completed >= item.target_count,
                   completions: [
                     ...item.completions,
-                    { id: `optimistic-${Date.now()}`, note: null, note_verified: null },
+                    {
+                      id: `optimistic-${Date.now()}`,
+                      note: trimmedNote,
+                      // 목록에서 고른 회사만 실존 확인, 직접 적은 값은 미확인으로 미리 표시한다.
+                      note_verified: trimmedNote ? Boolean(companyId) : null,
+                    },
                   ],
                 };
               }),
@@ -83,5 +89,41 @@ export function useTaskCompletion(token: string | null | undefined) {
     taskMutation.mutate({ task: confirmTask }, { onSuccess: () => setConfirmTask(null) });
   };
 
-  return { taskMutation, confirmTask, setConfirmTask, confirmAlgorithm };
+  // 기업 리서치는 확인창에서 "어떤 기업을 조사했는지" 회사명을 받는다.
+  const [researchPrompt, setResearchPrompt] = useState<DashboardTask | null>(null);
+  const closeResearch = () => setResearchPrompt(null);
+  const confirmResearch = (note: string, companyId: string | null) => {
+    if (!researchPrompt) return;
+    taskMutation.mutate(
+      { task: researchPrompt, note, companyId: companyId ?? undefined },
+      { onSuccess: closeResearch }
+    );
+  };
+  // 회사 없이 조사만 끝낸 날은 회사명 없이 완료로 남긴다.
+  const skipResearchNote = () => {
+    if (!researchPrompt) return;
+    taskMutation.mutate({ task: researchPrompt }, { onSuccess: closeResearch });
+  };
+
+  // 기술 블로그/회고는 확인창에서 "어느 글을 발행했는지" 글 주소를 받는다.
+  const [portfolioPrompt, setPortfolioPrompt] = useState<DashboardTask | null>(null);
+  const closePortfolio = () => setPortfolioPrompt(null);
+  const confirmPortfolio = (url: string) => {
+    if (!portfolioPrompt) return;
+    taskMutation.mutate({ task: portfolioPrompt, note: url }, { onSuccess: closePortfolio });
+  };
+
+  return {
+    taskMutation,
+    confirmTask,
+    setConfirmTask,
+    confirmAlgorithm,
+    researchPrompt,
+    setResearchPrompt,
+    confirmResearch,
+    skipResearchNote,
+    portfolioPrompt,
+    setPortfolioPrompt,
+    confirmPortfolio,
+  };
 }

@@ -7,7 +7,8 @@ class DailyTaskCompletion < ApplicationRecord
 
   validates :completed_on, :completed_at, :sequence, presence: true
   validates :sequence, numericality: { only_integer: true, greater_than: 0 }
-  validates :note, length: { maximum: 100 }
+  # 블로그 글 URL도 note에 남기므로 100자보다 넉넉하게 받는다.
+  validates :note, length: { maximum: 500 }
 
   scope :active, -> { where(reverted_at: nil) }
 end
