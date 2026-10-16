@@ -46,7 +46,18 @@ export async function request<T>(path: string, token: string, init?: QueuableReq
         ...fetchInit.headers,
       },
     });
-    const body = response.status === 204 ? null : await response.json();
+    // 게이트웨이나 ngrok 이 HTML(오류 페이지)을 돌려주면 json() 파서가 크래시하므로 본문을 확인한다.
+    const text = response.status === 204 ? null : await response.text();
+    let body: { error?: { message?: string; code?: string } } | null = null;
+    if (text) {
+      try {
+        body = JSON.parse(text);
+      } catch {
+        const error = new Error(t('common.requestFailed')) as Error & { code?: string };
+        error.code = 'non_json_response';
+        throw error;
+      }
+    }
     if (!response.ok) {
       const error = new Error(body?.error?.message ?? t('common.requestFailed')) as Error & {
         code?: string;

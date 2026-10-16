@@ -45,9 +45,20 @@ export async function activateDevice(input: {
       },
     }),
   });
-  const body = await response.json();
-  if (!response.ok) throw new Error(body.error?.message ?? t('common.connectFailed'));
-  return body.data as { access_token: string };
+  // HTML 오류 페이지가 오면 json() 파서가 크래시하므로 방어한다.
+  let body: { error?: { message?: string }; data?: { access_token: string } } | null = null;
+  const text = await response.text();
+  if (text) {
+    try {
+      body = JSON.parse(text);
+    } catch {
+      throw new Error(t('common.connectFailed'));
+    }
+  }
+  if (!response.ok || !body?.data) {
+    throw new Error(body?.error?.message ?? t('common.connectFailed'));
+  }
+  return body.data;
 }
 
 export async function issueRealtimeTicket(token: string) {
