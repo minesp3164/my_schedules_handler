@@ -168,7 +168,7 @@ ERD의 상세 컬럼과 제약은 상위 [erd.md](../erd.md)에 둔다.
 9. 같은 트랜잭션 뒤에서 `Badges::Evaluate`가 미달성 배지를 채운다.
 10. 커밋 뒤에 Action Cable 방송과 알림 작업을 큐에 넣는다.
 
-- `kind: application`(이력서 지원)은 회사명 `note`가 없으면 `422 note_required`로 거절한다. `kind: research`(기업 리서치)는 회사명 없이도 완료되지만, 조사한 기업을 `note`(선택 시 `company_id` 실존 확인)로 받으면 함께 저장한다 — 홈 탭 보드가 그 회사명을 다시 보여준다.
+- `kind: application`(실제 지원)은 수동 완료를 받지 않는다 — 회사명 유무와 상관없이 `422 stage_required`로 거절하고 지원 현황의 제출 단계 기록으로만 완료된다(지원 포인트의 유일한 경로). `kind: research`(기업 리서치)는 회사명 없이도 완료되지만, 조사한 기업을 `note`(선택 시 `company_id` 실존 확인)로 받으면 함께 저장한다 — 홈 탭 보드가 그 회사명을 다시 보여준다.
 
 ### 타이머 완료: `FocusSessions::Complete`
 
@@ -202,6 +202,10 @@ ERD의 상세 컬럼과 제약은 상위 [erd.md](../erd.md)에 둔다.
 - 제출 단계였다면 자동 생성된 할 일 완료도 함께 취소한다(완료는 `reverted_at`, 원장 이벤트 없음).
 - 합격 단계였다면 `status`가 `active`로 복귀한다. 사용자가 직접 종결한 상태는 그대로 둔다.
 - 집계 재계산과 `Badges::Evaluate`를 실행하고, 커밋 뒤 `application.stage_reverted`를 방송한다.
+
+### 보상 구매: `Rewards::Redeem`
+
+- reflection(주간 회고)만 300점 차감 구매를 쓴다. `PointEvent(points: -cost)` 원장 행을 만들고 같은 트랜잭션에서 `DailySummary`를 재계산한다 — 사용 직후 오늘 합계에 차감이 반영된다. 지급 경로(`daily_bonus` 등)와 달리 여기서 음수 행은 의도된 값이다(회수/취소가 아니라 실제 지출).
 
 ### 배지 평가: `Badges::Evaluate`
 
