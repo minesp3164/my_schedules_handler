@@ -1,5 +1,13 @@
 import { useState } from 'react';
-import { KeyboardAvoidingView, Modal, Platform, Pressable, Text, TextInput, View } from 'react-native';
+import {
+  KeyboardAvoidingView,
+  Modal,
+  Platform,
+  Pressable,
+  Text,
+  TextInput,
+  View,
+} from 'react-native';
 import { t } from '@/services/i18n';
 import { useTheme } from '@/services/theme';
 
