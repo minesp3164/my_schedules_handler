@@ -74,6 +74,8 @@ export function useTaskCompletion(token: string | null | undefined) {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['dashboard'] });
       queryClient.invalidateQueries({ queryKey: ['badges'] });
+      // 취소가 일일 보너스를 회수하면 목표 달성 표시도 바뀐다.
+      queryClient.invalidateQueries({ queryKey: ['history'] });
     },
   });
   // 알고리즘 완료만 확인창을 거친다(문제명+답변 확인 후 +1).

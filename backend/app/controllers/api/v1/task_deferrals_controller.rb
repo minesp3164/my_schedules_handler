@@ -42,7 +42,8 @@ module Api
         render json: {
           data: {
             deferral: deferral_payload(result.deferral),
-            redemption: redemption_payload(result.redemption)
+            redemption: redemption_payload(result.redemption),
+            daily_summary: summary_payload(result)
           },
           meta: { revision: Realtime::Publish.current_revision, server_time: Time.current }
         }

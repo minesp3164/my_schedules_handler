@@ -182,6 +182,7 @@ ERD의 상세 컬럼과 제약은 상위 [erd.md](../erd.md)에 둔다.
 
 - 원본 완료는 `reverted_at`만 기록한다. 삭제하지 않는다.
 - 원본 `PointEvent`는 `reversed_at`을 갱신하고, 집계를 다시 계산한다.
+- 취소로 목표가 미완료가 되면 `Points::RevokeDailyBonus`가 그날의 일일 보너스도 회수한다(`daily_bonus` 이벤트 `reversed_at`, `daily_bonus_awarded` 해제, `all_goals_completed_at` 초기화). 이월 되돌리기(`Tasks::UndoDefer`)도 같은 회수를 쓴다. 같은 날 목표를 다시 채우면 같은 `idempotency_key` 원장 행을 다시 써서 보너스가 재지급된다.
 - `application_stage_event_id`로 연결된 완료(제출 단계가 자동으로 채운 것)는 `409 stage_backed_completion`으로 거부한다. 이 경우 단계 기록을 취소해야 한다.
 - 이후 전체 완료 조건이 사라져도 과거 보상 알림은 취소하지 않는다. 다만 점수·진행도 표시는 현재 상태로 내려가고, 배지는 지표가 기준 미달이 되면 `Badges::Evaluate`가 회수한다.
 

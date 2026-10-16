@@ -12,6 +12,10 @@ module Tasks
 
         completion.update!(reverted_at: Time.current)
         completion.point_event.update!(reversed_at: Time.current)
+        # 취소로 목표가 미완료가 되면 그날의 일일 보너스도 함께 회수한다.
+        Points::RevokeDailyBonus.call(
+          user: completion.point_event.user, date: completion.completed_on, now: Time.current
+        )
         summary = Points::RecalculateDailySummary.call(date: completion.completed_on)
         [completion, summary, true]
       end
